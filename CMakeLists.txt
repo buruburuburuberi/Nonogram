@@ -4,9 +4,7 @@ project (Nonogram
   LANGUAGES CXX
 )
 
-set(CMAKE_AUTOMOC ON)
-
-set (CMAKE_CXX_STANDARD 14)
+set (CMAKE_AUTOMOC ON)
 set (CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # compile warning flags
