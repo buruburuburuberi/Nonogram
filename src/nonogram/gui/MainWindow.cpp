@@ -2,6 +2,7 @@
 
 #include <QtGui/QStandardItem>
 #include <QtWidgets/QFormLayout>
+#include <QtWidgets/QStatusBar>
 #include <QtWidgets/QToolBar>
 #include <QtWidgets/QWidget>
 
@@ -14,17 +15,18 @@ namespace nonogram
     MainWindow::MainWindow()
     : play_field_ (this)
     {
-      setMinimumWidth (800);
-      setMinimumHeight (600);
+      statusBar()->showMessage ("Ready");
 
       data::Nonogram nonogram
         ( "5x5"
-        , { 0, 0, 1, 0, 0
-          , 0, 1, 1, 1, 0
-          , 1, 1, 1, 1, 1
-          , 0, 1, 1, 1, 0
-          , 0, 0, 1, 0, 0
-          }
+        , data::Nonogram::Solution
+            { { { 0, 0, 1, 0, 0 }
+              , { 0, 1, 1, 1, 0 }
+              , { 1, 1, 1, 1, 1 }
+              , { 0, 1, 1, 1, 0 }
+              , { 0, 0, 1, 0, 0 }
+              }
+            }
         );
       nonograms_.emplace (nonogram.name(), nonogram);
 
@@ -54,9 +56,20 @@ namespace nonogram
 
       nonogram_list_->setModel (&nonogram_model_);
 
-      play_field_->setSizePolicy (QSizePolicy::Expanding, QSizePolicy::Expanding);
+      connect ( nonogram_list_.get()
+              , &QComboBox::currentTextChanged
+              , this
+              , [&] (QString text)
+                {
+                  play_field_->setNonogram (nonograms_.at (text.toStdString()));
+                }
+              );
 
-      level_selection_layout->addRow ( "Available puzzle:"
+      play_field_->setSizePolicy ( QSizePolicy::Expanding
+                                 , QSizePolicy::Expanding
+                                 );
+
+      level_selection_layout->addRow ( "Available puzzles:"
                                      , nonogram_list_.release()
                                      );
       level_selection_widget->setLayout (level_selection_layout.release());
