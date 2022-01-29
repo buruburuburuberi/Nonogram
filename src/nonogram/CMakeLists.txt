@@ -1,5 +1,6 @@
 set (INSTALL_DESTINATION "bin")
 set (SOURCES data/Nonogram.cpp
+             data/Solution.cpp
              gui/MainWindow.cpp
              gui/PlayField.cpp
              main.cpp

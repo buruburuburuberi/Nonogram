@@ -21,19 +21,34 @@ namespace nonogram
       return name_;
     }
 
-    unsigned int Nonogram::rows() const
+    Rows Nonogram::rows() const
     {
       return solution_.rows();
     }
 
-    unsigned int Nonogram::columns() const
+    Columns Nonogram::columns() const
     {
       return solution_.columns();
     }
 
-    Nonogram::Datum Nonogram::at (unsigned int column, unsigned int row) const
+    Nonogram::Datum Nonogram::at (Column column, Row row) const
     {
       return answer_.at (column, row);
+    }
+
+    QSize Nonogram::size_of_clues() const
+    {
+      return solution_.size_of_clues();
+    }
+
+    Solution::Clues const& Nonogram::clues (Column column) const
+    {
+      return solution_.clues (column);
+    }
+
+    Solution::Clues const& Nonogram::clues (Row row) const
+    {
+      return solution_.clues (row);
     }
   }
 }

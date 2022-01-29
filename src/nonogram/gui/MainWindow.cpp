@@ -17,18 +17,37 @@ namespace nonogram
     {
       statusBar()->showMessage ("Ready");
 
-      data::Nonogram nonogram
-        ( "5x5"
-        , data::Nonogram::Solution
-            { { { 0, 0, 1, 0, 0 }
-              , { 0, 1, 1, 1, 0 }
-              , { 1, 1, 1, 1, 1 }
-              , { 0, 1, 1, 1, 0 }
-              , { 0, 0, 1, 0, 0 }
-              }
-            }
+      auto add_nonogram
+        ( [&] (data::Nonogram nonogram)
+          {
+            nonograms_.emplace (nonogram.name(), std::move (nonogram));
+          }
         );
-      nonograms_.emplace (nonogram.name(), nonogram);
+
+      add_nonogram
+        ( { "5x5"
+          , data::Array2D<bool>
+              { { { 0, 0, 1, 0, 0 }
+                , { 0, 1, 1, 1, 0 }
+                , { 1, 1, 0, 1, 1 }
+                , { 0, 1, 1, 1, 0 }
+                , { 0, 0, 1, 0, 0 }
+                }
+              }
+          }
+        );
+      add_nonogram
+        ( { "8x5"
+          , data::Array2D<bool>
+              { { { 1, 0, 0, 1, 1, 1, 0, 0 }
+                , { 1, 0, 0, 1, 0, 1, 1, 0 }
+                , { 1, 0, 1, 0, 1, 0, 1, 1 }
+                , { 1, 0, 0, 1, 0, 1, 0, 0 }
+                , { 1, 1, 0, 0, 1, 0, 0, 0 }
+                }
+              }
+          }
+        );
 
       util::unique_qt_ptr<QFrame> level_selection_widget;
       util::unique_qt_ptr<QFormLayout> level_selection_layout;
@@ -64,10 +83,6 @@ namespace nonogram
                   play_field_->setNonogram (nonograms_.at (text.toStdString()));
                 }
               );
-
-      play_field_->setSizePolicy ( QSizePolicy::Expanding
-                                 , QSizePolicy::Expanding
-                                 );
 
       level_selection_layout->addRow ( "Available puzzles:"
                                      , nonogram_list_.release()

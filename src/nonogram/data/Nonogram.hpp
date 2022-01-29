@@ -1,6 +1,7 @@
 #pragma once
 
 #include <nonogram/data/Array2D.hpp>
+#include <nonogram/data/Solution.hpp>
 
 #include <algorithm>
 #include <cstddef>
@@ -18,19 +19,23 @@ namespace nonogram
       enum class Datum
       { Empty = 0
       , Filled = 1
-      , Cross = 2
-      , Marked = 3
+      , Crossed = 2
+      , FillMark = 3
+      , CrossMark = 4
       };
-
-      using Solution = Array2D<bool>;
+;
       using Answer = Array2D<Datum>;
 
-      Nonogram (std::string name, Solution data);
+      Nonogram (std::string name, Solution);
 
       std::string name() const;
-      unsigned int rows() const;
-      unsigned int columns() const;
-      Datum at (unsigned int column, unsigned int row) const;
+      Rows rows() const;
+      Columns columns() const;
+      Datum at (Column, Row) const;
+
+      QSize size_of_clues() const;
+      Solution::Clues const& clues (Column) const;
+      Solution::Clues const& clues (Row) const;
 
     private:
       std::string name_;

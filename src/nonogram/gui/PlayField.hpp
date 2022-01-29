@@ -23,19 +23,45 @@ namespace nonogram
       void setNonogram (data::Nonogram);
 
     protected:
-      void paintEvent (QPaintEvent*) override;
+      void paintGL() override;
+      void resizeGL (int width, int height) override;
 
     private:
-      QRect slotRect (int row, int column) const;
-      void drawSlot ( QPainter* painter
-                    , int row
-                    , int column
-                    , data::Nonogram::Datum datum
+      QPoint clueCenter (QRect clues_rect, data::Column, data::Row) const;
+      void drawClue ( QPainter& painter
+                    , QRect clues_rect
+                    , data::Column
+                    , data::Row
+                    , std::optional<data::Solution::Clue>
                     );
 
-      int slot_size_;
-      int fill_size_;
-      std::optional<data::Nonogram> nonogram_;
+      QPoint slotCenter (data::Column, data::Row) const;
+      void drawSlot ( QPainter& painter
+                    , data::Column
+                    , data::Row
+                    , data::Nonogram::Datum
+                    );
+
+      void drawClues (QPainter& painter);
+      void drawPuzzle (QPainter& painter);
+
+      struct NonogramData
+      {
+        NonogramData (data::Nonogram, QSize window_size);
+
+        void update (QSize window_size);
+
+        int slot_size;
+        data::Nonogram data;
+        QRect puzzle_rect;
+        QRect left_clues_rect;
+        QRect right_clues_rect;
+        QRect top_clues_rect;
+        QRect bottom_clues_rect;
+        QRect field_rect;
+      };
+
+      std::optional<NonogramData> nonogram_;
     };
   }
 }
