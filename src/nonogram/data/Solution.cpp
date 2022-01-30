@@ -1,5 +1,6 @@
 #include <nonogram/data/Solution.hpp>
 
+#include <iostream>
 #include <string>
 
 namespace nonogram
@@ -8,15 +9,33 @@ namespace nonogram
   {
     Solution::Solution (Array2D<bool> data)
     : data_ (std::move (data))
-    , size_of_clues_ (0, 0)
     {
-      clues_of_columns_.resize (data_.columns().value);
-      clues_of_rows_.resize (data_.rows().value);
+      clues_.emplace (ClueType::Right, std::move (compute_right_clues()));
+      clues_.emplace (ClueType::Bottom, std::move (compute_bottom_clues()));
+      clues_.emplace
+        ( ClueType::Left
+        , std::move (compute_left_clues (clues_.at (ClueType::Right)))
+        );
+      clues_.emplace
+        ( ClueType::Top
+        , std::move (compute_top_clues (clues_.at (ClueType::Bottom)))
+        );
+    }
 
-      for (Column column {0}; column.value < columns().value; ++column.value)
+    Solution::Clues Solution::compute_right_clues() const
+    {
+      std::vector<std::vector<Clue>> clues;
+      clues.resize (data_.rows().value);
+
+      std::size_t max_size (0);
+
+      for (Row row {0}; row.value < rows_of_data().value; ++row.value)
       {
         unsigned int horizontal_filled_counter (0);
-        for (Row row {0}; row.value < rows().value; ++row.value)
+        for ( Column column {0}
+            ; column.value < columns_of_data().value
+            ; ++column.value
+            )
         {
           bool const current_square_filled (data_.at (column, row));
 
@@ -25,34 +44,48 @@ namespace nonogram
             horizontal_filled_counter++;
           }
 
-          if ( row.value > 0
+          if ( column.value > 0
             && !current_square_filled
-            && data_.at (column, Row {row.value - 1})
+            && data_.at (Column {column.value - 1}, row)
              )
           {
-            clues_of_columns_[column.value].push_back (horizontal_filled_counter);
+            clues[row.value].push_back (horizontal_filled_counter);
             horizontal_filled_counter = 0;
           }
 
-          if ( row.value == data_.rows().value - 1
+          if ( column.value == data_.columns().value - 1
             && horizontal_filled_counter > 0
              )
           {
-            clues_of_columns_[column.value].push_back (horizontal_filled_counter);
+            clues[row.value].push_back (horizontal_filled_counter);
           }
         }
 
-        size_of_clues_.setHeight
-          ( std::max ( static_cast<std::size_t> (size_of_clues_.height())
-                     , clues_of_columns_[column.value].size()
-                     )
-          );
+        max_size = std::max (max_size, clues[row.value].size());
       }
 
-      for (Row row {0}; row.value < rows().value; ++row.value)
+      for (auto& row : clues)
       {
+        row.resize (max_size, 0);
+      }
+
+      return Clues (clues);
+    }
+
+    Solution::Clues Solution::compute_bottom_clues() const
+    {
+      std::vector<std::vector<Clue>> clues;
+
+      std::size_t max_size (0);
+
+      for ( Column column {0}
+          ; column.value < columns_of_data().value
+          ; ++column.value
+          )
+      {
+        unsigned int row_counter (0);
         unsigned int vertical_filled_counter (0);
-        for (Column column {0}; column.value < columns().value; ++column.value)
+        for (Row row {0}; row.value < rows_of_data().value; ++row.value)
         {
           bool const current_square_filled (data_.at (column, row));
 
@@ -61,66 +94,134 @@ namespace nonogram
             vertical_filled_counter++;
           }
 
-          if ( column.value > 0
+          if ( row.value > 0
             && !current_square_filled
-            && data_.at (Column {column.value - 1}, row)
+            && data_.at (column, Row {row.value - 1})
              )
           {
-            clues_of_rows_[row.value].push_back (vertical_filled_counter);
+            if (row_counter == clues.size())
+            {
+              clues.push_back
+                (std::vector<Clue> (data_.columns().value, 0));
+            }
+
+            clues[row_counter][column.value] = vertical_filled_counter;
+            row_counter++;
             vertical_filled_counter = 0;
           }
 
-          if ( column.value == data_.columns().value - 1
+          if ( row.value == data_.rows().value - 1
             && vertical_filled_counter > 0
              )
           {
-            clues_of_rows_[row.value].push_back (vertical_filled_counter);
+            if (row_counter == clues.size())
+            {
+              clues.push_back
+                (std::vector<Clue> (data_.columns().value, 0));
+            }
+
+            clues[row_counter][column.value] = vertical_filled_counter;
+            row_counter++;
           }
         }
 
-        size_of_clues_.setWidth
-          ( std::max ( static_cast<std::size_t> (size_of_clues_.width())
-                     , clues_of_rows_[row.value].size()
-                     )
-          );
+        max_size = std::max (max_size, clues[column.value].size());
       }
+
+      return Clues (clues);
     }
 
-    Rows Solution::rows() const
+    Solution::Clues Solution::compute_left_clues (Clues const& data) const
+    {
+      Clues clues (data);
+
+      for (Row row {0}; row.value < data.rows().value; ++row.value)
+      {
+        auto clues_of_row (data.row (row));
+        if (clues_of_row.back() > 0)
+        {
+          continue;
+        }
+
+        std::vector<Clue> new_clues;
+
+        for (auto const& clue : clues_of_row)
+        {
+          if (clue > 0)
+          {
+            new_clues.push_back (clue);
+          }
+        }
+
+        auto const number_of_zeroes (clues_of_row.size() - new_clues.size());
+        new_clues.insert (new_clues.begin(), number_of_zeroes, 0);
+
+        for (Column column {0}; column.value < new_clues.size(); ++column.value)
+        {
+          clues.set (column, row, new_clues.at (column.value));
+        }
+      }
+
+      return clues;
+    }
+
+    Solution::Clues Solution::compute_top_clues (Clues const& data) const
+    {
+      Clues clues (data);
+
+      for (Column column {0}; column.value < data.columns().value; ++column.value)
+      {
+        auto const clues_of_column (clues.column (column));
+        if (clues_of_column.back() > 0)
+        {
+          continue;
+        }
+
+        std::vector<Clue> new_clues;
+
+        for (auto const& clue : clues_of_column)
+        {
+          if (clue > 0)
+          {
+            new_clues.push_back (clue);
+          }
+        }
+
+        auto const number_of_zeroes (clues_of_column.size() - new_clues.size());
+        new_clues.insert (new_clues.begin(), number_of_zeroes, 0);
+
+        for (Row row {0}; row.value < new_clues.size(); ++row.value)
+        {
+          clues.set (column, row, new_clues.at (row.value));
+        }
+      }
+
+      return clues;
+    }
+
+    Rows Solution::rows_of_data() const
     {
       return data_.rows();
     }
 
-    Columns Solution::columns() const
+    Columns Solution::columns_of_data() const
     {
       return data_.columns();
     }
 
-    QSize Solution::size_of_clues() const
+    Columns Solution::columns_of_clues (ClueType type) const
     {
-      return size_of_clues_;
+      return clues_.at (type).columns();
     }
 
-    Solution::Clues const& Solution::clues (Column column) const
+    Rows Solution::rows_of_clues (ClueType type) const
     {
-      if (column.value >= columns().value)
-      {
-        throw std::invalid_argument
-          ("Invalid access (" + std::to_string (column.value) + ")");
-      }
-
-      return clues_of_columns_.at (column.value);
+      return clues_.at (type).rows();
     }
 
-    Solution::Clues const& Solution::clues (Row row) const
+    Solution::Clue Solution::clue (ClueType type, Column column, Row row) const
     {
-      if (row.value >= rows().value)
-      {
-        throw std::invalid_argument
-          ("Invalid access (" + std::to_string (row.value) + ")");
-      }
-
-      return clues_of_rows_.at (row.value);
+      return clues_.at (type).at (column, row);
     }
   }
 }

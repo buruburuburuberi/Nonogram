@@ -11,44 +11,53 @@ namespace nonogram
     Nonogram::Nonogram (std::string name, Solution data)
     : name_ (std::move (name))
     , solution_ (std::move (data))
-    , answer_ (solution_.columns(), solution_.rows())
-    {
-      answer_.fill (Datum::Empty);
-    }
+    , answer_ (solution_)
+    {}
 
     std::string Nonogram::name() const
     {
       return name_;
     }
 
-    Rows Nonogram::rows() const
+    Rows Nonogram::rows_of_data() const
     {
-      return solution_.rows();
+      return solution_.rows_of_data();
     }
 
-    Columns Nonogram::columns() const
+    Columns Nonogram::columns_of_data() const
     {
-      return solution_.columns();
+      return solution_.columns_of_data();
     }
 
-    Nonogram::Datum Nonogram::at (Column column, Row row) const
+    Answer::Datum Nonogram::at (Column column, Row row) const
     {
       return answer_.at (column, row);
     }
 
-    QSize Nonogram::size_of_clues() const
+    Columns Nonogram::columns_of_clues (Solution::ClueType type) const
     {
-      return solution_.size_of_clues();
+      return solution_.columns_of_clues (type);
     }
 
-    Solution::Clues const& Nonogram::clues (Column column) const
+    Rows Nonogram::rows_of_clues (Solution::ClueType type) const
     {
-      return solution_.clues (column);
+      return solution_.rows_of_clues (type);
     }
 
-    Solution::Clues const& Nonogram::clues (Row row) const
+    Solution::Clue Nonogram::clue ( Solution::ClueType type
+                                  , Column column
+                                  , Row row
+                                  ) const
     {
-      return solution_.clues (row);
+      return solution_.clue (type, column, row);
+    }
+
+    Answer::ClueState Nonogram::is_clue_crossed ( Solution::ClueType type
+                                                , Column column
+                                                , Row row
+                                                ) const
+    {
+      return answer_.is_clue_crossed (type, column, row);
     }
   }
 }

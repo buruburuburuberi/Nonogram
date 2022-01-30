@@ -8,6 +8,7 @@
 #include <QtWidgets/QOpenGLWidget>
 
 #include <optional>
+#include <map>
 
 namespace nonogram
 {
@@ -29,20 +30,19 @@ namespace nonogram
     private:
       QPoint clueCenter (QRect clues_rect, data::Column, data::Row) const;
       void drawClue ( QPainter& painter
-                    , QRect clues_rect
+                    , data::Solution::ClueType type
                     , data::Column
                     , data::Row
-                    , std::optional<data::Solution::Clue>
                     );
 
       QPoint slotCenter (data::Column, data::Row) const;
       void drawSlot ( QPainter& painter
                     , data::Column
                     , data::Row
-                    , data::Nonogram::Datum
+                    , data::Answer::Datum
                     );
 
-      void drawClues (QPainter& painter);
+      void drawClues (QPainter& painter, data::Solution::ClueType);
       void drawPuzzle (QPainter& painter);
 
       struct NonogramData
@@ -51,13 +51,11 @@ namespace nonogram
 
         void update (QSize window_size);
 
+        int font_size;
         int slot_size;
         data::Nonogram data;
         QRect puzzle_rect;
-        QRect left_clues_rect;
-        QRect right_clues_rect;
-        QRect top_clues_rect;
-        QRect bottom_clues_rect;
+        std::map<data::Solution::ClueType, QRect> clues_rects;
         QRect field_rect;
       };
 

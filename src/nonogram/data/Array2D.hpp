@@ -20,12 +20,12 @@ namespace nonogram
     public:
       Array2D() = default;
 
-      Array2D (Columns columns, Rows rows)
+      Array2D (Columns columns, Rows rows, T value = T())
       {
         data_.resize (rows.value);
         for (auto& row : data_)
         {
-          row.resize (columns.value);
+          row.resize (columns.value, value);
         }
       }
 
@@ -59,21 +59,25 @@ namespace nonogram
         return data_[row.value][column.value];
       }
 
-      std::vector<T> column (Column column)
+      std::vector<T> column (Column column) const
       {
         check_invalid_access (column);
 
         std::vector<T> data;
 
+        for (auto const& row : data_)
+        {
+          data.push_back (row.at (column.value));
+        }
 
         return data;
       }
 
-      std::vector<T> row (Row row)
+      std::vector<T> row (Row row) const
       {
-        check_invalid_access (column);
+        check_invalid_access (row);
 
-        return data_.at (row);
+        return data_.at (row.value);
       }
 
       void fill (T value)
