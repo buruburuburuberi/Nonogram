@@ -8,6 +8,7 @@ namespace nonogram
   {
     PlayField::PlayField (QWidget *parent)
     : QOpenGLWidget (parent)
+    , fill_mode_ (data::Answer::Datum::Filled)
     {
       setAutoFillBackground (true);
     }
@@ -91,6 +92,11 @@ namespace nonogram
       field_rect.translate (offset);
     }
 
+    void PlayField::setFillMode (data::Answer::Datum mode)
+    {
+      fill_mode_ = mode;
+    }
+
     void PlayField::setNonogram (data::Nonogram nonogram)
     {
       nonogram_ = NonogramData (std::move (nonogram), size());
@@ -137,12 +143,20 @@ namespace nonogram
 
       painter.fillRect (background_rect, Qt::yellow);
 
+      auto const slot_size
+        ( pressed_clue_
+        && pressed_clue_->column.value == column.value
+        && pressed_clue_->row.value == row.value
+        ? nonogram_->slot_size - 4
+        : nonogram_->slot_size
+        );
+
       auto const clue (nonogram_->data.clue (type, column, row));
 
       if (clue > 0)
       {
         painter.setPen (Qt::black);
-        auto const text_size (nonogram_->slot_size);
+        auto const text_size (slot_size);
         QFont font;
         font.setPixelSize (nonogram_->font_size);
         painter.setFont (font);
@@ -150,13 +164,13 @@ namespace nonogram
         text_rect.moveCenter (clue_center);
         painter.drawText (text_rect, Qt::AlignCenter, QString::number (clue));
 
-        if (nonogram_->data.is_clue_crossed (type, column, row))
+        if (nonogram_->data.is_crossed (type, column, row))
         {
           auto pen (painter.pen());
           pen.setWidth (2);
           painter.setPen (pen);
 
-          auto const cross_size (nonogram_->slot_size - 10);
+          auto const cross_size (slot_size - 10);
           QRect cross_rect (0, 0, cross_size, cross_size);
           cross_rect.moveCenter (clue_center);
 
@@ -186,6 +200,13 @@ namespace nonogram
           drawClue (painter, type, column, row);
         }
       }
+    }
+
+    data::Slot PlayField::fromPosition (QRect rect, QPoint position) const
+    {
+      return { data::Column {(position.x() - rect.x()) / nonogram_->slot_size}
+             , data::Row {(position.y() - rect.y()) / nonogram_->slot_size}
+             };
     }
 
     QPoint PlayField::slotCenter (data::Column column, data::Row row) const
@@ -227,6 +248,14 @@ namespace nonogram
       pen.setColor (Qt::black);
       painter.setPen (pen);
 
+      auto const slot_size
+        ( pressed_slot_
+        && pressed_slot_->column.value == column.value
+        && pressed_slot_->row.value == row.value
+        ? nonogram_->slot_size - 4
+        : nonogram_->slot_size
+        );
+
       switch (datum)
       {
         case data::Answer::Datum::Empty:
@@ -235,7 +264,7 @@ namespace nonogram
         }
         case data::Answer::Datum::Filled:
         {
-          auto const point_size (nonogram_->slot_size - 6);
+          auto const point_size (slot_size - 6);
           QRect point_rect (0, 0, point_size, point_size);
           point_rect.moveCenter (slot_center);
 
@@ -244,7 +273,7 @@ namespace nonogram
         }
         case data::Answer::Datum::Crossed:
         {
-          auto const cross_size (nonogram_->slot_size - 8);
+          auto const cross_size (slot_size - 8);
           QRect cross_rect (0, 0, cross_size, cross_size);
           cross_rect.moveCenter (slot_center);
 
@@ -254,7 +283,7 @@ namespace nonogram
         }
         case data::Answer::Datum::FillMark:
         {
-          auto const fill_mark_size ((nonogram_->slot_size - 8.0f) / 2.0f);
+          auto const fill_mark_size ((slot_size - 8.0f) / 2.0f);
           QRect fill_mark_rect (0, 0, fill_mark_size, fill_mark_size);
           fill_mark_rect.moveCenter (slot_center);
 
@@ -263,7 +292,7 @@ namespace nonogram
         }
         case data::Answer::Datum::CrossMark:
         {
-          auto const cross_mark_size (nonogram_->slot_size - 8);
+          auto const cross_mark_size (slot_size - 8);
           QRect cross_mark_rect (0, 0, cross_mark_size, cross_mark_size);
           cross_mark_rect.moveCenter (slot_center);
 
@@ -298,6 +327,120 @@ namespace nonogram
         {
           drawSlot (painter, column, row, nonogram_->data.at (column, row));
         }
+      }
+    }
+
+    bool PlayField::fillSlot (QPoint position)
+    {
+      if (!nonogram_)
+      {
+        return false;
+      }
+
+      if (nonogram_->puzzle_rect.contains (position))
+      {
+        auto const slot (fromPosition (nonogram_->puzzle_rect, position));
+
+        nonogram_->data.set (slot.column, slot.row, fill_mode_);
+        pressed_slot_ = {slot.column, slot.row};
+
+        update();
+
+        return true;
+      }
+
+      return false;
+    }
+
+    bool PlayField::crossClue (QPoint position, bool first_press)
+    {
+      if (!nonogram_)
+      {
+        return false;
+      }
+
+      for (auto const& rect : nonogram_->clues_rects)
+      {
+        if (rect.second.contains (position))
+        {
+          auto const slot (fromPosition (rect.second, position));
+
+          if (first_press)
+          {
+            current_clue_state_ =
+                !nonogram_->data.is_crossed (rect.first, slot.column, slot.row);
+          }
+
+          nonogram_->data.set_crossed ( rect.first
+                                      , slot.column
+                                      , slot.row
+                                      , current_clue_state_.value()
+                                      );
+          pressed_clue_ = {slot.column, slot.row};
+
+          update();
+
+          return true;
+        }
+      }
+
+      return false;
+    }
+
+    void PlayField::mouseMoveEvent (QMouseEvent* event)
+    {
+      if (!nonogram_)
+      {
+        return;
+      }
+
+      if (event->buttons() & Qt::LeftButton)
+      {
+        if (fillSlot (event->pos()))
+        {
+          return;
+        }
+        else if (crossClue (event->pos(), false))
+        {
+          return;
+        }
+      }
+    }
+
+    void PlayField::mousePressEvent (QMouseEvent* event)
+    {
+      if (!nonogram_)
+      {
+        return;
+      }
+
+      if (event->buttons() & Qt::LeftButton)
+      {
+        if (fillSlot (event->pos()))
+        {
+          return;
+        }
+        else if (crossClue (event->pos(), true))
+        {
+          return;
+        }
+      }
+    }
+
+    void PlayField::mouseReleaseEvent (QMouseEvent*)
+    {
+      if (!nonogram_)
+      {
+        return;
+      }
+
+      if (pressed_slot_ || pressed_clue_)
+      {
+        pressed_slot_.reset();
+        pressed_clue_.reset();
+        current_clue_state_.reset();
+
+        update();
       }
     }
 

@@ -54,19 +54,24 @@ namespace nonogram
       return data_.at (column, row);
     }
 
-    Answer::ClueState Answer::is_clue_crossed ( Solution::ClueType type
-                                              , Column column
-                                              , Row row
-                                              ) const
+    void Answer::set (Column column, Row row, Datum datum)
+    {
+      data_.set (column, row, datum);
+    }
+
+    Answer::ClueState Answer::is_crossed ( Solution::ClueType type
+                                         , Column column
+                                         , Row row
+                                         ) const
     {
       return clue_states_.at (type).at (column, row);
     }
 
-    void Answer::set_clue_crossed ( Solution::ClueType type
-                                  , Column column
-                                  , Row row
-                                  , ClueState state
-                                  )
+    void Answer::set_crossed ( Solution::ClueType type
+                             , Column column
+                             , Row row
+                             , ClueState state
+                             )
     {
       clue_states_.at (type).set (column, row, state);
     }

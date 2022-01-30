@@ -2,6 +2,7 @@
 
 #include <nonogram/data/Nonogram.hpp>
 
+#include <QtGui/QMouseEvent>
 #include <QtGui/QOpenGLFunctions>
 #include <QtGui/QPaintEvent>
 #include <QtGui/QResizeEvent>
@@ -21,13 +22,21 @@ namespace nonogram
     public:
       PlayField (QWidget* parent);
 
+      void setFillMode (data::Answer::Datum);
       void setNonogram (data::Nonogram);
 
     protected:
+      void mouseMoveEvent (QMouseEvent*) override;
+      void mousePressEvent (QMouseEvent*) override;
+      void mouseReleaseEvent (QMouseEvent*) override;
       void paintGL() override;
       void resizeGL (int width, int height) override;
 
     private:
+      data::Slot fromPosition (QRect, QPoint) const;
+      bool fillSlot (QPoint);
+      bool crossClue (QPoint, bool first_press);
+
       QPoint clueCenter (QRect clues_rect, data::Column, data::Row) const;
       void drawClue ( QPainter& painter
                     , data::Solution::ClueType type
@@ -51,8 +60,8 @@ namespace nonogram
 
         void update (QSize window_size);
 
-        int font_size;
-        int slot_size;
+        std::size_t font_size;
+        std::size_t slot_size;
         data::Nonogram data;
         QRect puzzle_rect;
         std::map<data::Solution::ClueType, QRect> clues_rects;
@@ -60,6 +69,10 @@ namespace nonogram
       };
 
       std::optional<NonogramData> nonogram_;
+      data::Answer::Datum fill_mode_;
+      std::optional<data::Slot> pressed_clue_;
+      std::optional<data::Answer::ClueState> current_clue_state_;
+      std::optional<data::Slot> pressed_slot_;
     };
   }
 }

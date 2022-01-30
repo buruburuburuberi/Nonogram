@@ -34,6 +34,11 @@ namespace nonogram
       return answer_.at (column, row);
     }
 
+    void Nonogram::set (Column column, Row row, Answer::Datum datum)
+    {
+      answer_.set (column, row, datum);
+    }
+
     Columns Nonogram::columns_of_clues (Solution::ClueType type) const
     {
       return solution_.columns_of_clues (type);
@@ -52,12 +57,21 @@ namespace nonogram
       return solution_.clue (type, column, row);
     }
 
-    Answer::ClueState Nonogram::is_clue_crossed ( Solution::ClueType type
-                                                , Column column
-                                                , Row row
-                                                ) const
+    Answer::ClueState Nonogram::is_crossed ( Solution::ClueType type
+                                           , Column column
+                                           , Row row
+                                           ) const
     {
-      return answer_.is_clue_crossed (type, column, row);
+      return answer_.is_crossed (type, column, row);
+    }
+
+    void Nonogram::set_crossed ( Solution::ClueType type
+                               , Column column
+                               , Row row
+                               , Answer::ClueState state
+                               )
+    {
+      answer_.set_crossed (type, column, row, state);
     }
   }
 }

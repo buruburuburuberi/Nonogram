@@ -23,12 +23,14 @@ namespace nonogram
       Rows rows_of_data() const;
       Columns columns_of_data() const;
       Answer::Datum at (Column, Row) const;
+      void set (Column, Row, Answer::Datum);
 
       Columns columns_of_clues (Solution::ClueType) const;
       Rows rows_of_clues (Solution::ClueType) const;
 
       Solution::Clue clue (Solution::ClueType, Column, Row) const;
-      Answer::ClueState is_clue_crossed (Solution::ClueType, Column, Row) const;
+      Answer::ClueState is_crossed (Solution::ClueType, Column, Row) const;
+      void set_crossed (Solution::ClueType, Column, Row, Answer::ClueState);
 
     private:
       std::string name_;

@@ -28,9 +28,10 @@ namespace nonogram
       Answer (Solution const&);
 
       Datum at (Column, Row) const;
+      void set (Column, Row, Datum);
 
-      bool is_clue_crossed (Solution::ClueType, Column, Row) const;
-      void set_clue_crossed (Solution::ClueType, Column, Row, ClueState);
+      bool is_crossed (Solution::ClueType, Column, Row) const;
+      void set_crossed (Solution::ClueType, Column, Row, ClueState);
 
     private:
       Array2D<Datum> data_;

@@ -5,8 +5,10 @@
 #include <nonogram/util/unique_qt_ptr.hpp>
 
 #include <QtGui/QStandardItemModel>
+#include <QtWidgets/QButtonGroup>
 #include <QtWidgets/QComboBox>
 #include <QtWidgets/QMainWindow>
+#include <QtWidgets/QToolButton>
 
 #include <map>
 #include <vector>
@@ -26,6 +28,7 @@ namespace nonogram
         std::map<std::string, data::Nonogram> nonograms_;
         QStandardItemModel nonogram_model_;
         util::unique_qt_ptr<QComboBox> nonogram_list_;
+        util::unique_qt_ptr<QButtonGroup> tools_group_;
         util::unique_qt_ptr<PlayField> play_field_;
     };
   }

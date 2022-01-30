@@ -14,6 +14,12 @@ namespace nonogram
     struct Row { std::size_t value; };
     struct Rows { std::size_t value; };
 
+    struct Slot
+    {
+      Column column;
+      Row row;
+    };
+
     template<typename T>
     class Array2D
     {
