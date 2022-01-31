@@ -32,6 +32,8 @@ namespace nonogram
       Answer::ClueState is_crossed (Solution::ClueType, Column, Row) const;
       void set_crossed (Solution::ClueType, Column, Row, Answer::ClueState);
 
+      void resetAnswer();
+
     private:
       std::string name_;
       Solution solution_;

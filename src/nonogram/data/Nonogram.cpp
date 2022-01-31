@@ -73,5 +73,10 @@ namespace nonogram
     {
       answer_.set_crossed (type, column, row, state);
     }
+
+    void Nonogram::resetAnswer()
+    {
+      answer_.reset();
+    }
   }
 }

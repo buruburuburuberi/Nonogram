@@ -9,7 +9,7 @@ namespace nonogram
     Answer::Answer (Solution const& solution)
     : data_ (solution.columns_of_data(), solution.rows_of_data())
     {
-      data_.fill (Answer::Datum::Empty);
+      reset();
 
       clue_states_.emplace
         ( std::piecewise_construct
@@ -74,6 +74,15 @@ namespace nonogram
                              )
     {
       clue_states_.at (type).set (column, row, state);
+    }
+
+    void Answer::reset()
+    {
+      data_.fill (Answer::Datum::Empty);
+      for (auto& clue_states : clue_states_)
+      {
+        clue_states.second.fill (false);
+      }
     }
   }
 }

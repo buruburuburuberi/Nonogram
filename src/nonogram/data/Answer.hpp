@@ -33,6 +33,8 @@ namespace nonogram
       bool is_crossed (Solution::ClueType, Column, Row) const;
       void set_crossed (Solution::ClueType, Column, Row, ClueState);
 
+      void reset();
+
     private:
       Array2D<Datum> data_;
       std::map<Solution::ClueType, Array2D<ClueState>> clue_states_;

@@ -24,6 +24,7 @@ namespace nonogram
 
       void setFillMode (data::Answer::Datum);
       void setNonogram (data::Nonogram);
+      void resetAnswer();
 
     protected:
       void mouseMoveEvent (QMouseEvent*) override;

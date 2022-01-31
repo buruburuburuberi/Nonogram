@@ -89,6 +89,9 @@ namespace nonogram
                                      );
       level_selection_widget->setLayout (level_selection_layout.release());
 
+      util::unique_qt_ptr<QToolButton> reset_button;
+      reset_button->setText ("Reset");
+
       util::unique_qt_ptr<QToolButton> fill_button;
       fill_button->setText ("Fill");
       fill_button->setCheckable (true);
@@ -123,6 +126,7 @@ namespace nonogram
       addToolBarBreak();
 
       QToolBar* tools_toolbar (addToolBar ("Tools"));
+      tools_toolbar->addWidget (reset_button.release());
       tools_toolbar->addWidget (fill_button.release());
       tools_toolbar->addWidget (erase_button.release());
       tools_toolbar->addWidget (cross_button.release());
@@ -131,6 +135,11 @@ namespace nonogram
 
       setCentralWidget (play_field_.release());
 
+      connect ( reset_button.get()
+              , &QToolButton::clicked
+              , this
+              , [&] { play_field_->resetAnswer(); }
+              );
       connect ( fill_button.get()
               , &QToolButton::toggled
               , this

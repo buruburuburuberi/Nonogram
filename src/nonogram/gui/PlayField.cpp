@@ -106,6 +106,13 @@ namespace nonogram
       update();
     }
 
+    void PlayField::resetAnswer()
+    {
+      nonogram_->data.resetAnswer();
+
+      update();
+    }
+
     QPoint PlayField::clueCenter ( QRect clues_rect
                                  , data::Column column
                                  , data::Row row
