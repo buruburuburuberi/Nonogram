@@ -18,6 +18,12 @@ namespace nonogram
     {
       Column column;
       Row row;
+
+      bool operator== (Slot const& rhs) const
+      {
+        return column.value == rhs.column.value
+            && row.value == rhs.row.value;
+      }
     };
 
     template<typename T>

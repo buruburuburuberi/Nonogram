@@ -151,9 +151,11 @@ namespace nonogram
       painter.fillRect (background_rect, Qt::yellow);
 
       auto const slot_size
-        ( pressed_clue_
-        && pressed_clue_->column.value == column.value
-        && pressed_clue_->row.value == row.value
+        ( ( current_hit_
+         && std::holds_alternative<ClueHit> (current_hit_.value())
+         && std::get<ClueHit> (current_hit_.value()).current_slot
+            == data::Slot {column, row}
+          )
         ? nonogram_->slot_size - 4
         : nonogram_->slot_size
         );
@@ -256,9 +258,11 @@ namespace nonogram
       painter.setPen (pen);
 
       auto const slot_size
-        ( pressed_slot_
-        && pressed_slot_->column.value == column.value
-        && pressed_slot_->row.value == row.value
+        ( ( current_hit_
+         && std::holds_alternative<DataHit> (current_hit_.value())
+         && std::get<DataHit> (current_hit_.value()).current_slot
+            == data::Slot {column, row}
+          )
         ? nonogram_->slot_size - 4
         : nonogram_->slot_size
         );
@@ -349,7 +353,7 @@ namespace nonogram
         auto const slot (fromPosition (nonogram_->puzzle_rect, position));
 
         nonogram_->data.set (slot.column, slot.row, fill_mode_);
-        pressed_slot_ = {slot.column, slot.row};
+        current_hit_.emplace (DataHit {slot, fill_mode_});
 
         update();
 
@@ -366,28 +370,52 @@ namespace nonogram
         return false;
       }
 
-      for (auto const& rect : nonogram_->clues_rects)
-      {
-        if (rect.second.contains (position))
-        {
-          auto const slot (fromPosition (rect.second, position));
-
-          if (first_press)
+      auto cross_clue
+        ( [&] (data::Solution::ClueType type, QRect rect) -> bool
           {
-            current_clue_state_ =
-                !nonogram_->data.is_crossed (rect.first, slot.column, slot.row);
+            if (!rect.contains (position))
+            {
+              return false;
+            }
+
+            auto const slot (fromPosition (rect, position));
+
+            current_hit_.emplace
+              ( ClueHit { type
+                        , slot
+                        , first_press
+                          ? !nonogram_->data.is_crossed
+                              (type, slot.column, slot.row)
+                          : std::get<ClueHit> (current_hit_.value()).state
+                        }
+              );
+
+            nonogram_->data.set_crossed
+              ( type
+              , slot.column
+              , slot.row
+              , std::get<ClueHit> (current_hit_.value()).state
+              );
+
+            update();
+
+            return true;
           }
+        );
 
-          nonogram_->data.set_crossed ( rect.first
-                                      , slot.column
-                                      , slot.row
-                                      , current_clue_state_.value()
-                                      );
-          pressed_clue_ = {slot.column, slot.row};
-
-          update();
-
-          return true;
+      if (current_hit_)
+      {
+        auto const type (std::get<ClueHit> (current_hit_.value()).type);
+        return cross_clue (type, nonogram_->clues_rects.at (type));
+      }
+      else
+      {
+        for (auto const& rect : nonogram_->clues_rects)
+        {
+          if (cross_clue (rect.first, rect.second))
+          {
+            return true;
+          }
         }
       }
 
@@ -403,13 +431,16 @@ namespace nonogram
 
       if (event->buttons() & Qt::LeftButton)
       {
-        if (fillSlot (event->pos()))
+        if (current_hit_)
         {
-          return;
-        }
-        else if (crossClue (event->pos(), false))
-        {
-          return;
+          if (std::holds_alternative<DataHit> (current_hit_.value()))
+          {
+            fillSlot (event->pos());
+          }
+          else if (std::holds_alternative<ClueHit> (current_hit_.value()))
+          {
+            crossClue (event->pos(), false);
+          }
         }
       }
     }
@@ -441,11 +472,9 @@ namespace nonogram
         return;
       }
 
-      if (pressed_slot_ || pressed_clue_)
+      if (current_hit_)
       {
-        pressed_slot_.reset();
-        pressed_clue_.reset();
-        current_clue_state_.reset();
+        current_hit_.reset();
 
         update();
       }

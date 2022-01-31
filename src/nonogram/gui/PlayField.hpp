@@ -10,6 +10,7 @@
 
 #include <optional>
 #include <map>
+#include <variant>
 
 namespace nonogram
 {
@@ -71,9 +72,23 @@ namespace nonogram
 
       std::optional<NonogramData> nonogram_;
       data::Answer::Datum fill_mode_;
-      std::optional<data::Slot> pressed_clue_;
-      std::optional<data::Answer::ClueState> current_clue_state_;
-      std::optional<data::Slot> pressed_slot_;
+
+      struct ClueHit
+      {
+        data::Solution::ClueType type;
+        data::Slot current_slot;
+        data::Answer::ClueState state;
+      };
+
+      struct DataHit
+      {
+        data::Slot current_slot;
+        data::Answer::Datum datum;
+      };
+
+      using HitType = std::variant<ClueHit, DataHit>;
+      std::optional<HitType> current_hit_;
+
     };
   }
 }
