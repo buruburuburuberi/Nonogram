@@ -11,6 +11,7 @@
 #include <QtWidgets/QToolButton>
 
 #include <map>
+#include <string>
 #include <vector>
 
 namespace nonogram
@@ -22,7 +23,7 @@ namespace nonogram
       Q_OBJECT
 
       public:
-        MainWindow();
+        MainWindow (std::map<std::string, data::Nonogram>);
 
       private:
         std::map<std::string, data::Nonogram> nonograms_;

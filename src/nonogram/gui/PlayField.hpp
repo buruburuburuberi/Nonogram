@@ -21,10 +21,11 @@ namespace nonogram
       Q_OBJECT
 
     public:
-      PlayField (QWidget* parent);
+      PlayField (data::Nonogram);
 
       void setFillMode (data::Answer::Datum);
       void setNonogram (data::Nonogram);
+      void checkAnswer();
       void resetAnswer();
 
     protected:
@@ -36,42 +37,36 @@ namespace nonogram
 
     private:
       data::Slot fromPosition (QRect, QPoint) const;
+      void checkSlot (data::Slot);
       bool fillSlot (QPoint);
       bool crossClue (QPoint, bool first_press);
+      void finishPuzzle();
 
-      QPoint clueCenter (QRect clues_rect, data::Column, data::Row) const;
+      QPoint clueCenter (QRect clues_rect, data::Slot) const;
       void drawClue ( QPainter& painter
                     , data::Solution::ClueType type
-                    , data::Column
-                    , data::Row
+                    , data::Slot
+                    , bool mark_as_error
                     );
 
-      QPoint slotCenter (data::Column, data::Row) const;
+      QPoint slotCenter (data::Slot) const;
       void drawSlot ( QPainter& painter
-                    , data::Column
-                    , data::Row
+                    , data::Slot
                     , data::Answer::Datum
                     );
 
       void drawClues (QPainter& painter, data::Solution::ClueType);
       void drawPuzzle (QPainter& painter);
 
-      struct NonogramData
-      {
-        NonogramData (data::Nonogram, QSize window_size);
+      void updateRects (QSize window_size);
 
-        void update (QSize window_size);
-
-        std::size_t font_size;
-        std::size_t slot_size;
-        data::Nonogram data;
-        QRect puzzle_rect;
-        std::map<data::Solution::ClueType, QRect> clues_rects;
-        QRect field_rect;
-      };
-
-      std::optional<NonogramData> nonogram_;
+      data::Nonogram nonogram_;
       data::Answer::Datum fill_mode_;
+      std::size_t font_size_;
+      std::size_t slot_size_;
+      QRect puzzle_rect_;
+      std::map<data::Solution::ClueType, QRect> clues_rects_;
+      QRect field_rect_;
 
       struct ClueHit
       {
@@ -85,10 +80,11 @@ namespace nonogram
         data::Slot current_slot;
         data::Answer::Datum datum;
       };
-
       using HitType = std::variant<ClueHit, DataHit>;
-      std::optional<HitType> current_hit_;
 
+      std::optional<HitType> current_hit_;
+      std::optional<data::Slot> current_error_slot_;
+      bool solved_;
     };
   }
 }

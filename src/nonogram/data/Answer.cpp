@@ -49,31 +49,29 @@ namespace nonogram
         );
     }
 
-    Answer::Datum Answer::at (Column column, Row row) const
+    Answer::Datum Answer::at (Slot slot) const
     {
-      return data_.at (column, row);
+      return data_.at (slot);
     }
 
-    void Answer::set (Column column, Row row, Datum datum)
+    void Answer::set (Slot slot, Datum datum)
     {
-      data_.set (column, row, datum);
+      data_.set (slot, datum);
     }
 
     Answer::ClueState Answer::is_crossed ( Solution::ClueType type
-                                         , Column column
-                                         , Row row
+                                         , Slot slot
                                          ) const
     {
-      return clue_states_.at (type).at (column, row);
+      return clue_states_.at (type).at (slot);
     }
 
     void Answer::set_crossed ( Solution::ClueType type
-                             , Column column
-                             , Row row
+                             , Slot slot
                              , ClueState state
                              )
     {
-      clue_states_.at (type).set (column, row, state);
+      clue_states_.at (type).set (slot, state);
     }
 
     void Answer::reset()

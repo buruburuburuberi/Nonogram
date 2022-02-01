@@ -29,14 +29,14 @@ namespace nonogram
       return solution_.columns_of_data();
     }
 
-    Answer::Datum Nonogram::at (Column column, Row row) const
+    Answer::Datum Nonogram::at (Slot slot) const
     {
-      return answer_.at (column, row);
+      return answer_.at (slot);
     }
 
-    void Nonogram::set (Column column, Row row, Answer::Datum datum)
+    void Nonogram::set (Slot slot, Answer::Datum datum)
     {
-      answer_.set (column, row, datum);
+      answer_.set (slot, datum);
     }
 
     Columns Nonogram::columns_of_clues (Solution::ClueType type) const
@@ -50,28 +50,73 @@ namespace nonogram
     }
 
     Solution::Clue Nonogram::clue ( Solution::ClueType type
-                                  , Column column
-                                  , Row row
+                                  , Slot slot
                                   ) const
     {
-      return solution_.clue (type, column, row);
+      return solution_.clue (type, slot);
     }
 
     Answer::ClueState Nonogram::is_crossed ( Solution::ClueType type
-                                           , Column column
-                                           , Row row
+                                           , Slot slot
                                            ) const
     {
-      return answer_.is_crossed (type, column, row);
+      return answer_.is_crossed (type, slot);
     }
 
     void Nonogram::set_crossed ( Solution::ClueType type
-                               , Column column
-                               , Row row
+                               , Slot slot
                                , Answer::ClueState state
                                )
     {
-      answer_.set_crossed (type, column, row, state);
+      answer_.set_crossed (type, slot, state);
+    }
+
+    bool Nonogram::isMistake (Slot slot) const
+    {
+      auto const datum (answer_.at (slot));
+      return ((datum == Answer::Datum::Filled) || (datum == Answer::Datum::Crossed))
+          && solution_.at (slot) != (datum == data::Answer::Datum::Filled);
+    }
+
+    std::optional<Slot> Nonogram::findFirstMistake() const
+    {
+      for ( Column column {0}
+          ; column.value < columns_of_data().value
+          ; ++column.value
+          )
+      {
+        for (Row row {0}; row.value < rows_of_data().value; ++row.value)
+        {
+          Slot const slot {column, row};
+          if (isMistake (slot))
+          {
+            return slot;
+          }
+        }
+      }
+
+      return std::nullopt;
+    }
+
+    bool Nonogram::isSolved() const
+    {
+      for ( Column column {0}
+          ; column.value < columns_of_data().value
+          ; ++column.value
+          )
+      {
+        for (Row row {0}; row.value < rows_of_data().value; ++row.value)
+        {
+          Slot const slot {column, row};
+          auto const datum (answer_.at (slot));
+          if (solution_.at (slot) != (datum == data::Answer::Datum::Filled))
+          {
+            return false;
+          }
+        }
+      }
+
+      return true;
     }
 
     void Nonogram::resetAnswer()

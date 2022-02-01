@@ -27,11 +27,11 @@ namespace nonogram
 
       Answer (Solution const&);
 
-      Datum at (Column, Row) const;
-      void set (Column, Row, Datum);
+      Datum at (Slot) const;
+      void set (Slot, Datum);
 
-      bool is_crossed (Solution::ClueType, Column, Row) const;
-      void set_crossed (Solution::ClueType, Column, Row, ClueState);
+      bool is_crossed (Solution::ClueType, Slot) const;
+      void set_crossed (Solution::ClueType, Slot, ClueState);
 
       void reset();
 

@@ -1,95 +1,91 @@
 #include <nonogram/gui/PlayField.hpp>
 
+#include <QtCore/QTimer>
 #include <QtGui/QPainter>
+#include <QtWidgets/QMessageBox>
 
 namespace nonogram
 {
   namespace gui
   {
-    PlayField::PlayField (QWidget *parent)
-    : QOpenGLWidget (parent)
+    PlayField::PlayField (data::Nonogram nonogram)
+    : QOpenGLWidget()
+    , nonogram_ (std::move (nonogram))
     , fill_mode_ (data::Answer::Datum::Filled)
+    , font_size_ (18)
+    , slot_size_ (30)
+    , solved_ (false)
     {
       setAutoFillBackground (true);
     }
 
-    PlayField::NonogramData::NonogramData ( data::Nonogram nonogram
-                                          , QSize window_size
-                                          )
-    : font_size (18)
-    , slot_size (30)
-    , data (nonogram)
-    {
-      update (window_size);
-    }
-
-    void PlayField::NonogramData::update (QSize window_size)
+    void PlayField::updateRects (QSize window_size)
     {
       std::size_t const border (2);
       QSize const size_of_left_clues
-        ( data.columns_of_clues (data::Solution::ClueType::Left).value * slot_size
-        , data.rows_of_clues (data::Solution::ClueType::Left).value * slot_size
+        ( nonogram_.columns_of_clues (data::Solution::ClueType::Left).value * slot_size_
+        , nonogram_.rows_of_clues (data::Solution::ClueType::Left).value * slot_size_
         );
       QSize const size_of_top_clues
-        ( data.columns_of_clues (data::Solution::ClueType::Top).value * slot_size
-        , data.rows_of_clues (data::Solution::ClueType::Top).value * slot_size
+        ( nonogram_.columns_of_clues (data::Solution::ClueType::Top).value * slot_size_
+        , nonogram_.rows_of_clues (data::Solution::ClueType::Top).value * slot_size_
         );
       QSize const size_of_right_clues
-        ( data.columns_of_clues (data::Solution::ClueType::Right).value * slot_size
-        , data.rows_of_clues (data::Solution::ClueType::Right).value * slot_size
+        ( nonogram_.columns_of_clues (data::Solution::ClueType::Right).value * slot_size_
+        , nonogram_.rows_of_clues (data::Solution::ClueType::Right).value * slot_size_
         );
       QSize const size_of_bottom_clues
-        ( data.columns_of_clues (data::Solution::ClueType::Bottom).value * slot_size
-        , data.rows_of_clues (data::Solution::ClueType::Bottom).value * slot_size
+        ( nonogram_.columns_of_clues (data::Solution::ClueType::Bottom).value * slot_size_
+        , nonogram_.rows_of_clues (data::Solution::ClueType::Bottom).value * slot_size_
         );
-      QSize const puzzle_size ( data.columns_of_data().value * slot_size
-                              , data.rows_of_data().value * slot_size
+      QSize const puzzle_size ( nonogram_.columns_of_data().value * slot_size_
+                              , nonogram_.rows_of_data().value * slot_size_
                               );
 
-      clues_rects[data::Solution::ClueType::Left]
+      clues_rects_[data::Solution::ClueType::Left]
         = QRect ( QPoint (0, size_of_top_clues.height() + border)
                 , size_of_left_clues
                 );
-      clues_rects[data::Solution::ClueType::Top]
+      clues_rects_[data::Solution::ClueType::Top]
         = QRect ( QPoint (size_of_left_clues.width() + border, 0)
                 , size_of_top_clues
                 );
-      puzzle_rect =
-          QRect ( QPoint ( clues_rects.at (data::Solution::ClueType::Top).left()
-                         , clues_rects.at (data::Solution::ClueType::Left).top()
+      puzzle_rect_ =
+          QRect ( QPoint ( clues_rects_.at (data::Solution::ClueType::Top).left()
+                         , clues_rects_.at (data::Solution::ClueType::Left).top()
                          )
                 , puzzle_size
                 );
-      clues_rects[data::Solution::ClueType::Right]
-        = QRect ( QPoint ( puzzle_rect.x() + puzzle_rect.width() + border
-                         , clues_rects.at (data::Solution::ClueType::Left).top()
+      clues_rects_[data::Solution::ClueType::Right]
+        = QRect ( QPoint ( puzzle_rect_.x() + puzzle_rect_.width() + border
+                         , clues_rects_.at (data::Solution::ClueType::Left).top()
                          )
                 , size_of_right_clues
                 );
-      clues_rects[data::Solution::ClueType::Bottom]
-        = QRect ( QPoint ( clues_rects.at (data::Solution::ClueType::Top).left()
-                         , puzzle_rect.y() + puzzle_rect.height() + border
+      clues_rects_[data::Solution::ClueType::Bottom]
+        = QRect ( QPoint ( clues_rects_.at (data::Solution::ClueType::Top).left()
+                         , puzzle_rect_.y() + puzzle_rect_.height() + border
                          )
                 , size_of_bottom_clues
                 );
-      field_rect =
-          QRect ( QPoint ( clues_rects.at (data::Solution::ClueType::Left).x()
-                         , clues_rects.at (data::Solution::ClueType::Top).y()
+      field_rect_ =
+          QRect ( QPoint ( clues_rects_.at (data::Solution::ClueType::Left).x()
+                         , clues_rects_.at (data::Solution::ClueType::Top).y()
                          )
-                , QPoint ( clues_rects.at (data::Solution::ClueType::Right).right()
-                         , clues_rects.at (data::Solution::ClueType::Bottom).bottom()
+                , QPoint ( clues_rects_.at (data::Solution::ClueType::Right).right()
+                         , clues_rects_.at (data::Solution::ClueType::Bottom).bottom()
                          )
                 );
 
-      QPoint const offset ( (window_size.width() - field_rect.width()) / 2.0f
-                          , (window_size.height() - field_rect.height()) / 2.0f
+      QPoint const offset ( (window_size.width() - field_rect_.width()) / 2.0f
+                          , (window_size.height() - field_rect_.height()) / 2.0f
                           );
-      puzzle_rect.translate (offset);
-      clues_rects.at (data::Solution::ClueType::Left).translate (offset);
-      clues_rects.at (data::Solution::ClueType::Right).translate (offset);
-      clues_rects.at (data::Solution::ClueType::Top).translate (offset);
-      clues_rects.at (data::Solution::ClueType::Bottom).translate (offset);
-      field_rect.translate (offset);
+      puzzle_rect_.translate (offset);
+      clues_rects_.at (data::Solution::ClueType::Left).translate (offset);
+      clues_rects_.at (data::Solution::ClueType::Right).translate (offset);
+      clues_rects_.at (data::Solution::ClueType::Top).translate (offset);
+      clues_rects_.at (data::Solution::ClueType::Bottom).translate (offset);
+      field_rect_.translate (offset);
     }
 
     void PlayField::setFillMode (data::Answer::Datum mode)
@@ -99,81 +95,88 @@ namespace nonogram
 
     void PlayField::setNonogram (data::Nonogram nonogram)
     {
-      nonogram_ = NonogramData (std::move (nonogram), size());
+      nonogram_ = std::move (nonogram);
+      updateRects (size());
 
-      setMinimumSize (nonogram_->field_rect.size() + QSize (50, 50));
+      setMinimumSize (field_rect_.size() + QSize (50, 50));
 
+      solved_ = false;
+      setDisabled (false);
+
+      update();
+    }
+
+    void PlayField::checkAnswer()
+    {
+      auto const maybe_mistake (nonogram_.findFirstMistake());
+      current_error_slot_ = maybe_mistake;
+      update();
+    }
+
+    void PlayField::checkSlot (data::Slot slot)
+    {
+      current_error_slot_ = nonogram_.isMistake (slot)
+                          ? std::optional (slot)
+                          : std::nullopt;
       update();
     }
 
     void PlayField::resetAnswer()
     {
-      nonogram_->data.resetAnswer();
+      nonogram_.resetAnswer();
+
+      solved_ = false;
+      setDisabled (false);
 
       update();
     }
 
-    QPoint PlayField::clueCenter ( QRect clues_rect
-                                 , data::Column column
-                                 , data::Row row
-                                 ) const
+    QPoint PlayField::clueCenter (QRect clues_rect, data::Slot slot) const
     {
-      if (!nonogram_)
-      {
-        return QPoint();
-      }
-
-      auto const half_slot_size (nonogram_->slot_size / 2.f);
+      auto const half_slot_size (slot_size_ / 2.f);
       return QPoint
-        ( clues_rect.x() + column.value * nonogram_->slot_size + half_slot_size
-        , clues_rect.y() + row.value * nonogram_->slot_size + half_slot_size
+        ( clues_rect.x() + slot.column.value * slot_size_ + half_slot_size
+        , clues_rect.y() + slot.row.value * slot_size_ + half_slot_size
         );
     }
 
     void PlayField::drawClue ( QPainter& painter
                              , data::Solution::ClueType type
-                             , data::Column column
-                             , data::Row row
+                             , data::Slot slot
+                             , bool mark_as_error
                              )
     {
-      if (!nonogram_)
-      {
-        return;
-      }
+      auto const clue_center (clueCenter (clues_rects_.at (type), slot));
 
-      auto const clue_center
-        (clueCenter (nonogram_->clues_rects.at (type), column, row));
-
-      auto const background_size (nonogram_->slot_size - 2);
+      auto const background_size (slot_size_ - 2);
       QRect background_rect (0, 0, background_size, background_size);
       background_rect.moveCenter (clue_center);
 
-      painter.fillRect (background_rect, Qt::yellow);
+      painter.fillRect (background_rect, mark_as_error ? Qt::red : Qt::yellow);
 
       auto const slot_size
         ( ( current_hit_
          && std::holds_alternative<ClueHit> (current_hit_.value())
-         && std::get<ClueHit> (current_hit_.value()).current_slot
-            == data::Slot {column, row}
+         && std::get<ClueHit> (current_hit_.value()).current_slot == slot
           )
-        ? nonogram_->slot_size - 4
-        : nonogram_->slot_size
+        ? slot_size_ - 4
+        : slot_size_
         );
 
-      auto const clue (nonogram_->data.clue (type, column, row));
+      auto const clue (nonogram_.clue (type, slot));
 
       if (clue > 0)
       {
         painter.setPen (Qt::black);
         auto const text_size (slot_size);
         QFont font;
-        font.setPixelSize (nonogram_->font_size);
+        font.setPixelSize (font_size_);
         painter.setFont (font);
         QRect text_rect (0, 0, text_size, text_size);
         text_rect.moveCenter (clue_center);
         painter.drawText (text_rect, Qt::AlignCenter, QString::number (clue));
 
-        if (nonogram_->data.is_crossed (type, column, row))
+        if (nonogram_.is_crossed (type, slot))
         {
           auto pen (painter.pen());
           pen.setWidth (2);
@@ -191,65 +194,76 @@ namespace nonogram
 
     void PlayField::drawClues (QPainter& painter, data::Solution::ClueType type)
     {
-      if (!nonogram_)
-      {
-        return;
-      }
-
       for ( data::Column column {0}
-          ; column.value < nonogram_->data.columns_of_clues (type).value
+          ; column.value < nonogram_.columns_of_clues (type).value
           ; ++column.value
           )
       {
         for ( data::Row row {0}
-            ; row.value < nonogram_->data.rows_of_clues (type).value
+            ; row.value < nonogram_.rows_of_clues (type).value
             ; ++row.value
             )
         {
-          drawClue (painter, type, column, row);
+          auto const mark_as_error
+            ( current_error_slot_
+           && ( ( ( type == data::Solution::ClueType::Left
+                 || type == data::Solution::ClueType::Right
+                  )
+               && row.value == current_error_slot_.value().row.value
+                )
+             || ( ( type == data::Solution::ClueType::Top
+                 || type == data::Solution::ClueType::Bottom
+                  )
+               && column.value == current_error_slot_.value().column.value
+                )
+              )
+            );
+          drawClue (painter, type, {column, row}, mark_as_error);
         }
       }
     }
 
     data::Slot PlayField::fromPosition (QRect rect, QPoint position) const
     {
-      return { data::Column {(position.x() - rect.x()) / nonogram_->slot_size}
-             , data::Row {(position.y() - rect.y()) / nonogram_->slot_size}
+      return { data::Column {(position.x() - rect.x()) / slot_size_}
+             , data::Row {(position.y() - rect.y()) / slot_size_}
              };
     }
 
-    QPoint PlayField::slotCenter (data::Column column, data::Row row) const
+    QPoint PlayField::slotCenter (data::Slot slot) const
     {
-      if (!nonogram_)
-      {
-        return QPoint();
-      }
-
-      auto const half_slot_size (nonogram_->slot_size / 2.f);
+      auto const half_slot_size (slot_size_ / 2.f);
       return QPoint
-        ( nonogram_->puzzle_rect.x() + column.value * nonogram_->slot_size + half_slot_size
-        , nonogram_->puzzle_rect.y() + row.value * nonogram_->slot_size + half_slot_size
+        ( puzzle_rect_.x() + slot.column.value * slot_size_ + half_slot_size
+        , puzzle_rect_.y() + slot.row.value * slot_size_ + half_slot_size
         );
     }
 
     void PlayField::drawSlot ( QPainter& painter
-                             , data::Column column
-                             , data::Row row
+                             , data::Slot slot
                              , data::Answer::Datum datum
                              )
     {
-      if (!nonogram_)
-      {
-        return;
-      }
+      auto const slot_center (slotCenter (slot));
 
-      auto const slot_center (slotCenter (column, row));
-
-      auto const background_size (nonogram_->slot_size - 2);
+      auto const background_size (slot_size_ - 2);
       QRect background_rect (0, 0, background_size, background_size);
       background_rect.moveCenter (slot_center);
 
-      painter.fillRect (background_rect, Qt::yellow);
+      painter.fillRect
+        ( background_rect
+        ,  current_error_slot_ && current_error_slot_.value() == slot
+          ? Qt::red
+          : Qt::yellow
+        );
+
+      if ( solved_
+        && datum != data::Answer::Datum::Filled
+        && datum != data::Answer::Datum::Empty
+         )
+      {
+        return;
+      }
 
       painter.setBrush (Qt::black);
       auto pen (painter.pen());
@@ -260,11 +274,10 @@ namespace nonogram
       auto const slot_size
         ( ( current_hit_
          && std::holds_alternative<DataHit> (current_hit_.value())
-         && std::get<DataHit> (current_hit_.value()).current_slot
-            == data::Slot {column, row}
+         && std::get<DataHit> (current_hit_.value()).current_slot == slot
           )
-        ? nonogram_->slot_size - 4
-        : nonogram_->slot_size
+        ? slot_size_ - 4
+        : slot_size_
         );
 
       switch (datum)
@@ -275,7 +288,7 @@ namespace nonogram
         }
         case data::Answer::Datum::Filled:
         {
-          auto const point_size (slot_size - 6);
+          auto const point_size (solved_ ? slot_size_ : slot_size - 6);
           QRect point_rect (0, 0, point_size, point_size);
           point_rect.moveCenter (slot_center);
 
@@ -321,39 +334,44 @@ namespace nonogram
 
     void PlayField::drawPuzzle (QPainter& painter)
     {
-      if (!nonogram_)
-      {
-        return;
-      }
-
       for ( data::Column column {0}
-          ; column.value < nonogram_->data.columns_of_data().value
+          ; column.value < nonogram_.columns_of_data().value
           ; ++column.value
           )
       {
         for ( data::Row row {0}
-            ; row.value < nonogram_->data.rows_of_data().value
+            ; row.value < nonogram_.rows_of_data().value
             ; ++row.value
             )
         {
-          drawSlot (painter, column, row, nonogram_->data.at (column, row));
+          data::Slot const slot {column, row};
+          drawSlot (painter, slot, nonogram_.at (slot));
         }
       }
     }
 
     bool PlayField::fillSlot (QPoint position)
     {
-      if (!nonogram_)
+      if (puzzle_rect_.contains (position))
       {
-        return false;
-      }
+        auto const slot (fromPosition (puzzle_rect_, position));
 
-      if (nonogram_->puzzle_rect.contains (position))
-      {
-        auto const slot (fromPosition (nonogram_->puzzle_rect, position));
-
-        nonogram_->data.set (slot.column, slot.row, fill_mode_);
+        nonogram_.set (slot, fill_mode_);
         current_hit_.emplace (DataHit {slot, fill_mode_});
+
+        if (current_error_slot_ == slot)
+        {
+          checkSlot (current_error_slot_.value());
+        }
+
+        if ( ( nonogram_.at (slot) == data::Answer::Datum::Filled
+            || nonogram_.at (slot) == data::Answer::Datum::Empty
+             )
+          && nonogram_.isSolved()
+           )
+        {
+          QTimer::singleShot (0, this, &PlayField::finishPuzzle);
+        }
 
         update();
 
@@ -365,11 +383,6 @@ namespace nonogram
 
     bool PlayField::crossClue (QPoint position, bool first_press)
     {
-      if (!nonogram_)
-      {
-        return false;
-      }
-
       auto cross_clue
         ( [&] (data::Solution::ClueType type, QRect rect) -> bool
           {
@@ -384,16 +397,14 @@ namespace nonogram
               ( ClueHit { type
                         , slot
                         , first_press
-                          ? !nonogram_->data.is_crossed
-                              (type, slot.column, slot.row)
+                          ? !nonogram_.is_crossed (type, slot)
                           : std::get<ClueHit> (current_hit_.value()).state
                         }
               );
 
-            nonogram_->data.set_crossed
+            nonogram_.set_crossed
               ( type
-              , slot.column
-              , slot.row
+              , slot
               , std::get<ClueHit> (current_hit_.value()).state
               );
 
@@ -406,11 +417,11 @@ namespace nonogram
       if (current_hit_)
       {
         auto const type (std::get<ClueHit> (current_hit_.value()).type);
-        return cross_clue (type, nonogram_->clues_rects.at (type));
+        return cross_clue (type, clues_rects_.at (type));
       }
       else
       {
-        for (auto const& rect : nonogram_->clues_rects)
+        for (auto const& rect : clues_rects_)
         {
           if (cross_clue (rect.first, rect.second))
           {
@@ -422,13 +433,23 @@ namespace nonogram
       return false;
     }
 
+    void PlayField::finishPuzzle()
+    {
+      QMessageBox messageBox ( QMessageBox::Information
+                             , "Congratulations!"
+                             , "Puzzle solved!"
+                             , QMessageBox::Ok
+                             , this
+                             );
+      messageBox.exec();
+      solved_ = true;
+      setDisabled (true);
+
+      update();
+    }
+
     void PlayField::mouseMoveEvent (QMouseEvent* event)
     {
-      if (!nonogram_)
-      {
-        return;
-      }
-
       if (event->buttons() & Qt::LeftButton)
       {
         if (current_hit_)
@@ -447,11 +468,6 @@ namespace nonogram
 
     void PlayField::mousePressEvent (QMouseEvent* event)
     {
-      if (!nonogram_)
-      {
-        return;
-      }
-
       if (event->buttons() & Qt::LeftButton)
       {
         if (fillSlot (event->pos()))
@@ -467,11 +483,6 @@ namespace nonogram
 
     void PlayField::mouseReleaseEvent (QMouseEvent*)
     {
-      if (!nonogram_)
-      {
-        return;
-      }
-
       if (current_hit_)
       {
         current_hit_.reset();
@@ -483,13 +494,6 @@ namespace nonogram
     void PlayField::paintGL()
     {
       QPainter painter (this);
-      painter.fillRect (rect(), palette().color (QPalette::Window));
-
-      if (!nonogram_)
-      {
-        return;
-      }
-
       painter.fillRect (rect(), Qt::black);
 
       drawClues (painter, data::Solution::ClueType::Left);
@@ -501,12 +505,9 @@ namespace nonogram
 
     void PlayField::resizeGL (int width, int height)
     {
-      if (nonogram_)
-      {
-        nonogram_->update (QSize (width, height));
+      updateRects (QSize (width, height));
 
-        update();
-      }
+      update();
     }
   };
 }

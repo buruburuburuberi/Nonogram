@@ -209,6 +209,11 @@ namespace nonogram
       return data_.columns();
     }
 
+    Solution::State Solution::at (Slot slot) const
+    {
+      return data_.at (slot);
+    }
+
     Columns Solution::columns_of_clues (ClueType type) const
     {
       return clues_.at (type).columns();
@@ -219,9 +224,9 @@ namespace nonogram
       return clues_.at (type).rows();
     }
 
-    Solution::Clue Solution::clue (ClueType type, Column column, Row row) const
+    Solution::Clue Solution::clue (ClueType type, Slot slot) const
     {
-      return clues_.at (type).at (column, row);
+      return clues_.at (type).at (slot);
     }
   }
 }

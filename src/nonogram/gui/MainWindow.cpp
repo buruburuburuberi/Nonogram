@@ -12,42 +12,13 @@ namespace nonogram
 {
   namespace gui
   {
-    MainWindow::MainWindow()
-    : play_field_ (this)
+    MainWindow::MainWindow (std::map<std::string, data::Nonogram> nonograms)
+    : nonograms_ (std::move (nonograms))
+    , play_field_ (nonograms_.begin()->second)
     {
       statusBar()->showMessage ("Ready");
 
-      auto add_nonogram
-        ( [&] (data::Nonogram nonogram)
-          {
-            nonograms_.emplace (nonogram.name(), std::move (nonogram));
-          }
-        );
-
-      add_nonogram
-        ( { "5x5"
-          , data::Array2D<bool>
-              { { { 0, 0, 1, 0, 0 }
-                , { 0, 1, 1, 1, 0 }
-                , { 1, 1, 0, 1, 1 }
-                , { 0, 1, 1, 1, 0 }
-                , { 0, 0, 1, 0, 0 }
-                }
-              }
-          }
-        );
-      add_nonogram
-        ( { "8x5"
-          , data::Array2D<bool>
-              { { { 1, 0, 0, 1, 1, 1, 0, 0 }
-                , { 1, 0, 0, 1, 0, 1, 1, 0 }
-                , { 1, 0, 1, 0, 1, 0, 1, 1 }
-                , { 1, 0, 0, 1, 0, 1, 0, 0 }
-                , { 1, 1, 0, 0, 1, 0, 0, 0 }
-                }
-              }
-          }
-        );
+      play_field_->setVisible (false);
 
       util::unique_qt_ptr<QFrame> level_selection_widget;
       util::unique_qt_ptr<QFormLayout> level_selection_layout;
@@ -80,6 +51,7 @@ namespace nonogram
               , this
               , [&] (QString text)
                 {
+                  play_field_->setVisible (true);
                   play_field_->setNonogram (nonograms_.at (text.toStdString()));
                 }
               );
@@ -88,6 +60,9 @@ namespace nonogram
                                      , nonogram_list_.release()
                                      );
       level_selection_widget->setLayout (level_selection_layout.release());
+
+      util::unique_qt_ptr<QToolButton> check_button;
+      check_button->setText ("Check");
 
       util::unique_qt_ptr<QToolButton> reset_button;
       reset_button->setText ("Reset");
@@ -126,6 +101,7 @@ namespace nonogram
       addToolBarBreak();
 
       QToolBar* tools_toolbar (addToolBar ("Tools"));
+      tools_toolbar->addWidget (check_button.release());
       tools_toolbar->addWidget (reset_button.release());
       tools_toolbar->addWidget (fill_button.release());
       tools_toolbar->addWidget (erase_button.release());
@@ -135,6 +111,11 @@ namespace nonogram
 
       setCentralWidget (play_field_.release());
 
+      connect ( check_button.get()
+              , &QToolButton::clicked
+              , this
+              , [&] { play_field_->checkAnswer(); }
+              );
       connect ( reset_button.get()
               , &QToolButton::clicked
               , this

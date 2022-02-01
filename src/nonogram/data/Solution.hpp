@@ -14,6 +14,7 @@ namespace nonogram
     class Solution
     {
     public:
+      using State = bool;
       using Clue = std::size_t;
       using Clues = Array2D<Clue>;
 
@@ -28,11 +29,12 @@ namespace nonogram
 
       Rows rows_of_data() const;
       Columns columns_of_data() const;
+      State at (Slot) const;
 
       Columns columns_of_clues (ClueType) const;
       Rows rows_of_clues (ClueType) const;
 
-      Clue clue (ClueType, Column, Row) const;
+      Clue clue (ClueType, Slot) const;
 
     private:
       Clues compute_right_clues() const;

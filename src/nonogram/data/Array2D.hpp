@@ -71,6 +71,11 @@ namespace nonogram
         return data_[row.value][column.value];
       }
 
+      T at (Slot slot) const
+      {
+        return at (slot.column, slot.row);
+      }
+
       std::vector<T> column (Column column) const
       {
         check_invalid_access (column);
@@ -105,6 +110,11 @@ namespace nonogram
         check_invalid_access (column, row);
 
         data_[row.value][column.value] = value;
+      }
+
+      void set (Slot slot, T value)
+      {
+        set (slot.column, slot.row, value);
       }
 
     private:
