@@ -356,8 +356,30 @@ namespace nonogram
       {
         auto const slot (fromPosition (puzzle_rect_, position));
 
-        nonogram_.set (slot, fill_mode_);
-        current_hit_.emplace (DataHit {slot, fill_mode_});
+        auto const current_datum (nonogram_.at (slot));
+
+        if (!current_hit_)
+        {
+          current_hit_.emplace
+            ( DataHit
+                { slot
+                , current_datum == fill_mode_
+                  ? data::Answer::Datum::Empty
+                  : fill_mode_
+                }
+            );
+        }
+
+        auto const to_fill (std::get<DataHit> (current_hit_.value()).datum);
+        if ( (to_fill == data::Answer::Datum::Empty)
+          && current_datum != fill_mode_
+           )
+        {
+          return true;
+        }
+
+        nonogram_.set (slot, to_fill);
+        current_hit_.emplace (DataHit {slot, to_fill});
 
         if (current_error_slot_ == slot)
         {
@@ -381,7 +403,7 @@ namespace nonogram
       return false;
     }
 
-    bool PlayField::crossClue (QPoint position, bool first_press)
+    bool PlayField::crossClue (QPoint position)
     {
       auto cross_clue
         ( [&] (data::Solution::ClueType type, QRect rect) -> bool
@@ -393,20 +415,14 @@ namespace nonogram
 
             auto const slot (fromPosition (rect, position));
 
-            current_hit_.emplace
-              ( ClueHit { type
-                        , slot
-                        , first_press
-                          ? !nonogram_.is_crossed (type, slot)
-                          : std::get<ClueHit> (current_hit_.value()).state
-                        }
+            auto const state
+              ( current_hit_
+              ? std::get<ClueHit> (current_hit_.value()).state
+              : !nonogram_.is_crossed (type, slot)
               );
 
-            nonogram_.set_crossed
-              ( type
-              , slot
-              , std::get<ClueHit> (current_hit_.value()).state
-              );
+            current_hit_.emplace (ClueHit {type, slot, state});
+            nonogram_.set_crossed (type, slot, state);
 
             update();
 
@@ -460,7 +476,7 @@ namespace nonogram
           }
           else if (std::holds_alternative<ClueHit> (current_hit_.value()))
           {
-            crossClue (event->pos(), false);
+            crossClue (event->pos());
           }
         }
       }
@@ -474,7 +490,7 @@ namespace nonogram
         {
           return;
         }
-        else if (crossClue (event->pos(), true))
+        else if (crossClue (event->pos()))
         {
           return;
         }

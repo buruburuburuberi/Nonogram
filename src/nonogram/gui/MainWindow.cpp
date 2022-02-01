@@ -72,10 +72,6 @@ namespace nonogram
       fill_button->setCheckable (true);
       fill_button->setChecked (true);
 
-      util::unique_qt_ptr<QToolButton> erase_button;
-      erase_button->setText ("Erase");
-      erase_button->setCheckable (true);
-
       util::unique_qt_ptr<QToolButton> cross_button;
       cross_button->setText ("Cross");
       cross_button->setCheckable (true);
@@ -90,7 +86,6 @@ namespace nonogram
 
       tools_group_->setExclusive (true);
       tools_group_->addButton (fill_button.get());
-      tools_group_->addButton (erase_button.get());
       tools_group_->addButton (cross_button.get());
       tools_group_->addButton (fill_mark_button.get());
       tools_group_->addButton (cross_mark_button.get());
@@ -104,7 +99,6 @@ namespace nonogram
       tools_toolbar->addWidget (check_button.release());
       tools_toolbar->addWidget (reset_button.release());
       tools_toolbar->addWidget (fill_button.release());
-      tools_toolbar->addWidget (erase_button.release());
       tools_toolbar->addWidget (cross_button.release());
       tools_toolbar->addWidget (fill_mark_button.release());
       tools_toolbar->addWidget (cross_mark_button.release());
@@ -126,12 +120,6 @@ namespace nonogram
               , this
               , [&]
                 { play_field_->setFillMode (data::Answer::Datum::Filled); }
-              );
-      connect ( erase_button.get()
-              , &QToolButton::toggled
-              , this
-              , [&]
-                { play_field_->setFillMode (data::Answer::Datum::Empty); }
               );
       connect ( cross_button.get()
               , &QToolButton::toggled

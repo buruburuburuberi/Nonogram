@@ -39,7 +39,7 @@ namespace nonogram
       data::Slot fromPosition (QRect, QPoint) const;
       void checkSlot (data::Slot);
       bool fillSlot (QPoint);
-      bool crossClue (QPoint, bool first_press);
+      bool crossClue (QPoint);
       void finishPuzzle();
 
       QPoint clueCenter (QRect clues_rect, data::Slot) const;
