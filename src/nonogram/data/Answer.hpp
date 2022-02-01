@@ -28,10 +28,10 @@ namespace nonogram
       Answer (Solution const&);
 
       Datum at (Slot) const;
-      void set (Slot, Datum);
+      void fill (Slot, Datum);
 
-      bool is_crossed (Solution::ClueType, Slot) const;
-      void set_crossed (Solution::ClueType, Slot, ClueState);
+      bool isCrossed (Solution::ClueType, Slot) const;
+      void cross (Solution::ClueType, Slot, ClueState);
 
       void reset();
 

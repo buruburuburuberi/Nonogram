@@ -10,30 +10,30 @@ namespace nonogram
     Solution::Solution (Array2D<bool> data)
     : data_ (std::move (data))
     {
-      clues_.emplace (ClueType::Right, std::move (compute_right_clues()));
-      clues_.emplace (ClueType::Bottom, std::move (compute_bottom_clues()));
+      clues_.emplace (ClueType::Right, std::move (computeRightClues()));
+      clues_.emplace (ClueType::Bottom, std::move (computeBottomClues()));
       clues_.emplace
         ( ClueType::Left
-        , std::move (compute_left_clues (clues_.at (ClueType::Right)))
+        , std::move (computeLeftClues (clues_.at (ClueType::Right)))
         );
       clues_.emplace
         ( ClueType::Top
-        , std::move (compute_top_clues (clues_.at (ClueType::Bottom)))
+        , std::move (computeTopClues (clues_.at (ClueType::Bottom)))
         );
     }
 
-    Solution::Clues Solution::compute_right_clues() const
+    Solution::Clues Solution::computeRightClues() const
     {
       std::vector<std::vector<Clue>> clues;
       clues.resize (data_.rows().value);
 
       std::size_t max_size (0);
 
-      for (Row row {0}; row.value < rows_of_data().value; ++row.value)
+      for (Row row {0}; row.value < dataRows().value; ++row.value)
       {
         unsigned int horizontal_filled_counter (0);
         for ( Column column {0}
-            ; column.value < columns_of_data().value
+            ; column.value < dataColumns().value
             ; ++column.value
             )
         {
@@ -72,20 +72,20 @@ namespace nonogram
       return Clues (clues);
     }
 
-    Solution::Clues Solution::compute_bottom_clues() const
+    Solution::Clues Solution::computeBottomClues() const
     {
       std::vector<std::vector<Clue>> clues;
 
       std::size_t max_size (0);
 
       for ( Column column {0}
-          ; column.value < columns_of_data().value
+          ; column.value < dataColumns().value
           ; ++column.value
           )
       {
         unsigned int row_counter (0);
         unsigned int vertical_filled_counter (0);
-        for (Row row {0}; row.value < rows_of_data().value; ++row.value)
+        for (Row row {0}; row.value < dataRows().value; ++row.value)
         {
           bool const current_square_filled (data_.at (column, row));
 
@@ -131,7 +131,7 @@ namespace nonogram
       return Clues (clues);
     }
 
-    Solution::Clues Solution::compute_left_clues (Clues const& data) const
+    Solution::Clues Solution::computeLeftClues (Clues const& data) const
     {
       Clues clues (data);
 
@@ -165,7 +165,7 @@ namespace nonogram
       return clues;
     }
 
-    Solution::Clues Solution::compute_top_clues (Clues const& data) const
+    Solution::Clues Solution::computeTopClues (Clues const& data) const
     {
       Clues clues (data);
 
@@ -199,12 +199,12 @@ namespace nonogram
       return clues;
     }
 
-    Rows Solution::rows_of_data() const
+    Rows Solution::dataRows() const
     {
       return data_.rows();
     }
 
-    Columns Solution::columns_of_data() const
+    Columns Solution::dataColumns() const
     {
       return data_.columns();
     }
@@ -214,12 +214,12 @@ namespace nonogram
       return data_.at (slot);
     }
 
-    Columns Solution::columns_of_clues (ClueType type) const
+    Columns Solution::clueColumns (ClueType type) const
     {
       return clues_.at (type).columns();
     }
 
-    Rows Solution::rows_of_clues (ClueType type) const
+    Rows Solution::clueRows (ClueType type) const
     {
       return clues_.at (type).rows();
     }

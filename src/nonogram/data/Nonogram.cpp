@@ -8,9 +8,9 @@ namespace nonogram
 {
   namespace data
   {
-    Nonogram::Nonogram (std::string name, Solution data)
+    Nonogram::Nonogram (std::string name, Solution solution)
     : name_ (std::move (name))
-    , solution_ (std::move (data))
+    , solution_ (std::move (solution))
     , answer_ (solution_)
     {}
 
@@ -19,14 +19,14 @@ namespace nonogram
       return name_;
     }
 
-    Rows Nonogram::rows_of_data() const
+    Rows Nonogram::dataRows() const
     {
-      return solution_.rows_of_data();
+      return solution_.dataRows();
     }
 
-    Columns Nonogram::columns_of_data() const
+    Columns Nonogram::dataColumns() const
     {
-      return solution_.columns_of_data();
+      return solution_.dataColumns();
     }
 
     Answer::Datum Nonogram::at (Slot slot) const
@@ -34,19 +34,19 @@ namespace nonogram
       return answer_.at (slot);
     }
 
-    void Nonogram::set (Slot slot, Answer::Datum datum)
+    void Nonogram::fill (Slot slot, Answer::Datum datum)
     {
-      answer_.set (slot, datum);
+      answer_.fill (slot, datum);
     }
 
-    Columns Nonogram::columns_of_clues (Solution::ClueType type) const
+    Columns Nonogram::clueColumns (Solution::ClueType type) const
     {
-      return solution_.columns_of_clues (type);
+      return solution_.clueColumns (type);
     }
 
-    Rows Nonogram::rows_of_clues (Solution::ClueType type) const
+    Rows Nonogram::clueRows (Solution::ClueType type) const
     {
-      return solution_.rows_of_clues (type);
+      return solution_.clueRows (type);
     }
 
     Solution::Clue Nonogram::clue ( Solution::ClueType type
@@ -56,36 +56,38 @@ namespace nonogram
       return solution_.clue (type, slot);
     }
 
-    Answer::ClueState Nonogram::is_crossed ( Solution::ClueType type
-                                           , Slot slot
-                                           ) const
+    Answer::ClueState Nonogram::isCrossed ( Solution::ClueType type
+                                          , Slot slot
+                                          ) const
     {
-      return answer_.is_crossed (type, slot);
+      return answer_.isCrossed (type, slot);
     }
 
-    void Nonogram::set_crossed ( Solution::ClueType type
-                               , Slot slot
-                               , Answer::ClueState state
-                               )
+    void Nonogram::cross ( Solution::ClueType type
+                         , Slot slot
+                         , Answer::ClueState state
+                         )
     {
-      answer_.set_crossed (type, slot, state);
+      answer_.cross (type, slot, state);
     }
 
     bool Nonogram::isMistake (Slot slot) const
     {
       auto const datum (answer_.at (slot));
-      return ((datum == Answer::Datum::Filled) || (datum == Answer::Datum::Crossed))
+      return ( (datum == Answer::Datum::Filled)
+            || (datum == Answer::Datum::Crossed)
+             )
           && solution_.at (slot) != (datum == data::Answer::Datum::Filled);
     }
 
     std::optional<Slot> Nonogram::findFirstMistake() const
     {
       for ( Column column {0}
-          ; column.value < columns_of_data().value
+          ; column.value < dataColumns().value
           ; ++column.value
           )
       {
-        for (Row row {0}; row.value < rows_of_data().value; ++row.value)
+        for (Row row {0}; row.value < dataRows().value; ++row.value)
         {
           Slot const slot {column, row};
           if (isMistake (slot))
@@ -101,11 +103,11 @@ namespace nonogram
     bool Nonogram::isSolved() const
     {
       for ( Column column {0}
-          ; column.value < columns_of_data().value
+          ; column.value < dataColumns().value
           ; ++column.value
           )
       {
-        for (Row row {0}; row.value < rows_of_data().value; ++row.value)
+        for (Row row {0}; row.value < dataRows().value; ++row.value)
         {
           Slot const slot {column, row};
           auto const datum (answer_.at (slot));

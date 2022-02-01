@@ -4,6 +4,7 @@
 #include <QtWidgets/QFormLayout>
 #include <QtWidgets/QStatusBar>
 #include <QtWidgets/QToolBar>
+#include <QtWidgets/QToolButton>
 #include <QtWidgets/QWidget>
 
 #include <utility>
@@ -13,8 +14,9 @@ namespace nonogram
   namespace gui
   {
     MainWindow::MainWindow (std::map<std::string, data::Nonogram> nonograms)
-    : nonograms_ (std::move (nonograms))
-    , play_field_ (nonograms_.begin()->second)
+    : undo_stack_()
+    , nonograms_ (std::move (nonograms))
+    , play_field_ (undo_stack_, nonograms_.begin()->second)
     {
       statusBar()->showMessage ("Ready");
 
@@ -53,6 +55,8 @@ namespace nonogram
                 {
                   play_field_->setVisible (true);
                   play_field_->setNonogram (nonograms_.at (text.toStdString()));
+
+                  tools_toolbar_->setEnabled (true);
                 }
               );
 
@@ -61,83 +65,116 @@ namespace nonogram
                                      );
       level_selection_widget->setLayout (level_selection_layout.release());
 
-      util::unique_qt_ptr<QToolButton> check_button;
-      check_button->setText ("Check");
+      check_button_->setText ("Check");
 
-      util::unique_qt_ptr<QToolButton> reset_button;
-      reset_button->setText ("Reset");
+      reset_button_->setText ("Reset");
 
-      util::unique_qt_ptr<QToolButton> fill_button;
-      fill_button->setText ("Fill");
-      fill_button->setCheckable (true);
-      fill_button->setChecked (true);
+      fill_button_->setText ("Fill");
+      fill_button_->setCheckable (true);
+      fill_button_->setChecked (true);
 
-      util::unique_qt_ptr<QToolButton> cross_button;
-      cross_button->setText ("Cross");
-      cross_button->setCheckable (true);
+      cross_button_->setText ("Cross");
+      cross_button_->setCheckable (true);
 
-      util::unique_qt_ptr<QToolButton> fill_mark_button;
-      fill_mark_button->setText ("Fill Mark");
-      fill_mark_button->setCheckable (true);
+      fill_mark_button_->setText ("Fill Mark");
+      fill_mark_button_->setCheckable (true);
 
-      util::unique_qt_ptr<QToolButton> cross_mark_button;
-      cross_mark_button->setText ("Cross Mark");
-      cross_mark_button->setCheckable (true);
+      cross_mark_button_->setText ("Cross Mark");
+      cross_mark_button_->setCheckable (true);
+
+      undo_button_->setIcon (style()->standardIcon (QStyle::SP_ArrowLeft));
+      undo_button_->setEnabled (false);
+
+      redo_button_->setIcon (style()->standardIcon (QStyle::SP_ArrowRight));
+      redo_button_->setEnabled (false);
 
       tools_group_->setExclusive (true);
-      tools_group_->addButton (fill_button.get());
-      tools_group_->addButton (cross_button.get());
-      tools_group_->addButton (fill_mark_button.get());
-      tools_group_->addButton (cross_mark_button.get());
+      tools_group_->addButton (fill_button_.get());
+      tools_group_->addButton (cross_button_.get());
+      tools_group_->addButton (fill_mark_button_.get());
+      tools_group_->addButton (cross_mark_button_.get());
 
       QToolBar* level_selection_toolbar (addToolBar ("Level Selection"));
       level_selection_toolbar->addWidget (level_selection_widget.release());
 
       addToolBarBreak();
 
-      QToolBar* tools_toolbar (addToolBar ("Tools"));
-      tools_toolbar->addWidget (check_button.release());
-      tools_toolbar->addWidget (reset_button.release());
-      tools_toolbar->addWidget (fill_button.release());
-      tools_toolbar->addWidget (cross_button.release());
-      tools_toolbar->addWidget (fill_mark_button.release());
-      tools_toolbar->addWidget (cross_mark_button.release());
+      tools_toolbar_ = addToolBar ("Tools");
+
+      tools_toolbar_->addWidget (check_button_.release());
+      tools_toolbar_->addWidget (reset_button_.release());
+      tools_toolbar_->addWidget (fill_button_.release());
+      tools_toolbar_->addWidget (cross_button_.release());
+      tools_toolbar_->addWidget (fill_mark_button_.release());
+      tools_toolbar_->addWidget (cross_mark_button_.release());
+      tools_toolbar_->addWidget (undo_button_.release());
+      tools_toolbar_->addWidget (redo_button_.release());
+
+      tools_toolbar_->setDisabled (true);
 
       setCentralWidget (play_field_.release());
 
-      connect ( check_button.get()
+      connect ( play_field_.get()
+              , &PlayField::solved
+              , this
+              , [&] { tools_toolbar_->setDisabled (true); }
+              );
+
+      connect ( check_button_.get()
               , &QToolButton::clicked
               , this
               , [&] { play_field_->checkAnswer(); }
               );
-      connect ( reset_button.get()
+      connect ( reset_button_.get()
               , &QToolButton::clicked
               , this
               , [&] { play_field_->resetAnswer(); }
               );
-      connect ( fill_button.get()
+      connect ( fill_button_.get()
               , &QToolButton::toggled
               , this
               , [&]
                 { play_field_->setFillMode (data::Answer::Datum::Filled); }
               );
-      connect ( cross_button.get()
+      connect ( cross_button_.get()
               , &QToolButton::toggled
               , this
               , [&]
                 { play_field_->setFillMode (data::Answer::Datum::Crossed); }
               );
-      connect ( fill_mark_button.get()
+      connect ( fill_mark_button_.get()
               , &QToolButton::toggled
               , this
               , [&]
                 { play_field_->setFillMode (data::Answer::Datum::FillMark); }
               );
-      connect ( cross_mark_button.get()
+      connect ( cross_mark_button_.get()
               , &QToolButton::toggled
               , this
               , [&]
                 { play_field_->setFillMode (data::Answer::Datum::CrossMark); }
+              );
+
+      connect ( undo_button_.get()
+              , &QToolButton::clicked
+              , play_field_.get()
+              , &PlayField::undo
+              );
+      connect ( &undo_stack_
+              , &QUndoStack::canUndoChanged
+              , this
+              , [&] (bool can_undo) { undo_button_->setEnabled (can_undo); }
+              );
+
+      connect ( redo_button_.get()
+              , &QToolButton::clicked
+              , play_field_.get()
+              , &PlayField::redo
+              );
+      connect ( &undo_stack_
+              , &QUndoStack::canRedoChanged
+              , this
+              , [this] (bool can_redo) { redo_button_->setEnabled (can_redo); }
               );
     }
   }

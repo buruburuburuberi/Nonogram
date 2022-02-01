@@ -25,22 +25,24 @@ namespace nonogram
       , Bottom = 3
       };
 
+      using ClueSlots = std::map<ClueType, Slots>;
+
       Solution (Array2D<bool>);
 
-      Rows rows_of_data() const;
-      Columns columns_of_data() const;
+      Rows dataRows() const;
+      Columns dataColumns() const;
       State at (Slot) const;
 
-      Columns columns_of_clues (ClueType) const;
-      Rows rows_of_clues (ClueType) const;
+      Columns clueColumns (ClueType) const;
+      Rows clueRows (ClueType) const;
 
       Clue clue (ClueType, Slot) const;
 
     private:
-      Clues compute_right_clues() const;
-      Clues compute_bottom_clues() const;
-      Clues compute_left_clues (Clues const&) const;
-      Clues compute_top_clues (Clues const&) const;
+      Clues computeRightClues() const;
+      Clues computeBottomClues() const;
+      Clues computeLeftClues (Clues const&) const;
+      Clues computeTopClues (Clues const&) const;
 
       Array2D<bool> data_;
       std::map<ClueType, Clues> clues_;

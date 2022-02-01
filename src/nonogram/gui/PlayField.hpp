@@ -7,6 +7,7 @@
 #include <QtGui/QPaintEvent>
 #include <QtGui/QResizeEvent>
 #include <QtWidgets/QOpenGLWidget>
+#include <QtWidgets/QUndoStack>
 
 #include <optional>
 #include <map>
@@ -21,12 +22,18 @@ namespace nonogram
       Q_OBJECT
 
     public:
-      PlayField (data::Nonogram);
+      PlayField (QUndoStack&, data::Nonogram);
 
       void setFillMode (data::Answer::Datum);
       void setNonogram (data::Nonogram);
       void checkAnswer();
       void resetAnswer();
+
+      void redo();
+      void undo();
+
+    signals:
+      void solved();
 
     protected:
       void mouseMoveEvent (QMouseEvent*) override;
@@ -36,10 +43,11 @@ namespace nonogram
       void resizeGL (int width, int height) override;
 
     private:
+      void reset();
       data::Slot fromPosition (QRect, QPoint) const;
       void checkSlot (data::Slot);
-      bool fillSlot (QPoint);
-      bool crossClue (QPoint);
+      bool fillSlot (QPoint, bool first_hit);
+      bool crossClue (QPoint, bool first_hit);
       void finishPuzzle();
 
       QPoint clueCenter (QRect clues_rect, data::Slot) const;
@@ -60,6 +68,7 @@ namespace nonogram
 
       void updateRects (QSize window_size);
 
+      QUndoStack& undo_stack_;
       data::Nonogram nonogram_;
       data::Answer::Datum fill_mode_;
       std::size_t font_size_;

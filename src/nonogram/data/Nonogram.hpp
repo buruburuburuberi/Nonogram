@@ -21,17 +21,17 @@ namespace nonogram
       Nonogram (std::string name, Solution);
 
       std::string name() const;
-      Rows rows_of_data() const;
-      Columns columns_of_data() const;
+      Rows dataRows() const;
+      Columns dataColumns() const;
       Answer::Datum at (Slot) const;
-      void set (Slot, Answer::Datum);
+      void fill (Slot, Answer::Datum);
 
-      Columns columns_of_clues (Solution::ClueType) const;
-      Rows rows_of_clues (Solution::ClueType) const;
+      Columns clueColumns (Solution::ClueType) const;
+      Rows clueRows (Solution::ClueType) const;
 
       Solution::Clue clue (Solution::ClueType, Slot) const;
-      Answer::ClueState is_crossed (Solution::ClueType, Slot) const;
-      void set_crossed (Solution::ClueType, Slot, Answer::ClueState);
+      Answer::ClueState isCrossed (Solution::ClueType, Slot) const;
+      void cross (Solution::ClueType, Slot, Answer::ClueState);
 
       bool isMistake (Slot) const;
       std::optional<Slot> findFirstMistake() const;

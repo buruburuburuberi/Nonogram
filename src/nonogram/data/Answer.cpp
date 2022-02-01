@@ -7,7 +7,7 @@ namespace nonogram
   namespace data
   {
     Answer::Answer (Solution const& solution)
-    : data_ (solution.columns_of_data(), solution.rows_of_data())
+    : data_ (solution.dataColumns(), solution.dataRows())
     {
       reset();
 
@@ -15,8 +15,8 @@ namespace nonogram
         ( std::piecewise_construct
         , std::make_tuple (Solution::ClueType::Left)
         , std::make_tuple
-            ( solution.columns_of_clues (Solution::ClueType::Left)
-            , solution.rows_of_clues (Solution::ClueType::Left)
+            ( solution.clueColumns (Solution::ClueType::Left)
+            , solution.clueRows (Solution::ClueType::Left)
             , false
             )
         );
@@ -24,8 +24,8 @@ namespace nonogram
         ( std::piecewise_construct
         , std::make_tuple (Solution::ClueType::Top)
         , std::make_tuple
-            ( solution.columns_of_clues (Solution::ClueType::Top)
-            , solution.rows_of_clues (Solution::ClueType::Top)
+            ( solution.clueColumns (Solution::ClueType::Top)
+            , solution.clueRows (Solution::ClueType::Top)
             , false
             )
         );
@@ -33,8 +33,8 @@ namespace nonogram
         ( std::piecewise_construct
         , std::make_tuple (Solution::ClueType::Right)
         , std::make_tuple
-            ( solution.columns_of_clues (Solution::ClueType::Right)
-            , solution.rows_of_clues (Solution::ClueType::Right)
+            ( solution.clueColumns (Solution::ClueType::Right)
+            , solution.clueRows (Solution::ClueType::Right)
             , false
             )
         );
@@ -42,8 +42,8 @@ namespace nonogram
         ( std::piecewise_construct
         , std::make_tuple (Solution::ClueType::Bottom)
         , std::make_tuple
-            ( solution.columns_of_clues (Solution::ClueType::Bottom)
-            , solution.rows_of_clues (Solution::ClueType::Bottom)
+            ( solution.clueColumns (Solution::ClueType::Bottom)
+            , solution.clueRows (Solution::ClueType::Bottom)
             , false
             )
         );
@@ -54,22 +54,22 @@ namespace nonogram
       return data_.at (slot);
     }
 
-    void Answer::set (Slot slot, Datum datum)
+    void Answer::fill (Slot slot, Datum datum)
     {
       data_.set (slot, datum);
     }
 
-    Answer::ClueState Answer::is_crossed ( Solution::ClueType type
-                                         , Slot slot
-                                         ) const
+    Answer::ClueState Answer::isCrossed ( Solution::ClueType type
+                                        , Slot slot
+                                        ) const
     {
       return clue_states_.at (type).at (slot);
     }
 
-    void Answer::set_crossed ( Solution::ClueType type
-                             , Slot slot
-                             , ClueState state
-                             )
+    void Answer::cross ( Solution::ClueType type
+                       , Slot slot
+                       , ClueState state
+                       )
     {
       clue_states_.at (type).set (slot, state);
     }

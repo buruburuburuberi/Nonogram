@@ -26,6 +26,8 @@ namespace nonogram
       }
     };
 
+    using Slots = std::vector<data::Slot>;
+
     template<typename T>
     class Array2D
     {
@@ -66,7 +68,7 @@ namespace nonogram
 
       T at (Column column, Row row) const
       {
-        check_invalid_access (column, row);
+        checkInvalidAccess (column, row);
 
         return data_[row.value][column.value];
       }
@@ -78,7 +80,7 @@ namespace nonogram
 
       std::vector<T> column (Column column) const
       {
-        check_invalid_access (column);
+        checkInvalidAccess (column);
 
         std::vector<T> data;
 
@@ -92,7 +94,7 @@ namespace nonogram
 
       std::vector<T> row (Row row) const
       {
-        check_invalid_access (row);
+        checkInvalidAccess (row);
 
         return data_.at (row.value);
       }
@@ -107,7 +109,7 @@ namespace nonogram
 
       void set (Column column, Row row, T value)
       {
-        check_invalid_access (column, row);
+        checkInvalidAccess (column, row);
 
         data_[row.value][column.value] = value;
       }
@@ -118,7 +120,7 @@ namespace nonogram
       }
 
     private:
-      void check_invalid_access (Column column) const
+      void checkInvalidAccess (Column column) const
       {
         if (column.value >= columns().value)
         {
@@ -126,7 +128,7 @@ namespace nonogram
             ("Invalid access to column " + std::to_string (column.value));
         }
       }
-      void check_invalid_access (Row row) const
+      void checkInvalidAccess (Row row) const
       {
         if (row.value >= rows().value)
         {
@@ -134,10 +136,10 @@ namespace nonogram
             ("Invalid access to row " + std::to_string (row.value));
         }
       }
-      void check_invalid_access (Column column, Row row) const
+      void checkInvalidAccess (Column column, Row row) const
       {
-        check_invalid_access (column);
-        check_invalid_access (row);
+        checkInvalidAccess (column);
+        checkInvalidAccess (row);
       }
 
       std::vector<std::vector<T>> data_;

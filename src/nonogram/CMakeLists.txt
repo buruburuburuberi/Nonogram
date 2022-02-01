@@ -4,6 +4,9 @@ set (SOURCES data/Answer.cpp
              data/Solution.cpp
              gui/MainWindow.cpp
              gui/PlayField.cpp
+             gui/command/Base.cpp
+             gui/command/Cross.cpp
+             gui/command/Fill.cpp
              main.cpp
 )
 set (LIBRARIES Qt5::OpenGL Qt5::Widgets)
