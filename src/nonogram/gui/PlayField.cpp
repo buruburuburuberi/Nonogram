@@ -514,13 +514,10 @@ namespace nonogram
 
     void PlayField::finishPuzzle()
     {
-      QMessageBox messageBox ( QMessageBox::Information
-                             , "Congratulations!"
-                             , "Puzzle solved!"
-                             , QMessageBox::Ok
-                             , this
-                             );
-      messageBox.exec();
+      QMessageBox::information ( this
+                               , "Congratulations!"
+                               , "You have solved this puzzle."
+                               );
       solved_ = true;
       setDisabled (true);
 
