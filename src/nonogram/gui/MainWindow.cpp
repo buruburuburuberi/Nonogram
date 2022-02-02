@@ -2,6 +2,7 @@
 
 #include <QtGui/QStandardItem>
 #include <QtWidgets/QFormLayout>
+#include <QtWidgets/QMessageBox>
 #include <QtWidgets/QStatusBar>
 #include <QtWidgets/QToolBar>
 #include <QtWidgets/QToolButton>
@@ -68,6 +69,7 @@ namespace nonogram
       check_button_->setText ("Check");
 
       reset_button_->setText ("Reset");
+      reset_button_->setDisabled (true);
 
       fill_button_->setText ("Fill");
       fill_button_->setCheckable (true);
@@ -102,13 +104,13 @@ namespace nonogram
       tools_toolbar_ = addToolBar ("Tools");
 
       tools_toolbar_->addWidget (check_button_.release());
-      tools_toolbar_->addWidget (reset_button_.release());
       tools_toolbar_->addWidget (fill_button_.release());
       tools_toolbar_->addWidget (cross_button_.release());
       tools_toolbar_->addWidget (fill_mark_button_.release());
       tools_toolbar_->addWidget (cross_mark_button_.release());
       tools_toolbar_->addWidget (undo_button_.release());
       tools_toolbar_->addWidget (redo_button_.release());
+      tools_toolbar_->addWidget (reset_button_.release());
 
       tools_toolbar_->setDisabled (true);
 
@@ -128,7 +130,18 @@ namespace nonogram
       connect ( reset_button_.get()
               , &QToolButton::clicked
               , this
-              , [&] { play_field_->resetAnswer(); }
+              , [&]
+                {
+                  if ( QMessageBox::question
+                         ( this
+                         , "Restart?"
+                         , "Are you sure you want to restart this puzzle?"
+                         ) == QMessageBox::Yes
+                     )
+                  {
+                    play_field_->resetAnswer();
+                  }
+                }
               );
       connect ( fill_button_.get()
               , &QToolButton::toggled
@@ -175,6 +188,12 @@ namespace nonogram
               , &QUndoStack::canRedoChanged
               , this
               , [this] (bool can_redo) { redo_button_->setEnabled (can_redo); }
+              );
+
+      connect ( &undo_stack_
+              , &QUndoStack::cleanChanged
+              , this
+              , [&] (bool clean) { reset_button_->setDisabled (clean); }
               );
     }
   }
