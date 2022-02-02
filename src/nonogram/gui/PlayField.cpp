@@ -26,69 +26,69 @@ namespace nonogram
     void PlayField::updateRects (QSize window_size)
     {
       std::size_t const border (2);
-      QSize const size_of_left_clues
-        ( nonogram_.clueColumns (data::Solution::ClueType::Left).value * slot_size_
-        , nonogram_.clueRows (data::Solution::ClueType::Left).value * slot_size_
-        );
-      QSize const size_of_top_clues
-        ( nonogram_.clueColumns (data::Solution::ClueType::Top).value * slot_size_
-        , nonogram_.clueRows (data::Solution::ClueType::Top).value * slot_size_
-        );
-      QSize const size_of_right_clues
-        ( nonogram_.clueColumns (data::Solution::ClueType::Right).value * slot_size_
-        , nonogram_.clueRows (data::Solution::ClueType::Right).value * slot_size_
-        );
-      QSize const size_of_bottom_clues
-        ( nonogram_.clueColumns (data::Solution::ClueType::Bottom).value * slot_size_
-        , nonogram_.clueRows (data::Solution::ClueType::Bottom).value * slot_size_
-        );
+
+      std::map<data::Solution::ClueType, QSize> sizes;
+      for (auto const& type : data::Solution::all_clue_types)
+      {
+        sizes.emplace
+          ( type
+          , QSize ( nonogram_.clueColumns (type).value
+                  , nonogram_.clueRows (type).value
+                  ) * slot_size_
+          );
+      }
+
       QSize const puzzle_size ( nonogram_.dataColumns().value * slot_size_
                               , nonogram_.dataRows().value * slot_size_
                               );
 
-      clues_rects_[data::Solution::ClueType::Left]
-        = QRect ( QPoint (0, size_of_top_clues.height() + border)
-                , size_of_left_clues
-                );
-      clues_rects_[data::Solution::ClueType::Top]
-        = QRect ( QPoint (size_of_left_clues.width() + border, 0)
-                , size_of_top_clues
-                );
+      clues_rects_[data::Solution::ClueType::Left] =
+        { QPoint ( 0
+                 , sizes.at (data::Solution::ClueType::Top).height() + border
+                 )
+        , sizes.at (data::Solution::ClueType::Left)
+        };
+      clues_rects_[data::Solution::ClueType::Top] =
+        { QPoint ( sizes.at (data::Solution::ClueType::Left).width() + border
+                 , 0
+                 )
+        , sizes.at (data::Solution::ClueType::Top)
+        };
       puzzle_rect_ =
-          QRect ( QPoint ( clues_rects_.at (data::Solution::ClueType::Top).left()
-                         , clues_rects_.at (data::Solution::ClueType::Left).top()
-                         )
-                , puzzle_size
-                );
-      clues_rects_[data::Solution::ClueType::Right]
-        = QRect ( QPoint ( puzzle_rect_.x() + puzzle_rect_.width() + border
-                         , clues_rects_.at (data::Solution::ClueType::Left).top()
-                         )
-                , size_of_right_clues
-                );
-      clues_rects_[data::Solution::ClueType::Bottom]
-        = QRect ( QPoint ( clues_rects_.at (data::Solution::ClueType::Top).left()
-                         , puzzle_rect_.y() + puzzle_rect_.height() + border
-                         )
-                , size_of_bottom_clues
-                );
+        { QPoint ( clues_rects_.at (data::Solution::ClueType::Top).left()
+                 , clues_rects_.at (data::Solution::ClueType::Left).top()
+                 )
+        , puzzle_size
+        };
+      clues_rects_[data::Solution::ClueType::Right] =
+        { QPoint ( puzzle_rect_.x() + puzzle_rect_.width() + border
+                 , clues_rects_.at (data::Solution::ClueType::Left).top()
+                 )
+        , sizes.at (data::Solution::ClueType::Right)
+        };
+      clues_rects_[data::Solution::ClueType::Bottom] =
+        { QPoint ( clues_rects_.at (data::Solution::ClueType::Top).left()
+                 , puzzle_rect_.y() + puzzle_rect_.height() + border
+                 )
+        , sizes.at (data::Solution::ClueType::Bottom)
+        };
       field_rect_ =
-          QRect ( QPoint ( clues_rects_.at (data::Solution::ClueType::Left).x()
-                         , clues_rects_.at (data::Solution::ClueType::Top).y()
-                         )
-                , QPoint ( clues_rects_.at (data::Solution::ClueType::Right).right()
-                         , clues_rects_.at (data::Solution::ClueType::Bottom).bottom()
-                         )
-                );
+        { QPoint ( clues_rects_.at (data::Solution::ClueType::Left).x()
+                 , clues_rects_.at (data::Solution::ClueType::Top).y()
+                 )
+        , QSize ( clues_rects_.at (data::Solution::ClueType::Right).right()
+                , clues_rects_.at (data::Solution::ClueType::Bottom).bottom()
+                )
+        };
 
       QPoint const offset ( (window_size.width() - field_rect_.width()) / 2.0f
                           , (window_size.height() - field_rect_.height()) / 2.0f
                           );
       puzzle_rect_.translate (offset);
-      clues_rects_.at (data::Solution::ClueType::Left).translate (offset);
-      clues_rects_.at (data::Solution::ClueType::Right).translate (offset);
-      clues_rects_.at (data::Solution::ClueType::Top).translate (offset);
-      clues_rects_.at (data::Solution::ClueType::Bottom).translate (offset);
+      for (auto const& type : data::Solution::all_clue_types)
+      {
+        clues_rects_.at (type).translate (offset);
+      }
       field_rect_.translate (offset);
     }
 
@@ -574,10 +574,10 @@ namespace nonogram
       QPainter painter (this);
       painter.fillRect (rect(), Qt::black);
 
-      drawClues (painter, data::Solution::ClueType::Left);
-      drawClues (painter, data::Solution::ClueType::Top);
-      drawClues (painter, data::Solution::ClueType::Right);
-      drawClues (painter, data::Solution::ClueType::Bottom);
+      for (auto const& type : data::Solution::all_clue_types)
+      {
+        drawClues (painter, type);
+      }
       drawPuzzle (painter);
     }
 

@@ -11,42 +11,18 @@ namespace nonogram
     {
       reset();
 
-      clue_states_.emplace
-        ( std::piecewise_construct
-        , std::make_tuple (Solution::ClueType::Left)
-        , std::make_tuple
-            ( solution.clueColumns (Solution::ClueType::Left)
-            , solution.clueRows (Solution::ClueType::Left)
-            , false
-            )
-        );
-      clue_states_.emplace
-        ( std::piecewise_construct
-        , std::make_tuple (Solution::ClueType::Top)
-        , std::make_tuple
-            ( solution.clueColumns (Solution::ClueType::Top)
-            , solution.clueRows (Solution::ClueType::Top)
-            , false
-            )
-        );
-      clue_states_.emplace
-        ( std::piecewise_construct
-        , std::make_tuple (Solution::ClueType::Right)
-        , std::make_tuple
-            ( solution.clueColumns (Solution::ClueType::Right)
-            , solution.clueRows (Solution::ClueType::Right)
-            , false
-            )
-        );
-      clue_states_.emplace
-        ( std::piecewise_construct
-        , std::make_tuple (Solution::ClueType::Bottom)
-        , std::make_tuple
-            ( solution.clueColumns (Solution::ClueType::Bottom)
-            , solution.clueRows (Solution::ClueType::Bottom)
-            , false
-            )
-        );
+      for (auto const& type : Solution::all_clue_types)
+      {
+        clue_states_.emplace
+          ( std::piecewise_construct
+          , std::make_tuple (type)
+          , std::make_tuple
+              ( solution.clueColumns (type)
+              , solution.clueRows (type)
+              , false
+              )
+          );
+      }
     }
 
     Answer::Datum Answer::at (Slot slot) const

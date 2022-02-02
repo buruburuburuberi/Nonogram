@@ -4,6 +4,7 @@
 
 #include <QtCore/QSize>
 
+#include <array>
 #include <cstddef>
 #include <map>
 
@@ -19,10 +20,17 @@ namespace nonogram
       using Clues = Array2D<Clue>;
 
       enum class ClueType
-      { Left = 0
-      , Top = 1
-      , Right = 2
-      , Bottom = 3
+      { Left
+      , Top
+      , Right
+      , Bottom
+      };
+
+      static std::array<ClueType, 4> constexpr all_clue_types
+      { ClueType::Left
+      , ClueType::Top
+      , ClueType::Right
+      , ClueType::Bottom
       };
 
       using ClueSlots = std::map<ClueType, Slots>;
