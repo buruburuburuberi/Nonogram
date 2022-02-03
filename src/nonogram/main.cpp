@@ -1,6 +1,8 @@
 #include <nonogram/data/Nonogram.hpp>
 #include <nonogram/gui/MainWindow.hpp>
 
+#include <nonogram/util/print_exception.hpp>
+
 #include <QtWidgets/QApplication>
 
 #include <iostream>
@@ -54,14 +56,9 @@ try
 }
 catch (...)
 {
-  try
-  {
-    std::rethrow_exception (std::current_exception());
-  }
-  catch (const std::exception& e)
-  {
-    std::cerr << "EXCEPTION: " << e.what() << std::endl;
-  }
+  std::cerr << "EXCEPTION: "
+            << nonogram::util::exception_printer (std::current_exception())
+            << std::endl;
 
   return 1;
 }

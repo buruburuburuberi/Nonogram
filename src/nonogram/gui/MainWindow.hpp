@@ -35,6 +35,8 @@ namespace nonogram
         util::unique_qt_ptr<QButtonGroup> tools_group_;
         util::unique_qt_ptr<PlayField> play_field_;
         util::unique_qt_ptr<QToolButton> check_button_;
+        util::unique_qt_ptr<QToolButton> lock_button_;
+        util::unique_qt_ptr<QToolButton> unlock_button_;
         util::unique_qt_ptr<QToolButton> reset_button_;
         util::unique_qt_ptr<QToolButton> fill_button_;
         util::unique_qt_ptr<QToolButton> cross_button_;

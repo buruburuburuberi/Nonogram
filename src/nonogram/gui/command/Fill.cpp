@@ -77,8 +77,7 @@ namespace nonogram
           return false;
         }
 
-        data_slots_.insert ( data_slots_.end()
-                           , other_fill->data_slots_.begin()
+        data_slots_.insert ( other_fill->data_slots_.begin()
                            , other_fill->data_slots_.end()
                            );
 

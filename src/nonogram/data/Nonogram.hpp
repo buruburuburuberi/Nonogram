@@ -25,6 +25,10 @@ namespace nonogram
       Columns dataColumns() const;
       Answer::Datum at (Slot) const;
       void fill (Slot, Answer::Datum);
+      Slots dataToLock() const;
+      Slots lockedData() const;
+      bool isDatumLocked (Slot) const;
+      void lockData (Slots, bool);
 
       Columns clueColumns (Solution::ClueType) const;
       Rows clueRows (Solution::ClueType) const;
@@ -32,6 +36,13 @@ namespace nonogram
       Solution::Clue clue (Solution::ClueType, Slot) const;
       Answer::ClueState isCrossed (Solution::ClueType, Slot) const;
       void cross (Solution::ClueType, Slot, Answer::ClueState);
+      Solution::ClueSlots cluesToLock() const;
+      Solution::ClueSlots lockedClues() const;
+      bool isClueLocked (Solution::ClueType, Slot) const;
+      void lockClues (Solution::ClueSlots, bool);
+
+      bool canLock() const;
+      bool canUnlock() const;
 
       bool isMistake (Slot) const;
       std::optional<Slot> findFirstMistake() const;

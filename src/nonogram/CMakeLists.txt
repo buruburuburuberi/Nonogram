@@ -7,6 +7,8 @@ set (SOURCES data/Answer.cpp
              gui/command/Base.cpp
              gui/command/Cross.cpp
              gui/command/Fill.cpp
+             gui/command/Lock.cpp
+             util/print_exception.cpp
              main.cpp
 )
 set (LIBRARIES Qt5::OpenGL Qt5::Widgets)

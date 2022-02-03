@@ -2,6 +2,8 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <functional>
+#include <set>
 #include <stdexcept>
 #include <vector>
 
@@ -24,16 +26,30 @@ namespace nonogram
         return column.value == rhs.column.value
             && row.value == rhs.row.value;
       }
+
+      bool operator< (Slot const& rhs) const
+      {
+        if (row.value < rhs.row.value)
+        {
+          return true;
+        }
+        else if (row.value > rhs.row.value)
+        {
+          return false;
+        }
+        else
+        {
+          return column.value < rhs.column.value;
+        }
+      }
     };
 
-    using Slots = std::vector<data::Slot>;
+    using Slots = std::set<data::Slot>;
 
     template<typename T>
     class Array2D
     {
     public:
-      Array2D() = default;
-
       Array2D (Columns columns, Rows rows, T value = T())
       {
         data_.resize (rows.value);
@@ -76,6 +92,25 @@ namespace nonogram
       T at (Slot slot) const
       {
         return at (slot.column, slot.row);
+      }
+
+      Slots slots_if (std::function<bool (Slot, T)> check) const
+      {
+        Slots slots;
+
+        for (Row row {0}; row.value < rows().value; ++row.value)
+        {
+          for (Column column {0}; column.value < columns().value; ++column.value)
+          {
+            Slot const slot {column, row};
+            if (check (slot, at (slot)))
+            {
+              slots.insert (slot);
+            }
+          }
+        }
+
+        return slots;
       }
 
       std::vector<T> column (Column column) const

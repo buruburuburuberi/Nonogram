@@ -29,6 +29,11 @@ namespace nonogram
       void checkAnswer();
       void resetAnswer();
 
+      bool canLock() const;
+      bool canUnlock() const;
+      void lock();
+      void unlock();
+
       void redo();
       void undo();
 

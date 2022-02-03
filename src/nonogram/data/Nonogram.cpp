@@ -39,6 +39,26 @@ namespace nonogram
       answer_.fill (slot, datum);
     }
 
+    Slots Nonogram::dataToLock() const
+    {
+      return answer_.dataToLock();
+    }
+
+    Slots Nonogram::lockedData() const
+    {
+      return answer_.lockedData();
+    }
+
+    bool Nonogram::isDatumLocked (Slot slot) const
+    {
+      return answer_.isDatumLocked (slot);
+    }
+
+    void Nonogram::lockData (Slots slots, bool state)
+    {
+      answer_.lockData (std::move (slots), state);
+    }
+
     Columns Nonogram::clueColumns (Solution::ClueType type) const
     {
       return solution_.clueColumns (type);
@@ -71,6 +91,36 @@ namespace nonogram
       answer_.cross (type, slot, state);
     }
 
+    Solution::ClueSlots Nonogram::cluesToLock() const
+    {
+      return answer_.cluesToLock();
+    }
+
+    Solution::ClueSlots Nonogram::lockedClues() const
+    {
+      return answer_.lockedClues();
+    }
+
+    bool Nonogram::isClueLocked (Solution::ClueType type, Slot slot) const
+    {
+      return answer_.isClueLocked (type, slot);
+    }
+
+    void Nonogram::lockClues (Solution::ClueSlots slots, bool state)
+    {
+      answer_.lockClues (std::move (slots), state);
+    }
+
+    bool Nonogram::canLock() const
+    {
+      return answer_.canLock();
+    }
+
+    bool Nonogram::canUnlock() const
+    {
+      return answer_.canUnlock();
+    }
+
     bool Nonogram::isMistake (Slot slot) const
     {
       auto const datum (answer_.at (slot));
@@ -82,12 +132,12 @@ namespace nonogram
 
     std::optional<Slot> Nonogram::findFirstMistake() const
     {
-      for ( Column column {0}
-          ; column.value < dataColumns().value
-          ; ++column.value
-          )
+      for (Row row {0}; row.value < dataRows().value; ++row.value)
       {
-        for (Row row {0}; row.value < dataRows().value; ++row.value)
+        for ( Column column {0}
+            ; column.value < dataColumns().value
+            ; ++column.value
+            )
         {
           Slot const slot {column, row};
           if (isMistake (slot))
@@ -102,12 +152,12 @@ namespace nonogram
 
     bool Nonogram::isSolved() const
     {
-      for ( Column column {0}
-          ; column.value < dataColumns().value
-          ; ++column.value
-          )
+      for (Row row {0}; row.value < dataRows().value; ++row.value)
       {
-        for (Row row {0}; row.value < dataRows().value; ++row.value)
+        for ( Column column {0}
+            ; column.value < dataColumns().value
+            ; ++column.value
+            )
         {
           Slot const slot {column, row};
           auto const datum (answer_.at (slot));

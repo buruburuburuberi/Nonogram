@@ -86,10 +86,7 @@ namespace nonogram
         for (auto const& clue_slot : other_cross->clue_slots_)
         {
           clue_slots_.at (clue_slot.first).insert
-            ( clue_slots_.at (clue_slot.first).end()
-            , clue_slot.second.begin()
-            , clue_slot.second.end()
-            );
+            (clue_slot.second.begin(), clue_slot.second.end());
         }
 
         return true;

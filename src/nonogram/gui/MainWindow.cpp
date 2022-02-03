@@ -68,6 +68,12 @@ namespace nonogram
 
       check_button_->setText ("Check");
 
+      lock_button_->setText ("Lock");
+      lock_button_->setDisabled (true);
+
+      unlock_button_->setText ("Unlock");
+      unlock_button_->setDisabled (true);
+
       reset_button_->setText ("Reset");
       reset_button_->setDisabled (true);
 
@@ -110,6 +116,8 @@ namespace nonogram
       tools_toolbar_->addWidget (cross_mark_button_.release());
       tools_toolbar_->addWidget (undo_button_.release());
       tools_toolbar_->addWidget (redo_button_.release());
+      tools_toolbar_->addWidget (lock_button_.release());
+      tools_toolbar_->addWidget (unlock_button_.release());
       tools_toolbar_->addWidget (reset_button_.release());
 
       tools_toolbar_->setDisabled (true);
@@ -126,6 +134,25 @@ namespace nonogram
               , &QToolButton::clicked
               , this
               , [&] { play_field_->checkAnswer(); }
+              );
+      connect ( lock_button_.get()
+              , &QToolButton::clicked
+              , this
+              , [&]
+                {
+                  play_field_->lock();
+                  unlock_button_->setDisabled (true);
+                  unlock_button_->setEnabled (true);
+                }
+              );
+      connect ( unlock_button_.get()
+              , &QToolButton::clicked
+              , this
+              , [&]
+                {
+                  play_field_->unlock();
+                  unlock_button_->setDisabled (true);
+                }
               );
       connect ( reset_button_.get()
               , &QToolButton::clicked
@@ -193,7 +220,26 @@ namespace nonogram
       connect ( &undo_stack_
               , &QUndoStack::cleanChanged
               , this
-              , [&] (bool clean) { reset_button_->setDisabled (clean); }
+              , [&] (bool clean)
+                {
+                  lock_button_->setDisabled (clean);
+                  reset_button_->setDisabled (clean);
+
+                  if (clean)
+                  {
+                    unlock_button_->setDisabled (true);
+                  }
+                }
+              );
+
+      connect ( &undo_stack_
+              , &QUndoStack::indexChanged
+              , this
+              , [&] (int)
+                {
+                  lock_button_->setEnabled (play_field_->canLock());
+                  unlock_button_->setEnabled (play_field_->canUnlock());
+                }
               );
     }
   }

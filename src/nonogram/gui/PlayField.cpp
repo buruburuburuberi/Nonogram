@@ -2,6 +2,7 @@
 
 #include <nonogram/gui/command/Cross.hpp>
 #include <nonogram/gui/command/Fill.hpp>
+#include <nonogram/gui/command/Lock.hpp>
 
 #include <QtCore/QTimer>
 #include <QtGui/QPainter>
@@ -141,6 +142,30 @@ namespace nonogram
       update();
     }
 
+    bool PlayField::canLock() const
+    {
+      return nonogram_.canLock();
+    }
+
+    bool PlayField::canUnlock() const
+    {
+      return nonogram_.canUnlock();
+    }
+
+    void PlayField::lock()
+    {
+      undo_stack_.push (command::Lock::lock (nonogram_));
+
+      update();
+    }
+
+    void PlayField::unlock()
+    {
+      undo_stack_.push (command::Lock::unlock (nonogram_));
+
+      update();
+    }
+
     void PlayField::redo()
     {
       undo_stack_.redo();
@@ -191,7 +216,10 @@ namespace nonogram
 
       if (clue > 0)
       {
-        painter.setPen (Qt::black);
+        QColor const color
+          (nonogram_.isClueLocked (type, slot) ? Qt::darkGray : Qt::black);
+        painter.setPen (color);
+
         auto const text_size (slot_size);
         QFont font;
         font.setPixelSize (font_size_);
@@ -289,10 +317,13 @@ namespace nonogram
         return;
       }
 
-      painter.setBrush (Qt::black);
+      QColor const color
+        (nonogram_.isDatumLocked (slot) ? Qt::darkGray : Qt::black);
+
+      painter.setBrush (color);
       auto pen (painter.pen());
       pen.setWidth (2);
-      pen.setColor (Qt::black);
+      pen.setColor (color);
       painter.setPen (pen);
 
       auto const slot_size
@@ -380,6 +411,11 @@ namespace nonogram
       {
         auto const slot (fromPosition (puzzle_rect_, position));
 
+        if (nonogram_.isDatumLocked (slot))
+        {
+          return true;
+        }
+
         auto const current_datum (nonogram_.at (slot));
 
         if (!current_hit_)
@@ -455,6 +491,11 @@ namespace nonogram
             }
 
             auto const slot (fromPosition (rect, position));
+
+            if (nonogram_.isClueLocked (type, slot))
+            {
+              return true;
+            }
 
             auto const state
               ( current_hit_
