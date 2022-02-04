@@ -1,5 +1,6 @@
 set (INSTALL_DESTINATION "bin")
 set (SOURCES data/Answer.cpp
+             data/ClueStates.cpp
              data/Nonogram.cpp
              data/Solution.cpp
              gui/MainWindow.cpp

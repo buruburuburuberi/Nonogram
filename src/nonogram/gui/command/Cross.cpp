@@ -9,8 +9,8 @@ namespace nonogram
       Cross::Cross ( int id
                    , data::Nonogram& nonogram
                    , data::Solution::ClueSlots clue_slots
-                   , data::Answer::ClueState before
-                   , data::Answer::ClueState after
+                   , data::ClueState before
+                   , data::ClueState after
                    )
       : Base (id, nonogram)
       , clue_slots_ (std::move (clue_slots))
@@ -22,8 +22,8 @@ namespace nonogram
 
       Cross* Cross::start ( data::Nonogram& nonogram
                           , data::Solution::ClueSlots clue_slots
-                          , data::Answer::ClueState before
-                          , data::Answer::ClueState after
+                          , data::ClueState before
+                          , data::ClueState after
                           )
       {
         return new Cross ( ++command_id
@@ -36,8 +36,8 @@ namespace nonogram
 
       Cross* Cross::append ( data::Nonogram& nonogram
                            , data::Solution::ClueSlots clue_slots
-                           , data::Answer::ClueState before
-                           , data::Answer::ClueState after
+                           , data::ClueState before
+                           , data::ClueState after
                            )
       {
         return new Cross ( command_id

@@ -1,9 +1,8 @@
 #pragma once
 
 #include <nonogram/data/Array2D.hpp>
+#include <nonogram/data/ClueStates.hpp>
 #include <nonogram/data/Solution.hpp>
-
-#include <QtCore/QSize>
 
 #include <cstddef>
 #include <map>
@@ -23,11 +22,7 @@ namespace nonogram
       , CrossMark = 4
       };
 
-      using ClueState = bool;
-      using ClueStates = std::map<Solution::ClueType, Array2D<ClueState>>;
-
       using DataLocks = Array2D<bool>;
-      using ClueLocks = std::map<Solution::ClueType, Array2D<bool>>;
 
       Answer (Solution const&);
 
@@ -39,7 +34,7 @@ namespace nonogram
       void lockData (Slots, bool);
 
       bool isCrossed (Solution::ClueType, Slot) const;
-      void cross (Solution::ClueType, Slot, ClueState);
+      void cross (Solution::ClueType, Slot, bool);
       Solution::ClueSlots cluesToLock() const;
       Solution::ClueSlots lockedClues() const;
       bool isClueLocked (Solution::ClueType, Slot) const;
@@ -53,11 +48,9 @@ namespace nonogram
     private:
       Array2D<Datum> data_;
       DataLocks data_locks_;
-      ClueStates clue_states_;
-      ClueLocks clue_locks_;
-
       Slots data_to_lock_;
-      Solution::ClueSlots clues_to_lock_;
+
+      std::map<Solution::ClueType, ClueStates> clues_;
     };
   }
 }

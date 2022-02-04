@@ -76,17 +76,12 @@ namespace nonogram
       return solution_.clue (type, slot);
     }
 
-    Answer::ClueState Nonogram::isCrossed ( Solution::ClueType type
-                                          , Slot slot
-                                          ) const
+    ClueState Nonogram::isCrossed (Solution::ClueType type, Slot slot) const
     {
       return answer_.isCrossed (type, slot);
     }
 
-    void Nonogram::cross ( Solution::ClueType type
-                         , Slot slot
-                         , Answer::ClueState state
-                         )
+    void Nonogram::cross (Solution::ClueType type, Slot slot, ClueState state)
     {
       answer_.cross (type, slot, state);
     }

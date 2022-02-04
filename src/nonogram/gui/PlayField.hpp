@@ -86,7 +86,7 @@ namespace nonogram
       {
         data::Solution::ClueType type;
         data::Slot current_slot;
-        data::Answer::ClueState state;
+        data::ClueState state;
       };
 
       struct DataHit

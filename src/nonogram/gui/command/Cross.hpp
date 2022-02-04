@@ -21,14 +21,14 @@ namespace nonogram
       public:
         static Cross* start ( data::Nonogram&
                             , data::Solution::ClueSlots
-                            , data::Answer::ClueState before
-                            , data::Answer::ClueState after
+                            , data::ClueState before
+                            , data::ClueState after
                             );
 
         static Cross* append ( data::Nonogram&
                              , data::Solution::ClueSlots
-                             , data::Answer::ClueState before
-                             , data::Answer::ClueState after
+                             , data::ClueState before
+                             , data::ClueState after
                              );
 
         void undo() override;
@@ -40,13 +40,13 @@ namespace nonogram
         Cross ( int id
               , data::Nonogram&
               , data::Solution::ClueSlots
-              , data::Answer::ClueState before
-              , data::Answer::ClueState after
+              , data::ClueState before
+              , data::ClueState after
               );
 
         data::Solution::ClueSlots clue_slots_;
-        data::Answer::ClueState before_;
-        data::Answer::ClueState after_;
+        data::ClueState before_;
+        data::ClueState after_;
       };
     }
   }

@@ -34,8 +34,8 @@ namespace nonogram
       Rows clueRows (Solution::ClueType) const;
 
       Solution::Clue clue (Solution::ClueType, Slot) const;
-      Answer::ClueState isCrossed (Solution::ClueType, Slot) const;
-      void cross (Solution::ClueType, Slot, Answer::ClueState);
+      ClueState isCrossed (Solution::ClueType, Slot) const;
+      void cross (Solution::ClueType, Slot, ClueState);
       Solution::ClueSlots cluesToLock() const;
       Solution::ClueSlots lockedClues() const;
       bool isClueLocked (Solution::ClueType, Slot) const;

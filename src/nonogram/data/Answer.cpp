@@ -7,34 +7,17 @@ namespace nonogram
   namespace data
   {
     Answer::Answer (Solution const& solution)
-    : data_ (solution.dataColumns(), solution.dataRows())
-    , data_locks_ (solution.dataColumns(), solution.dataRows())
+    : data_ (solution.dataColumns(), solution.dataRows(), Datum::Empty)
+    , data_locks_ (solution.dataColumns(), solution.dataRows(), false)
+    , data_to_lock_()
     {
-      reset();
-
       for (auto const& type : Solution::all_clue_types)
       {
-        clue_states_.emplace
+        clues_.emplace
           ( std::piecewise_construct
-          , std::make_tuple (type)
-          , std::make_tuple
-              ( solution.clueColumns (type)
-              , solution.clueRows (type)
-              , false
-              )
+          , std::forward_as_tuple (type)
+          , std::forward_as_tuple (solution, type)
           );
-
-        clue_locks_.emplace
-          ( std::piecewise_construct
-          , std::make_tuple (type)
-          , std::make_tuple
-              ( solution.clueColumns (type)
-              , solution.clueRows (type)
-              , false
-              )
-          );
-
-        clues_to_lock_[type] = {};
       }
     }
 
@@ -96,38 +79,26 @@ namespace nonogram
       }
     }
 
-    Answer::ClueState Answer::isCrossed ( Solution::ClueType type
-                                        , Slot slot
-                                        ) const
+    bool Answer::isCrossed (Solution::ClueType type, Slot slot) const
     {
-      return clue_states_.at (type).at (slot);
+      return clues_.at (type).isCrossed (slot);
     }
 
-    void Answer::cross ( Solution::ClueType type
-                       , Slot slot
-                       , ClueState state
-                       )
+    void Answer::cross (Solution::ClueType type, Slot slot, bool state)
     {
-      if (clue_locks_.at (type).at (slot))
-      {
-        throw std::logic_error ("Tried to change locked clue.");
-      }
-
-      clue_states_.at (type).set (slot, state);
-
-      if (state)
-      {
-        clues_to_lock_.at (type).insert (slot);
-      }
-      else
-      {
-        clues_to_lock_.at (type).erase (slot);
-      }
+      clues_.at (type).cross (slot, state);
     }
 
     Solution::ClueSlots Answer::cluesToLock() const
     {
-      return clues_to_lock_;
+      Solution::ClueSlots clue_slots;
+
+      for (auto const& type : Solution::all_clue_types)
+      {
+        clue_slots.emplace (type, clues_.at (type).toLock());
+      }
+
+      return clue_slots;
     }
 
     Solution::ClueSlots Answer::lockedClues() const
@@ -136,11 +107,7 @@ namespace nonogram
 
       for (auto const& type : Solution::all_clue_types)
       {
-        clue_slots.emplace
-          ( type
-          , clue_locks_.at (type).slots_if
-              ([] (Slot, bool state) { return state; })
-          );
+        clue_slots.emplace (type, clues_.at (type).locked());
       }
 
       return clue_slots;
@@ -148,31 +115,14 @@ namespace nonogram
 
     bool Answer::isClueLocked (Solution::ClueType type, Slot slot) const
     {
-      return clue_locks_.at (type).at (slot);
+      return clues_.at (type).isLocked (slot);
     }
 
     void Answer::lockClues (Solution::ClueSlots clue_slots, bool state)
     {
-      for (auto const& clue_slot : clue_slots)
-      {
-        for (auto const& slot : clue_slot.second)
-        {
-          clue_locks_.at (clue_slot.first).set (slot, state);
-        }
-      }
-
       for (auto const& type : Solution::all_clue_types)
       {
-        if (state)
-        {
-          clues_to_lock_.at (type).clear();
-        }
-        else
-        {
-          clues_to_lock_.at (type) =
-            clue_states_.at (type).slots_if
-              ([] (Slot, bool state) { return state; });
-        }
+        clues_.at (type).lock (clue_slots.at (type), state);
       }
     }
 
@@ -183,7 +133,7 @@ namespace nonogram
           {
             for (auto const& type : Solution::all_clue_types)
             {
-              if (!clues_to_lock_.at (type).empty())
+              if (clues_.at (type).canLock())
               {
                 return true;
               }
@@ -214,21 +164,9 @@ namespace nonogram
 
       for (auto const& type : Solution::all_clue_types)
       {
-        for ( Row row {0}
-            ; row.value < clue_locks_.at (type).rows().value
-            ; ++row.value
-            )
+        if (clues_.at (type).canUnlock())
         {
-          for ( Column column {0}
-              ; column.value < clue_locks_.at (type).columns().value
-              ; ++column.value
-              )
-          {
-            if (clue_locks_.at (type).at ({column, row}))
-            {
-              return true;
-            }
-          }
+          return true;
         }
       }
 
@@ -238,9 +176,12 @@ namespace nonogram
     void Answer::reset()
     {
       data_.fill (Answer::Datum::Empty);
-      for (auto& clue_states : clue_states_)
+      data_locks_.fill (false);
+      data_to_lock_.clear();
+
+      for (auto const& type : Solution::all_clue_types)
       {
-        clue_states.second.fill (false);
+        clues_.at (type).reset();
       }
     }
   }
