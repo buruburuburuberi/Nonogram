@@ -59,51 +59,54 @@ namespace nonogram
       answer_.lockData (std::move (slots), state);
     }
 
-    Columns Nonogram::clueColumns (Solution::ClueType type) const
+    MinorSize Nonogram::maxNumberOfClues (Clues::Type type) const
     {
-      return solution_.clueColumns (type);
+      return solution_.maxNumberOfClues (type);
     }
 
-    Rows Nonogram::clueRows (Solution::ClueType type) const
+    MainSize Nonogram::clueMainSize (Clues::Type type) const
     {
-      return solution_.clueRows (type);
+      return solution_.clueMainSize (type);
     }
 
-    Solution::Clue Nonogram::clue ( Solution::ClueType type
-                                  , Slot slot
-                                  ) const
+    MinorSize Nonogram::clueMinorSize (Clues::Type type, MainIndex main_index) const
     {
-      return solution_.clue (type, slot);
+      return solution_.clueMinorSize (type, main_index);
     }
 
-    ClueState Nonogram::isCrossed (Solution::ClueType type, Slot slot) const
+    Clues::Value Nonogram::clue (Clues::Type type, FullIndex full_index) const
     {
-      return answer_.isCrossed (type, slot);
+      return solution_.clue (type, full_index);
     }
 
-    void Nonogram::cross (Solution::ClueType type, Slot slot, ClueState state)
+    ClueState Nonogram::isCrossed (Clues::Type type, FullIndex full_index) const
     {
-      answer_.cross (type, slot, state);
+      return answer_.isCrossed (type, full_index);
     }
 
-    Solution::ClueSlots Nonogram::cluesToLock() const
+    void Nonogram::cross (Clues::Type type, FullIndex full_index, ClueState state)
+    {
+      answer_.cross (type, full_index, state);
+    }
+
+    Solution::ClueIndices Nonogram::cluesToLock() const
     {
       return answer_.cluesToLock();
     }
 
-    Solution::ClueSlots Nonogram::lockedClues() const
+    Solution::ClueIndices Nonogram::lockedClues() const
     {
       return answer_.lockedClues();
     }
 
-    bool Nonogram::isClueLocked (Solution::ClueType type, Slot slot) const
+    bool Nonogram::isClueLocked (Clues::Type type, FullIndex full_index) const
     {
-      return answer_.isClueLocked (type, slot);
+      return answer_.isClueLocked (type, full_index);
     }
 
-    void Nonogram::lockClues (Solution::ClueSlots slots, bool state)
+    void Nonogram::lockClues (Solution::ClueIndices indices, bool state)
     {
-      answer_.lockClues (std::move (slots), state);
+      answer_.lockClues (std::move (indices), state);
     }
 
     bool Nonogram::canLock() const

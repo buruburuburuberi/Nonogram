@@ -1,6 +1,7 @@
 #pragma once
 
 #include <nonogram/data/Array2D.hpp>
+#include <nonogram/data/Clues.hpp>
 
 #include <QtCore/QSize>
 
@@ -16,44 +17,24 @@ namespace nonogram
     {
     public:
       using State = bool;
-      using Clue = std::size_t;
-      using Clues = Array2D<Clue>;
+      using Data = Array2D<bool>;
 
-      enum class ClueType
-      { Left
-      , Top
-      , Right
-      , Bottom
-      };
+      using ClueIndices = std::map<Clues::Type, Indices>;
 
-      static std::array<ClueType, 4> constexpr all_clue_types
-      { ClueType::Left
-      , ClueType::Top
-      , ClueType::Right
-      , ClueType::Bottom
-      };
-
-      using ClueSlots = std::map<ClueType, Slots>;
-
-      Solution (Array2D<bool>);
+      Solution (Data);
 
       Rows dataRows() const;
       Columns dataColumns() const;
       State at (Slot) const;
 
-      Columns clueColumns (ClueType) const;
-      Rows clueRows (ClueType) const;
-
-      Clue clue (ClueType, Slot) const;
+      MinorSize maxNumberOfClues (Clues::Type) const;
+      MainSize clueMainSize (Clues::Type) const;
+      MinorSize clueMinorSize (Clues::Type, MainIndex) const;
+      Clues::Value clue (Clues::Type, FullIndex) const;
 
     private:
-      Clues computeRightClues() const;
-      Clues computeBottomClues() const;
-      Clues computeLeftClues (Clues const&) const;
-      Clues computeTopClues (Clues const&) const;
-
-      Array2D<bool> data_;
-      std::map<ClueType, Clues> clues_;
+      Data data_;
+      std::map<Clues::Type, Clues> clues_;
     };
   }
 }

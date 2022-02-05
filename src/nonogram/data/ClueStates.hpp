@@ -1,6 +1,7 @@
 #pragma once
 
-#include <nonogram/data/Array2D.hpp>
+#include <nonogram/data/VectorOfVectors.hpp>
+#include <nonogram/data/Clues.hpp>
 #include <nonogram/data/Solution.hpp>
 
 #include <set>
@@ -14,14 +15,16 @@ namespace nonogram
     class ClueStates
     {
     public:
-      ClueStates (Solution const&, Solution::ClueType);
+      using Data = VectorOfVectors<ClueState>;
 
-      bool isCrossed (Slot) const;
-      void cross (Slot, ClueState);
-      Slots toLock() const;
-      Slots locked() const;
-      bool isLocked (Slot) const;
-      void lock (Slots, bool);
+      ClueStates (Solution const&, Clues::Type);
+
+      bool isCrossed (FullIndex) const;
+      void cross (FullIndex, ClueState);
+      Indices toLock() const;
+      Indices locked() const;
+      bool isLocked (FullIndex) const;
+      void lock (Indices, bool);
 
       bool canLock() const;
       bool canUnlock() const;
@@ -29,11 +32,10 @@ namespace nonogram
       void reset();
 
     private:
-      Solution::ClueType type_;
-      Array2D<ClueState> data_;
-      std::vector<int> number_of_elements_;
-      Array2D<ClueState> locks_;
-      Slots to_lock_;
+      Clues::Type type_;
+      Data data_;
+      Data locks_;
+      Indices to_lock_;
     };
   }
 }

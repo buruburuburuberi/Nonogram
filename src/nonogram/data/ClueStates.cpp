@@ -6,73 +6,66 @@ namespace nonogram
 {
   namespace data
   {
-    ClueStates::ClueStates (Solution const& solution, Solution::ClueType type)
+    ClueStates::ClueStates (Solution const& solution, Clues::Type type)
     : type_ (type)
-    , data_ (solution.clueColumns (type), solution.clueRows (type), false)
-    , number_of_elements_
-        ( type == Solution::ClueType::Left || type == Solution::ClueType::Right
-        ? data_.rows().value
-        : data_.columns().value
-        )
-    , locks_ (solution.clueColumns (type), solution.clueRows (type), false)
+    , data_ (solution.clueMainSize (type))
+    , locks_ (solution.clueMainSize (type))
     , to_lock_()
     {
-      for (Row row {0}; row.value < data_.rows().value; ++row.value)
+      for ( MainIndex main_index {0}
+          ; main_index.value < solution.clueMainSize (type_).value
+          ; ++main_index.value
+          )
       {
-        for ( Column column {0}
-            ; column.value < data_.columns().value
-            ; ++column.value
-            )
-        {
-
-        }
+        data_.resize (main_index, solution.clueMinorSize (type, main_index), false);
+        locks_.resize (main_index, solution.clueMinorSize (type, main_index), false);
       }
     }
 
-    bool ClueStates::isCrossed (Slot slot) const
+    bool ClueStates::isCrossed (FullIndex full_index) const
     {
-      return data_.at (slot);
+      return data_.at (full_index);
     }
 
-    void ClueStates::cross (Slot slot, bool state)
+    void ClueStates::cross (FullIndex full_index, bool state)
     {
-      if (locks_.at (slot))
+      if (locks_.at (full_index))
       {
         throw std::logic_error ("Tried to change locked clue.");
       }
 
-      data_.set (slot, state);
+      data_.set (full_index, state);
 
       if (state)
       {
-        to_lock_.insert (slot);
+        to_lock_.insert (full_index);
       }
       else
       {
-        to_lock_.erase (slot);
+        to_lock_.erase (full_index);
       }
     }
 
-    Slots ClueStates::toLock() const
+    Indices ClueStates::toLock() const
     {
       return to_lock_;
     }
 
-    Slots ClueStates::locked() const
+    Indices ClueStates::locked() const
     {
-      return locks_.slots_if ([] (Slot, bool state) { return state; });
+      return locks_.indices_if ([] (FullIndex, bool state) { return state; });
     }
 
-    bool ClueStates::isLocked (Slot slot) const
+    bool ClueStates::isLocked (FullIndex full_index) const
     {
-      return locks_.at (slot);
+      return locks_.at (full_index);
     }
 
-    void ClueStates::lock (Slots slots, ClueState state)
+    void ClueStates::lock (Indices indices, ClueState state)
     {
-      for (auto const& slot : slots)
+      for (auto const& index : indices)
       {
-        locks_.set (slot, state);
+        locks_.set (index, state);
       }
 
       if (state)
@@ -81,7 +74,7 @@ namespace nonogram
       }
       else
       {
-        to_lock_ = data_.slots_if ([] (Slot, bool state) { return state; });
+        to_lock_ = data_.indices_if ([] (FullIndex, bool state) { return state; });
       }
     }
 
@@ -92,14 +85,17 @@ namespace nonogram
 
     bool ClueStates::canUnlock() const
     {
-      for (Row row {0}; row.value < locks_.rows().value; ++row.value)
+      for ( MainIndex main_index {0}
+          ; main_index.value < locks_.mainSize().value
+          ; ++main_index.value
+          )
       {
-        for ( Column column {0}
-            ; column.value < locks_.columns().value
-            ; ++column.value
+        for ( MinorIndex minor_index {0}
+            ; minor_index.value < locks_.minorSize (main_index).value
+            ; ++minor_index.value
             )
         {
-          if (locks_.at ({column, row}))
+          if (locks_.at (main_index, minor_index))
           {
             return true;
           }

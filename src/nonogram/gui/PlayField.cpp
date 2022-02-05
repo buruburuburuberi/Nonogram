@@ -12,6 +12,14 @@ namespace nonogram
 {
   namespace gui
   {
+    static std::array<PlayField::FieldType, 5> constexpr all_field_types
+    { PlayField::FieldType::LeftClues
+    , PlayField::FieldType::RightClues
+    , PlayField::FieldType::TopClues
+    , PlayField::FieldType::BottomClues
+    , PlayField::FieldType::Puzzle
+    };
+
     PlayField::PlayField (QUndoStack& undo_stack, data::Nonogram nonogram)
     : QOpenGLWidget()
     , undo_stack_ (undo_stack)
@@ -28,69 +36,65 @@ namespace nonogram
     {
       std::size_t const border (2);
 
-      std::map<data::Solution::ClueType, QSize> sizes;
-      for (auto const& type : data::Solution::all_clue_types)
-      {
-        sizes.emplace
-          ( type
-          , QSize ( nonogram_.clueColumns (type).value
-                  , nonogram_.clueRows (type).value
-                  ) * slot_size_
-          );
-      }
+      QSize const puzzle_size
+        ( nonogram_.dataColumns().value * slot_size_
+        , nonogram_.dataRows().value * slot_size_
+        );
+      QSize const row_clue_size
+        ( nonogram_.maxNumberOfClues (data::Clues::Type::Row).value  * slot_size_
+        , puzzle_size.height()
+        );
+      QSize const column_clue_size
+        ( puzzle_size.width()
+        , nonogram_.maxNumberOfClues (data::Clues::Type::Column).value  * slot_size_
+        );
 
-      QSize const puzzle_size ( nonogram_.dataColumns().value * slot_size_
-                              , nonogram_.dataRows().value * slot_size_
-                              );
-
-      clues_rects_[data::Solution::ClueType::Left] =
-        { QPoint ( 0
-                 , sizes.at (data::Solution::ClueType::Top).height() + border
-                 )
-        , sizes.at (data::Solution::ClueType::Left)
+      field_rects_[FieldType::LeftClues] =
+        { QPoint (0, column_clue_size.height() + border)
+        , row_clue_size
         };
-      clues_rects_[data::Solution::ClueType::Top] =
-        { QPoint ( sizes.at (data::Solution::ClueType::Left).width() + border
-                 , 0
-                 )
-        , sizes.at (data::Solution::ClueType::Top)
+      field_rects_[FieldType::TopClues] =
+        { QPoint (row_clue_size.width() + border, 0)
+        , column_clue_size
         };
-      puzzle_rect_ =
-        { QPoint ( clues_rects_.at (data::Solution::ClueType::Top).left()
-                 , clues_rects_.at (data::Solution::ClueType::Left).top()
+      field_rects_[FieldType::Puzzle] =
+        { QPoint ( field_rects_.at (FieldType::TopClues).left()
+                 , field_rects_.at (FieldType::LeftClues).top()
                  )
         , puzzle_size
         };
-      clues_rects_[data::Solution::ClueType::Right] =
-        { QPoint ( puzzle_rect_.x() + puzzle_rect_.width() + border
-                 , clues_rects_.at (data::Solution::ClueType::Left).top()
+      field_rects_[FieldType::RightClues] =
+        { QPoint ( field_rects_.at (FieldType::Puzzle).x()
+                   + field_rects_.at (FieldType::Puzzle).width() + border
+                 , field_rects_.at (FieldType::LeftClues).top()
                  )
-        , sizes.at (data::Solution::ClueType::Right)
+        , row_clue_size
         };
-      clues_rects_[data::Solution::ClueType::Bottom] =
-        { QPoint ( clues_rects_.at (data::Solution::ClueType::Top).left()
-                 , puzzle_rect_.y() + puzzle_rect_.height() + border
+      field_rects_[FieldType::BottomClues] =
+        { QPoint ( field_rects_.at (FieldType::TopClues).left()
+                 , field_rects_.at (FieldType::Puzzle).y()
+                   + field_rects_.at (FieldType::Puzzle).height() + border
                  )
-        , sizes.at (data::Solution::ClueType::Bottom)
+        , column_clue_size
         };
-      field_rect_ =
-        { QPoint ( clues_rects_.at (data::Solution::ClueType::Left).x()
-                 , clues_rects_.at (data::Solution::ClueType::Top).y()
+      play_field_rect_ =
+        { QPoint ( field_rects_.at (FieldType::LeftClues).x()
+                 , field_rects_.at (FieldType::TopClues).y()
                  )
-        , QSize ( clues_rects_.at (data::Solution::ClueType::Right).right()
-                , clues_rects_.at (data::Solution::ClueType::Bottom).bottom()
+        , QSize ( field_rects_.at (FieldType::RightClues).right()
+                , field_rects_.at (FieldType::BottomClues).bottom()
                 )
         };
 
-      QPoint const offset ( (window_size.width() - field_rect_.width()) / 2.0f
-                          , (window_size.height() - field_rect_.height()) / 2.0f
-                          );
-      puzzle_rect_.translate (offset);
-      for (auto const& type : data::Solution::all_clue_types)
+      QPoint const offset
+        ( (window_size.width() - play_field_rect_.width()) / 2.0f
+        , (window_size.height() - play_field_rect_.height()) / 2.0f
+        );
+      for (auto const& type : all_field_types)
       {
-        clues_rects_.at (type).translate (offset);
+        field_rects_.at (type).translate (offset);
       }
-      field_rect_.translate (offset);
+      play_field_rect_.translate (offset);
     }
 
     void PlayField::setFillMode (data::Answer::Datum mode)
@@ -111,7 +115,7 @@ namespace nonogram
       nonogram_ = std::move (nonogram);
       updateRects (size());
 
-      setMinimumSize (field_rect_.size() + QSize (50, 50));
+      setMinimumSize (play_field_rect_.size() + QSize (50, 50));
 
       reset();
 
@@ -190,12 +194,14 @@ namespace nonogram
     }
 
     void PlayField::drawClue ( QPainter& painter
-                             , data::Solution::ClueType type
+                             , FieldType field_type
+                             , data::Clues::Type clue_type
                              , data::Slot slot
+                             , data::FullIndex full_index
                              , bool mark_as_error
                              )
     {
-      auto const clue_center (clueCenter (clues_rects_.at (type), slot));
+      auto const clue_center (clueCenter (field_rects_.at (field_type), slot));
 
       auto const background_size (slot_size_ - 2);
       QRect background_rect (0, 0, background_size, background_size);
@@ -203,21 +209,23 @@ namespace nonogram
 
       painter.fillRect (background_rect, mark_as_error ? Qt::red : Qt::yellow);
 
-      auto const slot_size
-        ( ( current_hit_
-         && std::holds_alternative<ClueHit> (current_hit_.value())
-         && std::get<ClueHit> (current_hit_.value()).current_slot == slot
-          )
-        ? slot_size_ - 4
-        : slot_size_
-        );
-
-      auto const clue (nonogram_.clue (type, slot));
-
-      if (clue > 0)
+      if (full_index.minor.value < nonogram_.clueMinorSize (clue_type, full_index.main).value)
       {
+        auto const slot_size
+          ( ( current_hit_
+           && std::holds_alternative<data::ClueState> (current_hit_->data)
+           && current_hit_->current_slot == slot
+            )
+          ? slot_size_ - 4
+          : slot_size_
+          );
+
+        auto const clue (nonogram_.clue (clue_type, full_index));
         QColor const color
-          (nonogram_.isClueLocked (type, slot) ? Qt::darkGray : Qt::black);
+            ( nonogram_.isClueLocked (clue_type, full_index)
+            ? Qt::darkGray
+            : Qt::black
+            );
         painter.setPen (color);
 
         auto const text_size (slot_size);
@@ -226,9 +234,11 @@ namespace nonogram
         painter.setFont (font);
         QRect text_rect (0, 0, text_size, text_size);
         text_rect.moveCenter (clue_center);
-        painter.drawText (text_rect, Qt::AlignCenter, QString::number (clue));
+        painter.drawText ( text_rect, Qt::AlignCenter
+                         , QString::number (clue)
+                         );
 
-        if (nonogram_.isCrossed (type, slot))
+        if (nonogram_.isCrossed (clue_type, full_index))
         {
           auto pen (painter.pen());
           pen.setWidth (2);
@@ -244,33 +254,53 @@ namespace nonogram
       }
     }
 
-    void PlayField::drawClues (QPainter& painter, data::Solution::ClueType type)
+    void PlayField::drawClues (QPainter& painter, FieldType field_type)
     {
-      for ( data::Column column {0}
-          ; column.value < nonogram_.clueColumns (type).value
-          ; ++column.value
-          )
+      auto const clue_type
+        ( field_type == FieldType::LeftClues
+          || field_type == FieldType::RightClues
+        ? data::Clues::Type::Row
+        : data::Clues::Type::Column
+        );
+
+      auto const max_number_of_clues
+        (nonogram_.maxNumberOfClues (clue_type).value);
+
+      data::Columns const columns
+        { clue_type == data::Clues::Type::Row
+        ? max_number_of_clues
+        : nonogram_.clueMainSize (clue_type).value
+        };
+      data::Rows const rows
+        { clue_type == data::Clues::Type::Row
+        ? nonogram_.clueMainSize (clue_type).value
+        : max_number_of_clues
+        };
+
+      for (data::Row row {0}; row.value < rows.value; ++row.value)
       {
-        for ( data::Row row {0}
-            ; row.value < nonogram_.clueRows (type).value
-            ; ++row.value
+        for ( data::Column column {0}
+            ; column.value < columns.value
+            ; ++column.value
             )
         {
           auto const mark_as_error
             ( current_error_slot_
-           && ( ( ( type == data::Solution::ClueType::Left
-                 || type == data::Solution::ClueType::Right
-                  )
+           && ( ( (clue_type == data::Clues::Type::Row)
                && row.value == current_error_slot_.value().row.value
                 )
-             || ( ( type == data::Solution::ClueType::Top
-                 || type == data::Solution::ClueType::Bottom
-                  )
+             || ( (clue_type == data::Clues::Type::Column)
                && column.value == current_error_slot_.value().column.value
                 )
               )
             );
-          drawClue (painter, type, {column, row}, mark_as_error);
+
+          data::Slot const slot {column, row};
+          data::FullIndex const full_index
+            (fromSlot (field_type, clue_type, slot));
+
+          drawClue
+            (painter, field_type, clue_type, slot, full_index, mark_as_error);
         }
       }
     }
@@ -282,12 +312,36 @@ namespace nonogram
              };
     }
 
+    data::FullIndex PlayField::fromSlot ( FieldType field_type
+                                        , data::Clues::Type clue_type
+                                        , data::Slot slot
+                                        ) const
+    {
+      auto const max_number_of_clues
+        (nonogram_.maxNumberOfClues (clue_type).value);
+      data::FullIndex full_index
+        (data::Clues::toFullIndex (clue_type, slot));
+
+      if (field_type == FieldType::LeftClues || field_type == FieldType::TopClues)
+      {
+        auto const offset
+          ( max_number_of_clues
+            - nonogram_.clueMinorSize (clue_type, full_index.main).value
+          );
+        full_index.minor.value -= offset;
+      }
+
+      return full_index;
+    }
+
     QPoint PlayField::slotCenter (data::Slot slot) const
     {
       auto const half_slot_size (slot_size_ / 2.f);
       return QPoint
-        ( puzzle_rect_.x() + slot.column.value * slot_size_ + half_slot_size
-        , puzzle_rect_.y() + slot.row.value * slot_size_ + half_slot_size
+        ( field_rects_.at (FieldType::Puzzle).x()
+          + slot.column.value * slot_size_ + half_slot_size
+        , field_rects_.at (FieldType::Puzzle).y()
+          + slot.row.value * slot_size_ + half_slot_size
         );
     }
 
@@ -328,8 +382,8 @@ namespace nonogram
 
       auto const slot_size
         ( ( current_hit_
-         && std::holds_alternative<DataHit> (current_hit_.value())
-         && std::get<DataHit> (current_hit_.value()).current_slot == slot
+         && std::holds_alternative<data::Answer::Datum> (current_hit_->data)
+         && current_hit_->current_slot == slot
           )
         ? slot_size_ - 4
         : slot_size_
@@ -407,9 +461,9 @@ namespace nonogram
 
     bool PlayField::fillSlot (QPoint position, bool first_hit)
     {
-      if (puzzle_rect_.contains (position))
+      if (field_rects_.at (FieldType::Puzzle).contains (position))
       {
-        auto const slot (fromPosition (puzzle_rect_, position));
+        auto const slot (fromPosition (field_rects_.at (FieldType::Puzzle), position));
 
         if (nonogram_.isDatumLocked (slot))
         {
@@ -420,17 +474,16 @@ namespace nonogram
 
         if (!current_hit_)
         {
-          current_hit_.emplace
-            ( DataHit
-                { slot
-                , current_datum == fill_mode_
-                  ? data::Answer::Datum::Empty
-                  : fill_mode_
-                }
-            );
+          current_hit_ =
+            { FieldType::Puzzle
+            , slot
+            , current_datum == fill_mode_
+              ? data::Answer::Datum::Empty
+              : fill_mode_
+            };
         }
 
-        auto const to_fill (std::get<DataHit> (current_hit_.value()).datum);
+        auto const to_fill (std::get<data::Answer::Datum> (current_hit_->data));
         if ( current_datum == to_fill
           || ( (to_fill == data::Answer::Datum::Empty)
             && current_datum != fill_mode_
@@ -456,7 +509,7 @@ namespace nonogram
             );
         }
 
-        current_hit_.emplace (DataHit {slot, to_fill});
+        current_hit_ = {FieldType::Puzzle, slot, to_fill};
 
         if (current_error_slot_ == slot)
         {
@@ -483,48 +536,66 @@ namespace nonogram
     bool PlayField::crossClue (QPoint position, bool first_hit)
     {
       auto cross_clue
-        ( [&] (data::Solution::ClueType type, QRect rect) -> bool
+        ( [&] (FieldType field_type, QRect rect) -> bool
           {
+            auto const clue_type
+              ( field_type == FieldType::LeftClues
+                || field_type == FieldType::RightClues
+              ? data::Clues::Type::Row
+              : data::Clues::Type::Column
+              );
+
             if (!rect.contains (position))
             {
               return false;
             }
 
             auto const slot (fromPosition (rect, position));
+            data::FullIndex const full_index
+              (fromSlot (field_type, clue_type, slot));
 
-            if (nonogram_.isClueLocked (type, slot))
+            if ( full_index.minor.value
+              >= nonogram_.clueMinorSize (clue_type, full_index.main).value
+               )
             {
               return true;
             }
 
+            if (nonogram_.isClueLocked (clue_type, full_index))
+            {
+              return true;
+            }
+
+            auto const current_state
+              (nonogram_.isCrossed (clue_type, full_index));
+
             auto const state
               ( current_hit_
-              ? std::get<ClueHit> (current_hit_.value()).state
-              : !nonogram_.isCrossed (type, slot)
+              ? std::get<data::ClueState> (current_hit_->data)
+              : !current_state
               );
-
-            auto const current_state (nonogram_.isCrossed (type, slot));
 
             if (current_state == state)
             {
               return true;
             }
 
-            current_hit_.emplace (ClueHit {type, slot, state});
+            current_hit_ = {field_type, slot, state};
 
-            data::Solution::ClueSlots const clue_slots {{type, {slot}}};
+            data::Solution::ClueIndices const clue_indices
+              {{clue_type, {full_index}}};
             if (first_hit)
             {
               undo_stack_.push
                 ( command::Cross::start
-                    (nonogram_, clue_slots, current_state, state)
+                    (nonogram_, clue_indices, current_state, state)
                 );
             }
             else
             {
               undo_stack_.push
                 ( command::Cross::append
-                    (nonogram_, clue_slots, current_state, state)
+                    (nonogram_, clue_indices, current_state, state)
                 );
             }
 
@@ -536,16 +607,19 @@ namespace nonogram
 
       if (current_hit_)
       {
-        auto const type (std::get<ClueHit> (current_hit_.value()).type);
-        return cross_clue (type, clues_rects_.at (type));
+        auto const type (current_hit_->type);
+        return cross_clue (type, field_rects_.at (type));
       }
       else
       {
-        for (auto const& rect : clues_rects_)
+        for (auto const& rect : field_rects_)
         {
-          if (cross_clue (rect.first, rect.second))
+          if (rect.first != FieldType::Puzzle)
           {
-            return true;
+            if (cross_clue (rect.first, rect.second))
+            {
+              return true;
+            }
           }
         }
       }
@@ -573,11 +647,11 @@ namespace nonogram
       {
         if (current_hit_)
         {
-          if (std::holds_alternative<DataHit> (current_hit_.value()))
+          if (std::holds_alternative<data::Answer::Datum> (current_hit_->data))
           {
             fillSlot (event->pos(), false);
           }
-          else if (std::holds_alternative<ClueHit> (current_hit_.value()))
+          else if (std::holds_alternative<data::ClueState> (current_hit_->data))
           {
             crossClue (event->pos(), false);
           }
@@ -615,11 +689,17 @@ namespace nonogram
       QPainter painter (this);
       painter.fillRect (rect(), Qt::black);
 
-      for (auto const& type : data::Solution::all_clue_types)
+      for (auto const& type : all_field_types)
       {
-        drawClues (painter, type);
+        if (type == FieldType::Puzzle)
+        {
+          drawPuzzle (painter);
+        }
+        else
+        {
+          drawClues (painter, type);
+        }
       }
-      drawPuzzle (painter);
     }
 
     void PlayField::resizeGL (int width, int height)

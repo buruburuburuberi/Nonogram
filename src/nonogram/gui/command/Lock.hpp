@@ -30,7 +30,7 @@ namespace nonogram
 
         bool const unlock_;
         data::Slots data_slots_;
-        data::Solution::ClueSlots clue_slots_;
+        data::Solution::ClueIndices clue_indices_;
       };
     }
   }

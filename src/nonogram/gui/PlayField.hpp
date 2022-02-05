@@ -22,6 +22,14 @@ namespace nonogram
       Q_OBJECT
 
     public:
+      enum class FieldType
+      { LeftClues
+      , RightClues
+      , TopClues
+      , BottomClues
+      , Puzzle
+      };
+
       PlayField (QUndoStack&, data::Nonogram);
 
       void setFillMode (data::Answer::Datum);
@@ -50,6 +58,7 @@ namespace nonogram
     private:
       void reset();
       data::Slot fromPosition (QRect, QPoint) const;
+      data::FullIndex fromSlot(FieldType, data::Clues::Type, data::Slot) const;
       void checkSlot (data::Slot);
       bool fillSlot (QPoint, bool first_hit);
       bool crossClue (QPoint, bool first_hit);
@@ -57,8 +66,10 @@ namespace nonogram
 
       QPoint clueCenter (QRect clues_rect, data::Slot) const;
       void drawClue ( QPainter& painter
-                    , data::Solution::ClueType type
+                    , FieldType type
+                    , data::Clues::Type clue_type
                     , data::Slot
+                    , data::FullIndex
                     , bool mark_as_error
                     );
 
@@ -68,7 +79,7 @@ namespace nonogram
                     , data::Answer::Datum
                     );
 
-      void drawClues (QPainter& painter, data::Solution::ClueType);
+      void drawClues (QPainter& painter, FieldType);
       void drawPuzzle (QPainter& painter);
 
       void updateRects (QSize window_size);
@@ -78,25 +89,17 @@ namespace nonogram
       data::Answer::Datum fill_mode_;
       std::size_t font_size_;
       std::size_t slot_size_;
-      QRect puzzle_rect_;
-      std::map<data::Solution::ClueType, QRect> clues_rects_;
-      QRect field_rect_;
+      std::map<FieldType, QRect> field_rects_;
+      QRect play_field_rect_;
 
-      struct ClueHit
+      struct Hit
       {
-        data::Solution::ClueType type;
+        FieldType type;
         data::Slot current_slot;
-        data::ClueState state;
+        std::variant<data::ClueState, data::Answer::Datum> data;
       };
 
-      struct DataHit
-      {
-        data::Slot current_slot;
-        data::Answer::Datum datum;
-      };
-      using HitType = std::variant<ClueHit, DataHit>;
-
-      std::optional<HitType> current_hit_;
+      std::optional<Hit> current_hit_;
       std::optional<data::Slot> current_error_slot_;
       bool solved_;
     };

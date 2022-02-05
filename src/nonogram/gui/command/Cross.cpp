@@ -8,12 +8,12 @@ namespace nonogram
     {
       Cross::Cross ( int id
                    , data::Nonogram& nonogram
-                   , data::Solution::ClueSlots clue_slots
+                   , data::Solution::ClueIndices clue_indices
                    , data::ClueState before
                    , data::ClueState after
                    )
       : Base (id, nonogram)
-      , clue_slots_ (std::move (clue_slots))
+      , clue_indices_ (std::move (clue_indices))
       , before_ (before)
       , after_ (after)
       {
@@ -21,28 +21,28 @@ namespace nonogram
       }
 
       Cross* Cross::start ( data::Nonogram& nonogram
-                          , data::Solution::ClueSlots clue_slots
+                          , data::Solution::ClueIndices clue_indices
                           , data::ClueState before
                           , data::ClueState after
                           )
       {
         return new Cross ( ++command_id
                          , nonogram
-                         , std::move (clue_slots)
+                         , std::move (clue_indices)
                          , before
                          , after
                          );
       }
 
       Cross* Cross::append ( data::Nonogram& nonogram
-                           , data::Solution::ClueSlots clue_slots
+                           , data::Solution::ClueIndices clue_indices
                            , data::ClueState before
                            , data::ClueState after
                            )
       {
         return new Cross ( command_id
                          , nonogram
-                         , std::move (clue_slots)
+                         , std::move (clue_indices)
                          , before
                          , after
                          );
@@ -50,22 +50,22 @@ namespace nonogram
 
       void Cross::undo()
       {
-        for (auto const& clue_slot : clue_slots_)
+        for (auto const& indices_of_type : clue_indices_)
         {
-          for (auto const& slot : clue_slot.second)
+          for (auto const& index : indices_of_type.second)
           {
-            nonogram_.cross (clue_slot.first, slot, before_);
+            nonogram_.cross (indices_of_type.first, index, before_);
           }
         }
       }
 
       void Cross::redo()
       {
-        for (auto const& clue_slot : clue_slots_)
+        for (auto const& indices_of_type : clue_indices_)
         {
-          for (auto const& slot : clue_slot.second)
+          for (auto const& index : indices_of_type.second)
           {
-            nonogram_.cross (clue_slot.first, slot, after_);
+            nonogram_.cross (indices_of_type.first, index, after_);
           }
         }
       }
@@ -83,10 +83,10 @@ namespace nonogram
           return false;
         }
 
-        for (auto const& clue_slot : other_cross->clue_slots_)
+        for (auto const& indices_of_type : other_cross->clue_indices_)
         {
-          clue_slots_.at (clue_slot.first).insert
-            (clue_slot.second.begin(), clue_slot.second.end());
+          clue_indices_.at (indices_of_type.first).insert
+            (indices_of_type.second.begin(), indices_of_type.second.end());
         }
 
         return true;

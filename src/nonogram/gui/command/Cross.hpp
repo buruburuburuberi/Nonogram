@@ -20,13 +20,13 @@ namespace nonogram
       {
       public:
         static Cross* start ( data::Nonogram&
-                            , data::Solution::ClueSlots
+                            , data::Solution::ClueIndices
                             , data::ClueState before
                             , data::ClueState after
                             );
 
         static Cross* append ( data::Nonogram&
-                             , data::Solution::ClueSlots
+                             , data::Solution::ClueIndices
                              , data::ClueState before
                              , data::ClueState after
                              );
@@ -39,12 +39,12 @@ namespace nonogram
       private:
         Cross ( int id
               , data::Nonogram&
-              , data::Solution::ClueSlots
+              , data::Solution::ClueIndices
               , data::ClueState before
               , data::ClueState after
               );
 
-        data::Solution::ClueSlots clue_slots_;
+        data::Solution::ClueIndices clue_indices_;
         data::ClueState before_;
         data::ClueState after_;
       };

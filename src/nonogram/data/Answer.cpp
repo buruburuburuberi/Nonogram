@@ -11,7 +11,7 @@ namespace nonogram
     , data_locks_ (solution.dataColumns(), solution.dataRows(), false)
     , data_to_lock_()
     {
-      for (auto const& type : Solution::all_clue_types)
+      for (auto const& type : Clues::all_types)
       {
         clues_.emplace
           ( std::piecewise_construct
@@ -79,50 +79,50 @@ namespace nonogram
       }
     }
 
-    bool Answer::isCrossed (Solution::ClueType type, Slot slot) const
+    bool Answer::isCrossed (Clues::Type type, FullIndex full_index) const
     {
-      return clues_.at (type).isCrossed (slot);
+      return clues_.at (type).isCrossed (full_index);
     }
 
-    void Answer::cross (Solution::ClueType type, Slot slot, bool state)
+    void Answer::cross (Clues::Type type, FullIndex full_index, bool state)
     {
-      clues_.at (type).cross (slot, state);
+      clues_.at (type).cross (full_index, state);
     }
 
-    Solution::ClueSlots Answer::cluesToLock() const
+    Solution::ClueIndices Answer::cluesToLock() const
     {
-      Solution::ClueSlots clue_slots;
+      Solution::ClueIndices indices;
 
-      for (auto const& type : Solution::all_clue_types)
+      for (auto const& type : Clues::all_types)
       {
-        clue_slots.emplace (type, clues_.at (type).toLock());
+        indices.emplace (type, clues_.at (type).toLock());
       }
 
-      return clue_slots;
+      return indices;
     }
 
-    Solution::ClueSlots Answer::lockedClues() const
+    Solution::ClueIndices Answer::lockedClues() const
     {
-      Solution::ClueSlots clue_slots;
+      Solution::ClueIndices indices;
 
-      for (auto const& type : Solution::all_clue_types)
+      for (auto const& type : Clues::all_types)
       {
-        clue_slots.emplace (type, clues_.at (type).locked());
+        indices.emplace (type, clues_.at (type).locked());
       }
 
-      return clue_slots;
+      return indices;
     }
 
-    bool Answer::isClueLocked (Solution::ClueType type, Slot slot) const
+    bool Answer::isClueLocked (Clues::Type type, FullIndex full_index) const
     {
-      return clues_.at (type).isLocked (slot);
+      return clues_.at (type).isLocked (full_index);
     }
 
-    void Answer::lockClues (Solution::ClueSlots clue_slots, bool state)
+    void Answer::lockClues (Solution::ClueIndices indices, bool state)
     {
-      for (auto const& type : Solution::all_clue_types)
+      for (auto const& type : Clues::all_types)
       {
-        clues_.at (type).lock (clue_slots.at (type), state);
+        clues_.at (type).lock (indices.at (type), state);
       }
     }
 
@@ -131,7 +131,7 @@ namespace nonogram
       auto hasCluesToLock
         ( [&]
           {
-            for (auto const& type : Solution::all_clue_types)
+            for (auto const& type : Clues::all_types)
             {
               if (clues_.at (type).canLock())
               {
@@ -162,7 +162,7 @@ namespace nonogram
         }
       }
 
-      for (auto const& type : Solution::all_clue_types)
+      for (auto const& type : Clues::all_types)
       {
         if (clues_.at (type).canUnlock())
         {
@@ -179,7 +179,7 @@ namespace nonogram
       data_locks_.fill (false);
       data_to_lock_.clear();
 
-      for (auto const& type : Solution::all_clue_types)
+      for (auto const& type : Clues::all_types)
       {
         clues_.at (type).reset();
       }

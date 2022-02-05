@@ -30,16 +30,16 @@ namespace nonogram
       bool isDatumLocked (Slot) const;
       void lockData (Slots, bool);
 
-      Columns clueColumns (Solution::ClueType) const;
-      Rows clueRows (Solution::ClueType) const;
-
-      Solution::Clue clue (Solution::ClueType, Slot) const;
-      ClueState isCrossed (Solution::ClueType, Slot) const;
-      void cross (Solution::ClueType, Slot, ClueState);
-      Solution::ClueSlots cluesToLock() const;
-      Solution::ClueSlots lockedClues() const;
-      bool isClueLocked (Solution::ClueType, Slot) const;
-      void lockClues (Solution::ClueSlots, bool);
+      MinorSize maxNumberOfClues (Clues::Type type) const;
+      MainSize clueMainSize (Clues::Type) const;
+      MinorSize clueMinorSize (Clues::Type, MainIndex) const;
+      Clues::Value clue (Clues::Type, FullIndex) const;
+      ClueState isCrossed (Clues::Type, FullIndex) const;
+      void cross (Clues::Type, FullIndex, ClueState);
+      Solution::ClueIndices cluesToLock() const;
+      Solution::ClueIndices lockedClues() const;
+      bool isClueLocked (Clues::Type, FullIndex) const;
+      void lockClues (Solution::ClueIndices, bool);
 
       bool canLock() const;
       bool canUnlock() const;

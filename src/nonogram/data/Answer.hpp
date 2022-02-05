@@ -33,12 +33,12 @@ namespace nonogram
       bool isDatumLocked (Slot) const;
       void lockData (Slots, bool);
 
-      bool isCrossed (Solution::ClueType, Slot) const;
-      void cross (Solution::ClueType, Slot, bool);
-      Solution::ClueSlots cluesToLock() const;
-      Solution::ClueSlots lockedClues() const;
-      bool isClueLocked (Solution::ClueType, Slot) const;
-      void lockClues (Solution::ClueSlots, bool);
+      bool isCrossed (Clues::Type, FullIndex) const;
+      void cross (Clues::Type, FullIndex, bool);
+      Solution::ClueIndices cluesToLock() const;
+      Solution::ClueIndices lockedClues() const;
+      bool isClueLocked (Clues::Type, FullIndex) const;
+      void lockClues (Solution::ClueIndices, bool);
 
       bool canLock() const;
       bool canUnlock() const;
@@ -50,7 +50,7 @@ namespace nonogram
       DataLocks data_locks_;
       Slots data_to_lock_;
 
-      std::map<Solution::ClueType, ClueStates> clues_;
+      std::map<Clues::Type, ClueStates> clues_;
     };
   }
 }
