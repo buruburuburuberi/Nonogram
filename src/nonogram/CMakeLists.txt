@@ -10,6 +10,7 @@ set (SOURCES data/Answer.cpp
              gui/command/Cross.cpp
              gui/command/Fill.cpp
              gui/command/Lock.cpp
+             gui/painting.cpp
              util/print_exception.cpp
              main.cpp
 )

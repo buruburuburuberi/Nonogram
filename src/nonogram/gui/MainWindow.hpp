@@ -27,6 +27,9 @@ namespace nonogram
         MainWindow (std::map<std::string, data::Nonogram>);
 
       private:
+        QSize const icon_size_;
+        QColor const bg_color_;
+        QColor const fg_color_;
         QUndoStack undo_stack_;
         std::map<std::string, data::Nonogram> nonograms_;
         QStandardItemModel nonogram_model_;

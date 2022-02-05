@@ -3,6 +3,7 @@
 #include <nonogram/gui/command/Cross.hpp>
 #include <nonogram/gui/command/Fill.hpp>
 #include <nonogram/gui/command/Lock.hpp>
+#include <nonogram/gui/painting.hpp>
 
 #include <QtCore/QTimer>
 #include <QtGui/QPainter>
@@ -20,8 +21,16 @@ namespace nonogram
     , PlayField::FieldType::Puzzle
     };
 
-    PlayField::PlayField (QUndoStack& undo_stack, data::Nonogram nonogram)
+    PlayField::PlayField ( QColor bg
+                         , QColor fg
+                         , QUndoStack& undo_stack
+                         , data::Nonogram nonogram
+                         )
     : QOpenGLWidget()
+    , bg_color_ (bg)
+    , fg_color_ (fg)
+    , mistake_color_ (Qt::red)
+    , locked_color_ (Qt::gray)
     , undo_stack_ (undo_stack)
     , nonogram_ (std::move (nonogram))
     , fill_mode_ (data::Answer::Datum::Filled)
@@ -34,7 +43,7 @@ namespace nonogram
 
     void PlayField::updateRects (QSize window_size)
     {
-      std::size_t const border (2);
+      std::size_t const border (4);
 
       QSize const puzzle_size
         ( nonogram_.dataColumns().value * slot_size_
@@ -207,9 +216,13 @@ namespace nonogram
       QRect background_rect (0, 0, background_size, background_size);
       background_rect.moveCenter (clue_center);
 
-      painter.fillRect (background_rect, mark_as_error ? Qt::red : Qt::yellow);
+      painter.fillRect ( background_rect
+                       , mark_as_error ? mistake_color_ : bg_color_
+                       );
 
-      if (full_index.minor.value < nonogram_.clueMinorSize (clue_type, full_index.main).value)
+      if ( full_index.minor.value
+           < nonogram_.clueMinorSize (clue_type, full_index.main).value
+         )
       {
         auto const slot_size
           ( ( current_hit_
@@ -223,8 +236,8 @@ namespace nonogram
         auto const clue (nonogram_.clue (clue_type, full_index));
         QColor const color
             ( nonogram_.isClueLocked (clue_type, full_index)
-            ? Qt::darkGray
-            : Qt::black
+            ? locked_color_
+            : fg_color_
             );
         painter.setPen (color);
 
@@ -352,15 +365,14 @@ namespace nonogram
     {
       auto const slot_center (slotCenter (slot));
 
-      auto const background_size (slot_size_ - 2);
-      QRect background_rect (0, 0, background_size, background_size);
+      QRect background_rect (0, 0, slot_size_, slot_size_);
       background_rect.moveCenter (slot_center);
-
-      painter.fillRect
-        ( background_rect
-        ,  current_error_slot_ && current_error_slot_.value() == slot
-          ? Qt::red
-          : Qt::yellow
+      drawBackground
+        ( painter
+        , background_rect
+        , current_error_slot_ && current_error_slot_.value() == slot
+          ? mistake_color_
+          : bg_color_
         );
 
       if ( solved_
@@ -372,22 +384,20 @@ namespace nonogram
       }
 
       QColor const color
-        (nonogram_.isDatumLocked (slot) ? Qt::darkGray : Qt::black);
-
-      painter.setBrush (color);
-      auto pen (painter.pen());
-      pen.setWidth (2);
-      pen.setColor (color);
-      painter.setPen (pen);
+        (nonogram_.isDatumLocked (slot) ? locked_color_ : fg_color_);
 
       auto const slot_size
-        ( ( current_hit_
+        ( ( !solved_
+         && current_hit_
          && std::holds_alternative<data::Answer::Datum> (current_hit_->data)
          && current_hit_->current_slot == slot
           )
         ? slot_size_ - 4
         : slot_size_
         );
+
+      QRect icon_rect (0, 0, slot_size, slot_size);
+      icon_rect.moveCenter (slot_center);
 
       switch (datum)
       {
@@ -397,41 +407,22 @@ namespace nonogram
         }
         case data::Answer::Datum::Filled:
         {
-          auto const point_size (solved_ ? slot_size_ : slot_size - 6);
-          QRect point_rect (0, 0, point_size, point_size);
-          point_rect.moveCenter (slot_center);
-
-          painter.fillRect (point_rect, painter.pen().color());
+          drawFill (painter, icon_rect, color, solved_);
           break;
         }
         case data::Answer::Datum::Crossed:
         {
-          auto const cross_size (slot_size - 8);
-          QRect cross_rect (0, 0, cross_size, cross_size);
-          cross_rect.moveCenter (slot_center);
-
-          painter.drawLine (cross_rect.topLeft(), cross_rect.bottomRight());
-          painter.drawLine (cross_rect.bottomLeft(), cross_rect.topRight());
+          drawCross (painter, icon_rect, color);
           break;
         }
         case data::Answer::Datum::FillMark:
         {
-          auto const fill_mark_size ((slot_size - 8.0f) / 2.0f);
-          QRect fill_mark_rect (0, 0, fill_mark_size, fill_mark_size);
-          fill_mark_rect.moveCenter (slot_center);
-
-          painter.drawEllipse (fill_mark_rect);
+          drawFillMark (painter, icon_rect, color);
           break;
         }
         case data::Answer::Datum::CrossMark:
         {
-          auto const cross_mark_size (slot_size - 8);
-          QRect cross_mark_rect (0, 0, cross_mark_size, cross_mark_size);
-          cross_mark_rect.moveCenter (slot_center);
-
-          painter.drawLine ( cross_mark_rect.bottomLeft()
-                           , cross_mark_rect.topRight()
-                           );
+          drawCrossMark (painter, icon_rect, color);
           break;
         }
         default:

@@ -30,7 +30,7 @@ namespace nonogram
       , Puzzle
       };
 
-      PlayField (QUndoStack&, data::Nonogram);
+      PlayField (QColor bg, QColor fg, QUndoStack&, data::Nonogram);
 
       void setFillMode (data::Answer::Datum);
       void setNonogram (data::Nonogram);
@@ -84,6 +84,10 @@ namespace nonogram
 
       void updateRects (QSize window_size);
 
+      QColor const bg_color_;
+      QColor const fg_color_;
+      QColor const mistake_color_;
+      QColor const locked_color_;
       QUndoStack& undo_stack_;
       data::Nonogram nonogram_;
       data::Answer::Datum fill_mode_;

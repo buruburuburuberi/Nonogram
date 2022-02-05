@@ -1,5 +1,7 @@
 #include <nonogram/gui/MainWindow.hpp>
 
+#include <nonogram/gui/painting.hpp>
+
 #include <QtGui/QStandardItem>
 #include <QtWidgets/QFormLayout>
 #include <QtWidgets/QMessageBox>
@@ -15,9 +17,12 @@ namespace nonogram
   namespace gui
   {
     MainWindow::MainWindow (std::map<std::string, data::Nonogram> nonograms)
-    : undo_stack_()
+    : icon_size_ (22, 22)
+    , bg_color_ (Qt::yellow)
+    , fg_color_ (Qt::black)
+    , undo_stack_()
     , nonograms_ (std::move (nonograms))
-    , play_field_ (undo_stack_, nonograms_.begin()->second)
+    , play_field_ (bg_color_, fg_color_, undo_stack_, nonograms_.begin()->second)
     {
       statusBar()->showMessage ("Ready");
 
@@ -67,34 +72,78 @@ namespace nonogram
       level_selection_widget->setLayout (level_selection_layout.release());
 
       check_button_->setText ("Check");
+      check_button_->setToolButtonStyle (Qt::ToolButtonTextUnderIcon);
+      check_button_->setIcon (createCheckIcon (icon_size_, bg_color_, fg_color_));
 
       lock_button_->setText ("Lock");
       lock_button_->setDisabled (true);
+      lock_button_->setToolButtonStyle (Qt::ToolButtonTextUnderIcon);
+      lock_button_->setIcon (createLockIcon (icon_size_, bg_color_, fg_color_));
 
       unlock_button_->setText ("Unlock");
       unlock_button_->setDisabled (true);
+      unlock_button_->setToolButtonStyle (Qt::ToolButtonTextUnderIcon);
+      unlock_button_->setIcon (createUnlockIcon (icon_size_, bg_color_, fg_color_));
 
       reset_button_->setText ("Reset");
       reset_button_->setDisabled (true);
+      reset_button_->setToolButtonStyle (Qt::ToolButtonTextUnderIcon);
+      reset_button_->setIcon (createResetIcon (icon_size_, bg_color_, fg_color_));
 
       fill_button_->setText ("Fill");
       fill_button_->setCheckable (true);
       fill_button_->setChecked (true);
+      fill_button_->setToolButtonStyle (Qt::ToolButtonTextUnderIcon);
+      fill_button_->setIcon
+        ( createIcon ( data::Answer::Datum::Filled
+                     , icon_size_
+                     , bg_color_
+                     , fg_color_
+                     )
+        );
 
       cross_button_->setText ("Cross");
       cross_button_->setCheckable (true);
+      cross_button_->setToolButtonStyle (Qt::ToolButtonTextUnderIcon);
+      cross_button_->setIcon
+        ( createIcon ( data::Answer::Datum::Crossed
+                     , icon_size_
+                     , bg_color_
+                     , fg_color_
+                     )
+        );
 
       fill_mark_button_->setText ("Fill Mark");
       fill_mark_button_->setCheckable (true);
+      fill_mark_button_->setToolButtonStyle (Qt::ToolButtonTextUnderIcon);
+      fill_mark_button_->setIcon
+        ( createIcon ( data::Answer::Datum::FillMark
+                     , icon_size_
+                     , bg_color_
+                     , fg_color_
+                     )
+        );
 
       cross_mark_button_->setText ("Cross Mark");
       cross_mark_button_->setCheckable (true);
+      cross_mark_button_->setToolButtonStyle (Qt::ToolButtonTextUnderIcon);
+      cross_mark_button_->setIcon
+        ( createIcon ( data::Answer::Datum::CrossMark
+                     , icon_size_
+                     , bg_color_
+                     , fg_color_
+                     )
+        );
 
-      undo_button_->setIcon (style()->standardIcon (QStyle::SP_ArrowLeft));
+      undo_button_->setText ("Undo");
       undo_button_->setEnabled (false);
+      undo_button_->setToolButtonStyle (Qt::ToolButtonTextUnderIcon);
+      undo_button_->setIcon (createUndoIcon (icon_size_, bg_color_, fg_color_));
 
-      redo_button_->setIcon (style()->standardIcon (QStyle::SP_ArrowRight));
+      redo_button_->setText ("Redo");
       redo_button_->setEnabled (false);
+      redo_button_->setToolButtonStyle (Qt::ToolButtonTextUnderIcon);
+      redo_button_->setIcon (createRedoIcon (icon_size_, bg_color_, fg_color_));
 
       tools_group_->setExclusive (true);
       tools_group_->addButton (fill_button_.get());
