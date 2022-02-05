@@ -23,7 +23,8 @@ namespace nonogram
       std::string name() const;
       Rows dataRows() const;
       Columns dataColumns() const;
-      Answer::Datum at (Slot) const;
+      Solution::State solution (Slot) const;
+      Answer::Datum answer (Slot) const;
       void fill (Slot, Answer::Datum);
       Slots dataToLock() const;
       Slots lockedData() const;

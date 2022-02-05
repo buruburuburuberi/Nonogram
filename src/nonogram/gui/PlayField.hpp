@@ -45,6 +45,8 @@ namespace nonogram
       void redo();
       void undo();
 
+      void showSolution();
+
     signals:
       void solved();
 

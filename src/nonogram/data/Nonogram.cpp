@@ -29,7 +29,12 @@ namespace nonogram
       return solution_.dataColumns();
     }
 
-    Answer::Datum Nonogram::at (Slot slot) const
+    Solution::State Nonogram::solution (Slot slot) const
+    {
+      return solution_.at (slot);
+    }
+
+    Answer::Datum Nonogram::answer (Slot slot) const
     {
       return answer_.at (slot);
     }

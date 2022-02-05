@@ -27,6 +27,8 @@ namespace nonogram
         MainWindow (std::map<std::string, data::Nonogram>);
 
       private:
+        data::Nonogram titleNonogram() const;
+
         QSize const icon_size_;
         QColor const bg_color_;
         QColor const fg_color_;
@@ -47,6 +49,7 @@ namespace nonogram
         util::unique_qt_ptr<QToolButton> cross_mark_button_;
         util::unique_qt_ptr<QToolButton> redo_button_;
         util::unique_qt_ptr<QToolButton> undo_button_;
+        util::unique_qt_ptr<QToolButton> solve_button_;
     };
   }
 }

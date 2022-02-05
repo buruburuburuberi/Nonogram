@@ -285,7 +285,29 @@ namespace nonogram
 
       drawBackground (painter, pixmap.rect(), bg_color);
 
+      return pixmap;
+    }
 
+    QIcon createSolveIcon (QSize size, QColor bg_color, QColor fg_color)
+    {
+      QPixmap pixmap (size);
+      QPainter painter (&pixmap);
+      pixmap.fill (Qt::black);
+
+      drawBackground (painter, pixmap.rect(), bg_color);
+
+      painter.setBrush (fg_color);
+
+      auto const width (size.width());
+      auto const height (size.width());
+      std::array<QPointF, 4> const points
+        { QPointF (width * 0.2, height * 0.4)
+        , QPointF (width * 0.4, height * 0.8)
+        , QPointF (width * 0.8, height * 0.2)
+        , QPointF (width * 0.4, height * 0.5)
+        };
+
+      painter.drawPolygon (points.data(), points.size());
 
       return pixmap;
     }

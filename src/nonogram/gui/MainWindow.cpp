@@ -2,6 +2,7 @@
 
 #include <nonogram/gui/painting.hpp>
 
+#include <QtCore/QTimer>
 #include <QtGui/QStandardItem>
 #include <QtWidgets/QFormLayout>
 #include <QtWidgets/QMessageBox>
@@ -22,11 +23,9 @@ namespace nonogram
     , fg_color_ (Qt::black)
     , undo_stack_()
     , nonograms_ (std::move (nonograms))
-    , play_field_ (bg_color_, fg_color_, undo_stack_, nonograms_.begin()->second)
+    , play_field_ (bg_color_, fg_color_, undo_stack_, std::move (titleNonogram()))
     {
       statusBar()->showMessage ("Ready");
-
-      play_field_->setVisible (false);
 
       util::unique_qt_ptr<QFrame> level_selection_widget;
       util::unique_qt_ptr<QFormLayout> level_selection_layout;
@@ -59,10 +58,10 @@ namespace nonogram
               , this
               , [&] (QString text)
                 {
-                  play_field_->setVisible (true);
                   play_field_->setNonogram (nonograms_.at (text.toStdString()));
 
                   tools_toolbar_->setEnabled (true);
+                  solve_button_->setEnabled (true);
                 }
               );
 
@@ -145,6 +144,11 @@ namespace nonogram
       redo_button_->setToolButtonStyle (Qt::ToolButtonTextUnderIcon);
       redo_button_->setIcon (createRedoIcon (icon_size_, bg_color_, fg_color_));
 
+      solve_button_->setText ("Show Solution");
+      solve_button_->setEnabled (false);
+      solve_button_->setToolButtonStyle (Qt::ToolButtonTextUnderIcon);
+      solve_button_->setIcon (createSolveIcon (icon_size_, bg_color_, fg_color_));
+
       tools_group_->setExclusive (true);
       tools_group_->addButton (fill_button_.get());
       tools_group_->addButton (cross_button_.get());
@@ -168,6 +172,7 @@ namespace nonogram
       tools_toolbar_->addWidget (lock_button_.release());
       tools_toolbar_->addWidget (unlock_button_.release());
       tools_toolbar_->addWidget (reset_button_.release());
+      tools_toolbar_->addWidget (solve_button_.release());
 
       tools_toolbar_->setDisabled (true);
 
@@ -216,6 +221,23 @@ namespace nonogram
                      )
                   {
                     play_field_->resetAnswer();
+                  }
+                }
+              );
+      connect ( solve_button_.get()
+              , &QToolButton::clicked
+              , this
+              , [&]
+                {
+                  if ( QMessageBox::question
+                         ( this
+                         , "Show solution?"
+                         , "Are you sure you want to show the solution?"
+                         ) == QMessageBox::Yes
+                     )
+                  {
+                    play_field_->resetAnswer();
+                    play_field_->showSolution();
                   }
                 }
               );
@@ -290,6 +312,31 @@ namespace nonogram
                   unlock_button_->setEnabled (play_field_->canUnlock());
                 }
               );
+
+      QTimer::singleShot (0, [&] { play_field_->showSolution(); });
+    }
+
+    data::Nonogram MainWindow::titleNonogram() const
+    {
+      return
+        { "Title"
+        , data::Array2D<bool>
+          { { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
+            , { 0, 1, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0 }
+            , { 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0 }
+            , { 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0 }
+            , { 0, 1, 0, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0 }
+            , { 0, 1, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0 }
+            , { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
+            , { 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0 }
+            , { 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 0 }
+            , { 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0 }
+            , { 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0 }
+            , { 0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0 }
+            , { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
+            }
+          }
+        };
     }
   }
 }

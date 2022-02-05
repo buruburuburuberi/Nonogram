@@ -5,6 +5,7 @@
 #include <nonogram/gui/command/Lock.hpp>
 #include <nonogram/gui/painting.hpp>
 
+#include <QtCore/QCoreApplication>
 #include <QtCore/QTimer>
 #include <QtGui/QPainter>
 #include <QtWidgets/QMessageBox>
@@ -39,11 +40,13 @@ namespace nonogram
     , solved_ (false)
     {
       setAutoFillBackground (true);
+
+      updateRects (size());
     }
 
     void PlayField::updateRects (QSize window_size)
     {
-      std::size_t const border (4);
+      std::size_t const puzzle_border (4);
 
       QSize const puzzle_size
         ( nonogram_.dataColumns().value * slot_size_
@@ -59,11 +62,11 @@ namespace nonogram
         );
 
       field_rects_[FieldType::LeftClues] =
-        { QPoint (0, column_clue_size.height() + border)
+        { QPoint (0, column_clue_size.height() + puzzle_border)
         , row_clue_size
         };
       field_rects_[FieldType::TopClues] =
-        { QPoint (row_clue_size.width() + border, 0)
+        { QPoint (row_clue_size.width() + puzzle_border, 0)
         , column_clue_size
         };
       field_rects_[FieldType::Puzzle] =
@@ -74,7 +77,7 @@ namespace nonogram
         };
       field_rects_[FieldType::RightClues] =
         { QPoint ( field_rects_.at (FieldType::Puzzle).x()
-                   + field_rects_.at (FieldType::Puzzle).width() + border
+                   + field_rects_.at (FieldType::Puzzle).width() + puzzle_border
                  , field_rects_.at (FieldType::LeftClues).top()
                  )
         , row_clue_size
@@ -82,7 +85,7 @@ namespace nonogram
       field_rects_[FieldType::BottomClues] =
         { QPoint ( field_rects_.at (FieldType::TopClues).left()
                  , field_rects_.at (FieldType::Puzzle).y()
-                   + field_rects_.at (FieldType::Puzzle).height() + border
+                   + field_rects_.at (FieldType::Puzzle).height() + puzzle_border
                  )
         , column_clue_size
         };
@@ -90,20 +93,22 @@ namespace nonogram
         { QPoint ( field_rects_.at (FieldType::LeftClues).x()
                  , field_rects_.at (FieldType::TopClues).y()
                  )
-        , QSize ( field_rects_.at (FieldType::RightClues).right()
-                , field_rects_.at (FieldType::BottomClues).bottom()
+        , QSize ( field_rects_.at (FieldType::RightClues).right() + 50
+                , field_rects_.at (FieldType::BottomClues).bottom() + 50
                 )
         };
 
       QPoint const offset
-        ( (window_size.width() - play_field_rect_.width()) / 2.0f
-        , (window_size.height() - play_field_rect_.height()) / 2.0f
+        ( (window_size.width() - play_field_rect_.width()) / 2.0f + 25
+        , (window_size.height() - play_field_rect_.height()) / 2.0f + 10
         );
       for (auto const& type : all_field_types)
       {
         field_rects_.at (type).translate (offset);
       }
       play_field_rect_.translate (offset);
+
+      setMinimumSize (play_field_rect_.size());
     }
 
     void PlayField::setFillMode (data::Answer::Datum mode)
@@ -123,8 +128,6 @@ namespace nonogram
     {
       nonogram_ = std::move (nonogram);
       updateRects (size());
-
-      setMinimumSize (play_field_rect_.size() + QSize (50, 50));
 
       reset();
 
@@ -445,7 +448,7 @@ namespace nonogram
             )
         {
           data::Slot const slot {column, row};
-          drawSlot (painter, slot, nonogram_.at (slot));
+          drawSlot (painter, slot, nonogram_.answer (slot));
         }
       }
     }
@@ -461,7 +464,7 @@ namespace nonogram
           return true;
         }
 
-        auto const current_datum (nonogram_.at (slot));
+        auto const current_datum (nonogram_.answer (slot));
 
         if (!current_hit_)
         {
@@ -507,8 +510,8 @@ namespace nonogram
           checkSlot (current_error_slot_.value());
         }
 
-        if ( ( nonogram_.at (slot) == data::Answer::Datum::Filled
-            || nonogram_.at (slot) == data::Answer::Datum::Empty
+        if ( ( nonogram_.answer (slot) == data::Answer::Datum::Filled
+            || nonogram_.answer (slot) == data::Answer::Datum::Empty
              )
           && nonogram_.isSolved()
            )
@@ -691,11 +694,43 @@ namespace nonogram
           drawClues (painter, type);
         }
       }
+
+      painter.setPen (Qt::white);
+      painter.drawText (QPoint (10, height() - 10), "by Delger Lhamsuren");
     }
 
     void PlayField::resizeGL (int width, int height)
     {
       updateRects (QSize (width, height));
+
+      update();
+    }
+
+    void PlayField::showSolution()
+    {
+      setDisabled (true);
+
+      for (data::Row row {0}; row.value < nonogram_.dataRows().value; ++row.value)
+      {
+        for ( data::Column column {0}
+            ; column.value < nonogram_.dataColumns().value
+            ; ++column.value
+            )
+        {
+          data::Slot const slot {column, row};
+
+          if (nonogram_.solution (slot))
+          {
+            nonogram_.fill (slot, data::Answer::Datum::Filled);
+
+            update();
+
+            QCoreApplication::processEvents (QEventLoop::ExcludeUserInputEvents);
+          }
+        }
+      }
+
+      solved_ = true;
 
       update();
     }
