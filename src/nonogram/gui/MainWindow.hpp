@@ -30,6 +30,8 @@ namespace nonogram
         MainWindow();
 
       private:
+        void reset (bool solved);
+
         QString const select_difficulty_text_;
         QString const select_level_text_;
         file::Puzzles const puzzles_;

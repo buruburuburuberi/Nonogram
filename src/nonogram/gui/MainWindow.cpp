@@ -34,8 +34,6 @@ namespace nonogram
                   , std::move (puzzles_.titleNonogram())
                   )
     {
-      statusBar()->showMessage ("Ready");
-
       util::unique_qt_ptr<QLabel> pack_label ("Choose Difficulty:");
       util::unique_qt_ptr<QFrame> level_selection_widget;
       util::unique_qt_ptr<QLabel> puzzle_label ("Choose Puzzle:");
@@ -107,8 +105,7 @@ namespace nonogram
                   play_field_->setNonogram
                     (puzzles_.puzzle (pack_list_->currentText(), text));
 
-                  tools_toolbar_->setEnabled (true);
-                  solve_button_->setEnabled (true);
+                  reset (false);
                 }
               );
 
@@ -119,6 +116,7 @@ namespace nonogram
       level_selection_widget->setLayout (level_selection_layout.release());
 
       check_button_->setText ("Check");
+      check_button_->setDisabled (true);
       check_button_->setToolButtonStyle (Qt::ToolButtonTextUnderIcon);
       check_button_->setIcon (createCheckIcon (icon_size_, bg_color_, fg_color_));
 
@@ -138,6 +136,7 @@ namespace nonogram
       reset_button_->setIcon (createResetIcon (icon_size_, bg_color_, fg_color_));
 
       fill_button_->setText ("Fill");
+      fill_button_->setDisabled (true);
       fill_button_->setCheckable (true);
       fill_button_->setChecked (true);
       fill_button_->setToolButtonStyle (Qt::ToolButtonTextUnderIcon);
@@ -150,6 +149,7 @@ namespace nonogram
         );
 
       cross_button_->setText ("Cross");
+      cross_button_->setDisabled (true);
       cross_button_->setCheckable (true);
       cross_button_->setToolButtonStyle (Qt::ToolButtonTextUnderIcon);
       cross_button_->setIcon
@@ -161,6 +161,7 @@ namespace nonogram
         );
 
       fill_mark_button_->setText ("Fill Mark");
+      fill_mark_button_->setDisabled (true);
       fill_mark_button_->setCheckable (true);
       fill_mark_button_->setToolButtonStyle (Qt::ToolButtonTextUnderIcon);
       fill_mark_button_->setIcon
@@ -172,6 +173,7 @@ namespace nonogram
         );
 
       cross_mark_button_->setText ("Cross Mark");
+      cross_mark_button_->setDisabled (true);
       cross_mark_button_->setCheckable (true);
       cross_mark_button_->setToolButtonStyle (Qt::ToolButtonTextUnderIcon);
       cross_mark_button_->setIcon
@@ -183,17 +185,17 @@ namespace nonogram
         );
 
       undo_button_->setText ("Undo");
-      undo_button_->setEnabled (false);
+      undo_button_->setDisabled (true);
       undo_button_->setToolButtonStyle (Qt::ToolButtonTextUnderIcon);
       undo_button_->setIcon (createUndoIcon (icon_size_, bg_color_, fg_color_));
 
       redo_button_->setText ("Redo");
-      redo_button_->setEnabled (false);
+      redo_button_->setDisabled (true);
       redo_button_->setToolButtonStyle (Qt::ToolButtonTextUnderIcon);
       redo_button_->setIcon (createRedoIcon (icon_size_, bg_color_, fg_color_));
 
       solve_button_->setText ("Show Solution");
-      solve_button_->setEnabled (false);
+      solve_button_->setDisabled (true);
       solve_button_->setToolButtonStyle (Qt::ToolButtonTextUnderIcon);
       solve_button_->setIcon (createSolveIcon (icon_size_, bg_color_, fg_color_));
 
@@ -221,8 +223,6 @@ namespace nonogram
       tools_toolbar_->addWidget (unlock_button_.release());
       tools_toolbar_->addWidget (reset_button_.release());
       tools_toolbar_->addWidget (solve_button_.release());
-
-      tools_toolbar_->setDisabled (true);
 
       scroll_area_->setMinimumSize (1280, 720);
       scroll_area_->setWidgetResizable (true);
@@ -256,7 +256,7 @@ namespace nonogram
       connect ( play_field_.get()
               , &PlayField::solved
               , this
-              , [&] { tools_toolbar_->setDisabled (true); }
+              , [&] { reset (true); }
               );
 
       connect ( check_button_.get()
@@ -296,6 +296,7 @@ namespace nonogram
                      )
                   {
                     play_field_->resetAnswer();
+                    reset (false);
                   }
                 }
               );
@@ -313,6 +314,7 @@ namespace nonogram
                   {
                     play_field_->resetAnswer();
                     play_field_->showSolution (false);
+                    reset (true);
                   }
                 }
               );
@@ -389,6 +391,21 @@ namespace nonogram
               );
 
       QTimer::singleShot (0, [&] { play_field_->showSolution (true); });
+    }
+
+    void MainWindow::reset (bool solved)
+    {
+      check_button_->setDisabled (solved);
+      fill_button_->setDisabled (solved);
+      cross_button_->setDisabled (solved);
+      fill_mark_button_->setDisabled (solved);
+      cross_mark_button_->setDisabled (solved);
+      undo_button_->setDisabled (solved);
+      redo_button_->setDisabled (solved);
+      lock_button_->setDisabled (solved);
+      unlock_button_->setDisabled (solved);
+      reset_button_->setDisabled (!solved);
+      solve_button_->setDisabled (solved);
     }
   }
 }
