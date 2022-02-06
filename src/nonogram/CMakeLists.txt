@@ -4,6 +4,7 @@ set (SOURCES data/Answer.cpp
              data/ClueStates.cpp
              data/Nonogram.cpp
              data/Solution.cpp
+             file/Puzzles.cpp
              gui/MainWindow.cpp
              gui/PlayField.cpp
              gui/command/Base.cpp

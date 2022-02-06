@@ -41,3 +41,5 @@ find_package (Qt5 5.9 REQUIRED
 include_directories ("${PROJECT_SOURCE_DIR}/src")
 
 add_subdirectory (src/nonogram)
+
+install (DIRECTORY "puzzles/" DESTINATION "puzzles")

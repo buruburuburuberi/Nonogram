@@ -2,9 +2,11 @@
 
 #include <nonogram/gui/painting.hpp>
 
+#include <QtCore/QCoreApplication>
 #include <QtCore/QTimer>
 #include <QtGui/QStandardItem>
-#include <QtWidgets/QFormLayout>
+#include <QtWidgets/QHBoxLayout>
+#include <QtWidgets/QLabel>
 #include <QtWidgets/QMessageBox>
 #include <QtWidgets/QStatusBar>
 #include <QtWidgets/QToolBar>
@@ -17,22 +19,29 @@ namespace nonogram
 {
   namespace gui
   {
-    MainWindow::MainWindow (std::map<std::string, data::Nonogram> nonograms)
-    : icon_size_ (22, 22)
+    MainWindow::MainWindow()
+    : select_difficulty_text_ ("---Select Difficulty---")
+    , select_level_text_ ("---Select Level---")
+    , puzzles_ (QCoreApplication::applicationDirPath() + "/../puzzles")
+    , icon_size_ (22, 22)
     , bg_color_ (Qt::yellow)
     , fg_color_ (Qt::black)
     , undo_stack_()
-    , nonograms_ (std::move (nonograms))
-    , play_field_ (bg_color_, fg_color_, undo_stack_, std::move (titleNonogram()))
+    , play_field_ ( bg_color_
+                  , fg_color_
+                  , undo_stack_
+                  , std::move (puzzles_.titleNonogram())
+                  )
     {
       statusBar()->showMessage ("Ready");
 
+      util::unique_qt_ptr<QLabel> pack_label ("Choose Difficulty:");
       util::unique_qt_ptr<QFrame> level_selection_widget;
-      util::unique_qt_ptr<QFormLayout> level_selection_layout;
+      util::unique_qt_ptr<QLabel> puzzle_label ("Choose Puzzle:");
+      util::unique_qt_ptr<QHBoxLayout> level_selection_layout;
 
-      QList<QStandardItem*> items;
       auto add_item
-      ( [&] (QString name, bool enabled)
+      ( [&] (QList<QStandardItem*>& list, QString name, bool enabled)
         {
           auto item (new QStandardItem (name));
           item->setFlags
@@ -40,34 +49,72 @@ namespace nonogram
             ? Qt::ItemIsSelectable | Qt::ItemIsEnabled
             : Qt::ItemIsEnabled
             );
-          items.append (item);
+          list.append (item);
         }
       );
 
-      add_item ("---Select Level---", false);
-      for (auto const& nonogram : nonograms_)
+      QList<QStandardItem*> packs;
+      add_item (packs, select_difficulty_text_, false);
+      for (auto const& pack : puzzles_.packs())
       {
-        add_item (nonogram.first.data(), true);
-      }
-      nonogram_model_.appendColumn (items);
+        add_item (packs, pack, true);
 
-      nonogram_list_->setModel (&nonogram_model_);
+        QList<QStandardItem*> puzzles;
+        add_item (puzzles, select_level_text_, false);
+        for (auto const& puzzle : puzzles_.puzzlesOfPack (pack))
+        {
+          add_item (puzzles, puzzle, true);
+        }
+        nonogram_models_.emplace
+          ( std::piecewise_construct
+          , std::forward_as_tuple (pack)
+          , std::forward_as_tuple()
+          );
+        nonogram_models_.at (pack).appendColumn (puzzles);
+      }
+      pack_model_.appendColumn (packs);
+
+      pack_list_->setModel (&pack_model_);
+
+      nonogram_list_->setDisabled (true);
+
+      connect ( pack_list_.get()
+              , &QComboBox::currentTextChanged
+              , this
+              , [&] (QString text)
+                {
+                  if (text == select_difficulty_text_)
+                  {
+                    return;
+                  }
+
+                  nonogram_list_->setModel (&nonogram_models_.at (text));
+                  nonogram_list_->setEnabled (true);
+                }
+              );
 
       connect ( nonogram_list_.get()
               , &QComboBox::currentTextChanged
               , this
               , [&] (QString text)
                 {
-                  play_field_->setNonogram (nonograms_.at (text.toStdString()));
+                  if (text == select_level_text_)
+                  {
+                    return;
+                  }
+
+                  play_field_->setNonogram
+                    (puzzles_.puzzle (pack_list_->currentText(), text));
 
                   tools_toolbar_->setEnabled (true);
                   solve_button_->setEnabled (true);
                 }
               );
 
-      level_selection_layout->addRow ( "Available puzzles:"
-                                     , nonogram_list_.release()
-                                     );
+      level_selection_layout->addWidget (pack_label.release());
+      level_selection_layout->addWidget (pack_list_.release());
+      level_selection_layout->addWidget (puzzle_label.release());
+      level_selection_layout->addWidget (nonogram_list_.release());
       level_selection_widget->setLayout (level_selection_layout.release());
 
       check_button_->setText ("Check");
@@ -314,29 +361,6 @@ namespace nonogram
               );
 
       QTimer::singleShot (0, [&] { play_field_->showSolution(); });
-    }
-
-    data::Nonogram MainWindow::titleNonogram() const
-    {
-      return
-        { "Title"
-        , data::Array2D<bool>
-          { { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
-            , { 0, 1, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0 }
-            , { 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0 }
-            , { 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0 }
-            , { 0, 1, 0, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0 }
-            , { 0, 1, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0 }
-            , { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
-            , { 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0 }
-            , { 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 0 }
-            , { 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0 }
-            , { 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0 }
-            , { 0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0 }
-            , { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
-            }
-          }
-        };
     }
   }
 }
