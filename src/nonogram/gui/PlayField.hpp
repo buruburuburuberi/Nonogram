@@ -45,7 +45,7 @@ namespace nonogram
       void redo();
       void undo();
 
-      void showSolution();
+      void showSolution (bool animate);
 
     signals:
       void panned (QPointF delta);

@@ -312,7 +312,7 @@ namespace nonogram
                      )
                   {
                     play_field_->resetAnswer();
-                    play_field_->showSolution();
+                    play_field_->showSolution (false);
                   }
                 }
               );
@@ -388,7 +388,7 @@ namespace nonogram
                 }
               );
 
-      QTimer::singleShot (0, [&] { play_field_->showSolution(); });
+      QTimer::singleShot (0, [&] { play_field_->showSolution (true); });
     }
   }
 }

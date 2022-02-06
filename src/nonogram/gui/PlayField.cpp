@@ -729,7 +729,7 @@ namespace nonogram
       update();
     }
 
-    void PlayField::showSolution()
+    void PlayField::showSolution (bool animate)
     {
       setDisabled (true);
 
@@ -746,9 +746,12 @@ namespace nonogram
           {
             nonogram_.fill (slot, data::Answer::Datum::Filled);
 
-            update();
-
-            QCoreApplication::processEvents (QEventLoop::ExcludeUserInputEvents);
+            if (animate)
+            {
+              update();
+              QCoreApplication::processEvents
+                (QEventLoop::ExcludeUserInputEvents);
+            }
           }
         }
       }
