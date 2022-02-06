@@ -35,8 +35,8 @@ namespace nonogram
     , undo_stack_ (undo_stack)
     , nonogram_ (std::move (nonogram))
     , fill_mode_ (data::Answer::Datum::Filled)
-    , font_size_ (18)
-    , slot_size_ (30)
+    , font_size_ (16)
+    , slot_size_ (24)
     , solved_ (false)
     {
       setAutoFillBackground (true);
@@ -98,9 +98,14 @@ namespace nonogram
                 )
         };
 
+      QSize new_size
+        ( std::max (window_size.width(), play_field_rect_.width())
+        , std::max (window_size.height(), play_field_rect_.height())
+        );
+
       QPoint const offset
-        ( (window_size.width() - play_field_rect_.width()) / 2.0f + 25
-        , (window_size.height() - play_field_rect_.height()) / 2.0f + 10
+        ( (new_size.width() - play_field_rect_.width()) / 2.0f + 25
+        , (new_size.height() - play_field_rect_.height()) / 2.0f + 10
         );
       for (auto const& type : all_field_types)
       {
@@ -108,7 +113,7 @@ namespace nonogram
       }
       play_field_rect_.translate (offset);
 
-      setMinimumSize (play_field_rect_.size());
+      setMinimumSize (new_size);
     }
 
     void PlayField::setFillMode (data::Answer::Datum mode)
@@ -651,6 +656,17 @@ namespace nonogram
           }
         }
       }
+      else if (event->buttons() & Qt::RightButton)
+      {
+        auto const current_position (event->pos());
+        auto const delta (current_position - last_pan_position_);
+        emit panned ( { delta.x() / static_cast<float> (width())
+                      , delta.y() / static_cast<float> (height())
+                      }
+                    );
+
+        last_pan_position_ = current_position;
+      }
     }
 
     void PlayField::mousePressEvent (QMouseEvent* event)
@@ -666,10 +682,17 @@ namespace nonogram
           return;
         }
       }
+      else if (event->buttons() & Qt::RightButton)
+      {
+        setCursor (Qt::ClosedHandCursor);
+        last_pan_position_ = event->pos();
+      }
     }
 
     void PlayField::mouseReleaseEvent (QMouseEvent*)
     {
+      setCursor (Qt::ArrowCursor);
+
       if (current_hit_)
       {
         current_hit_.reset();

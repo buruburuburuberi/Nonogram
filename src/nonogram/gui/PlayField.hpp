@@ -48,6 +48,7 @@ namespace nonogram
       void showSolution();
 
     signals:
+      void panned (QPointF delta);
       void solved();
 
     protected:
@@ -98,6 +99,7 @@ namespace nonogram
       std::map<FieldType, QRect> field_rects_;
       QRect play_field_rect_;
 
+      QPoint last_pan_position_;
       struct Hit
       {
         FieldType type;

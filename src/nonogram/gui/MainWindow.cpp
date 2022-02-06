@@ -8,6 +8,7 @@
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QMessageBox>
+#include <QtWidgets/QScrollBar>
 #include <QtWidgets/QStatusBar>
 #include <QtWidgets/QToolBar>
 #include <QtWidgets/QToolButton>
@@ -223,8 +224,35 @@ namespace nonogram
 
       tools_toolbar_->setDisabled (true);
 
-      setCentralWidget (play_field_.release());
+      scroll_area_->setMinimumSize (1280, 720);
+      scroll_area_->setWidgetResizable (true);
+      scroll_area_->setSizePolicy (QSizePolicy::Expanding, QSizePolicy::Expanding);
+      scroll_area_->setWidget (play_field_.release());
+      setCentralWidget (scroll_area_.release());
 
+      connect ( play_field_.get()
+              , &PlayField::panned
+              , this
+              , [&] (QPointF delta)
+                {
+                  auto const horizontal_range
+                    ( scroll_area_->horizontalScrollBar()->maximum()
+                    - scroll_area_->horizontalScrollBar()->minimum()
+                    );
+                  auto const vertical_range
+                    ( scroll_area_->verticalScrollBar()->maximum()
+                    - scroll_area_->verticalScrollBar()->minimum()
+                    );
+                  scroll_area_->horizontalScrollBar()->setValue
+                    ( scroll_area_->horizontalScrollBar()->value()
+                    - delta.x() * horizontal_range
+                    );
+                  scroll_area_->verticalScrollBar()->setValue
+                    ( scroll_area_->verticalScrollBar()->value()
+                    - delta.y() * vertical_range
+                    );
+                }
+              );
       connect ( play_field_.get()
               , &PlayField::solved
               , this

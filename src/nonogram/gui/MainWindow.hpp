@@ -10,6 +10,7 @@
 #include <QtWidgets/QButtonGroup>
 #include <QtWidgets/QComboBox>
 #include <QtWidgets/QMainWindow>
+#include <QtWidgets/QScrollArea>
 #include <QtWidgets/QToolButton>
 #include <QtWidgets/QUndoStack>
 
@@ -42,6 +43,7 @@ namespace nonogram
         util::unique_qt_ptr<QComboBox> nonogram_list_;
         QToolBar* tools_toolbar_;
         util::unique_qt_ptr<QButtonGroup> tools_group_;
+        util::unique_qt_ptr<QScrollArea> scroll_area_;
         util::unique_qt_ptr<PlayField> play_field_;
         util::unique_qt_ptr<QToolButton> check_button_;
         util::unique_qt_ptr<QToolButton> lock_button_;
