@@ -107,6 +107,7 @@ namespace nonogram
         std::variant<data::ClueState, data::Answer::Datum> data;
       };
 
+      std::optional<data::Slot> current_slot_;
       std::optional<Hit> current_hit_;
       std::optional<data::Slot> current_error_slot_;
       bool solved_;

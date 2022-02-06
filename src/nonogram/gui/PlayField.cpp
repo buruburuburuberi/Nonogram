@@ -40,6 +40,7 @@ namespace nonogram
     , solved_ (false)
     {
       setAutoFillBackground (true);
+      setMouseTracking (true);
 
       updateRects (size());
     }
@@ -89,23 +90,27 @@ namespace nonogram
                  )
         , column_clue_size
         };
+
       play_field_rect_ =
         { QPoint ( field_rects_.at (FieldType::LeftClues).x()
                  , field_rects_.at (FieldType::TopClues).y()
                  )
-        , QSize ( field_rects_.at (FieldType::RightClues).right() + 50
-                , field_rects_.at (FieldType::BottomClues).bottom() + 50
+        , QSize ( field_rects_.at (FieldType::RightClues).right()
+                , field_rects_.at (FieldType::BottomClues).bottom()
                 )
         };
 
+      QRect const play_field_rect_with_offset
+        (play_field_rect_.topLeft(), play_field_rect_.size() + QSize (50, 50));
+
       QSize new_size
-        ( std::max (window_size.width(), play_field_rect_.width())
-        , std::max (window_size.height(), play_field_rect_.height())
+        ( std::max (window_size.width(), play_field_rect_with_offset.width())
+        , std::max (window_size.height(), play_field_rect_with_offset.height())
         );
 
       QPoint const offset
-        ( (new_size.width() - play_field_rect_.width()) / 2.0f + 25
-        , (new_size.height() - play_field_rect_.height()) / 2.0f + 10
+        ( (new_size.width() - play_field_rect_with_offset.width()) / 2.0f + 25
+        , (new_size.height() - play_field_rect_with_offset.height()) / 2.0f + 10
         );
       for (auto const& type : all_field_types)
       {
@@ -127,6 +132,7 @@ namespace nonogram
       solved_ = false;
       setDisabled (false);
       current_error_slot_.reset();
+      current_slot_.reset();
     }
 
     void PlayField::setNonogram (data::Nonogram nonogram)
@@ -632,6 +638,7 @@ namespace nonogram
                                , "Congratulations!"
                                , "You have solved this puzzle."
                                );
+      current_slot_.reset();
       solved_ = true;
       setDisabled (true);
 
@@ -666,6 +673,20 @@ namespace nonogram
                     );
 
         last_pan_position_ = current_position;
+      }
+
+      if (event->buttons() != Qt::RightButton)
+      {
+        current_slot_ =
+            field_rects_.at (FieldType::Puzzle).contains (event->pos())
+            ? std::optional
+                ( fromPosition ( field_rects_.at (FieldType::Puzzle)
+                               , event->pos()
+                               )
+                )
+            : std::nullopt
+            ;
+        update();
       }
     }
 
@@ -716,6 +737,25 @@ namespace nonogram
         {
           drawClues (painter, type);
         }
+      }
+
+      if (current_slot_)
+      {
+        auto pen (painter.pen());
+        pen.setWidth (3);
+        pen.setColor (Qt::black);
+        painter.setPen (pen);
+
+        auto const slot_center (slotCenter (current_slot_.value()));
+        QRect horizontal_rect (0, 0, play_field_rect_.width(), slot_size_);
+        horizontal_rect.moveCenter
+          (QPoint (play_field_rect_.center().x(), slot_center.y()));
+        painter.drawRect (horizontal_rect);
+
+        QRect vertical_rect (0, 0, slot_size_, play_field_rect_.height());
+        vertical_rect.moveCenter
+          (QPoint (slot_center.x(), play_field_rect_.center().y()));
+        painter.drawRect (vertical_rect);
       }
 
       painter.setPen (Qt::white);
