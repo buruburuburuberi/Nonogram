@@ -9,6 +9,7 @@
 #include <QtCore/QTimer>
 #include <QtGui/QPainter>
 #include <QtWidgets/QMessageBox>
+#include <QtWidgets/QToolTip>
 
 namespace nonogram
 {
@@ -686,6 +687,15 @@ namespace nonogram
                 )
             : std::nullopt
             ;
+
+        auto const text
+          ( current_slot_
+          ? QString ("Position: (%1, %2)")
+              .arg (current_slot_->column.value + 1)
+              .arg (current_slot_->row.value + 1)
+          : QString()
+          );
+        QToolTip::showText (event->globalPos(), text, this, rect());
         update();
       }
     }
@@ -783,6 +793,10 @@ namespace nonogram
 
       if (current_slot_)
       {
+        auto pen (painter.pen());
+        pen.setWidth (4);
+        painter.setPen (pen);
+
         auto const slot_center (slotCenter (current_slot_.value()));
         QRect horizontal_rect (0, 0, play_field_rect_.width(), slot_size_);
         horizontal_rect.moveCenter
