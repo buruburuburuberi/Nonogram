@@ -35,8 +35,8 @@ namespace nonogram
     , undo_stack_ (undo_stack)
     , nonogram_ (std::move (nonogram))
     , fill_mode_ (data::Answer::Datum::Filled)
-    , font_size_ (16)
-    , slot_size_ (24)
+    , font_size_ (18)
+    , slot_size_ (30)
     , solved_ (false)
     {
       setAutoFillBackground (true);
@@ -47,7 +47,7 @@ namespace nonogram
 
     void PlayField::updateRects (QSize window_size)
     {
-      std::size_t const puzzle_border (4);
+      std::size_t const puzzle_border (2);
 
       QSize const puzzle_size
         ( nonogram_.dataColumns().value * slot_size_
@@ -725,7 +725,12 @@ namespace nonogram
     void PlayField::paintGL()
     {
       QPainter painter (this);
-      painter.fillRect (rect(), Qt::black);
+      painter.fillRect (rect(), Qt::gray);
+
+      for (auto const& rect : field_rects_)
+      {
+        painter.fillRect (rect.second, fg_color_);
+      }
 
       for (auto const& type : all_field_types)
       {
@@ -739,13 +744,45 @@ namespace nonogram
         }
       }
 
+      auto pen (painter.pen());
+      pen.setWidth (3);
+      pen.setColor (fg_color_);
+      painter.setPen (pen);
+
+      for (auto const& rect : field_rects_)
+      {
+        painter.drawRect (rect.second);
+      }
+
+      auto const offset (5 * slot_size_);
+      if (nonogram_.dataColumns().value > 5)
+      {
+        for ( int x (field_rects_.at (FieldType::Puzzle).left())
+            ; x < field_rects_.at (FieldType::Puzzle).right()
+            ; x += offset
+            )
+        {
+          painter.drawLine ( x, play_field_rect_.top()
+                           , x, play_field_rect_.bottom()
+                           );
+        }
+      }
+
+      if (nonogram_.dataRows().value > 5)
+      {
+        for ( int y (field_rects_.at (FieldType::Puzzle).top())
+            ; y < field_rects_.at (FieldType::Puzzle).bottom()
+            ; y += offset
+            )
+        {
+          painter.drawLine ( play_field_rect_.left(), y
+                           , play_field_rect_.right(), y
+                           );
+        }
+      }
+
       if (current_slot_)
       {
-        auto pen (painter.pen());
-        pen.setWidth (3);
-        pen.setColor (Qt::black);
-        painter.setPen (pen);
-
         auto const slot_center (slotCenter (current_slot_.value()));
         QRect horizontal_rect (0, 0, play_field_rect_.width(), slot_size_);
         horizontal_rect.moveCenter
