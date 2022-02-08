@@ -15,8 +15,6 @@
 #include <QtWidgets/QUndoStack>
 
 #include <map>
-#include <string>
-#include <vector>
 
 namespace nonogram
 {
@@ -29,16 +27,21 @@ namespace nonogram
       public:
         MainWindow();
 
+      protected:
+        void closeEvent (QCloseEvent*);
+
       private:
+        void writeOutCurrentAnswer();
         void reset (bool solved);
 
         QString const select_difficulty_text_;
         QString const select_level_text_;
-        file::Puzzles const puzzles_;
         QSize const icon_size_;
         QColor const bg_color_;
         QColor const fg_color_;
+        file::Puzzles puzzles_;
         QUndoStack undo_stack_;
+        data::Nonogram current_nonogram_;
         QStandardItemModel pack_model_;
         std::map<QString, QStandardItemModel> nonogram_models_;
         util::unique_qt_ptr<QComboBox> pack_list_;

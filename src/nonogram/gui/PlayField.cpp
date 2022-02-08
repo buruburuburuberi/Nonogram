@@ -26,7 +26,7 @@ namespace nonogram
     PlayField::PlayField ( QColor bg
                          , QColor fg
                          , QUndoStack& undo_stack
-                         , data::Nonogram nonogram
+                         , data::Nonogram& nonogram
                          )
     : QOpenGLWidget()
     , bg_color_ (bg)
@@ -34,7 +34,7 @@ namespace nonogram
     , mistake_color_ (Qt::red)
     , locked_color_ (Qt::gray)
     , undo_stack_ (undo_stack)
-    , nonogram_ (std::move (nonogram))
+    , nonogram_ (nonogram)
     , fill_mode_ (data::Answer::Datum::Filled)
     , font_size_ (18)
     , slot_size_ (30)
@@ -136,9 +136,9 @@ namespace nonogram
       current_slot_.reset();
     }
 
-    void PlayField::setNonogram (data::Nonogram nonogram)
+    void PlayField::setNonogram (data::Nonogram& nonogram)
     {
-      nonogram_ = std::move (nonogram);
+      nonogram_ = nonogram;
       updateRects (size());
 
       reset();
@@ -192,6 +192,11 @@ namespace nonogram
       undo_stack_.push (command::Lock::unlock (nonogram_));
 
       update();
+    }
+
+    bool PlayField::isEmpty() const
+    {
+      return nonogram_.isEmpty();
     }
 
     void PlayField::redo()

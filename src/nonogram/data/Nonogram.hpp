@@ -4,6 +4,8 @@
 #include <nonogram/data/Array2D.hpp>
 #include <nonogram/data/Solution.hpp>
 
+#include <QtCore/QString>
+
 #include <algorithm>
 #include <cstddef>
 #include <optional>
@@ -13,14 +15,21 @@
 
 namespace nonogram
 {
+  namespace file
+  {
+    class Puzzles;
+  }
+
   namespace data
   {
     class Nonogram
     {
     public:
-      Nonogram (std::string name, Solution);
+      Nonogram (QString pack, QString puzzle, Solution);
+      Nonogram (QString pack, QString puzzle, Solution, Answer);
 
-      std::string name() const;
+      QString pack() const;
+      QString puzzle() const;
       Rows dataRows() const;
       Columns dataColumns() const;
       Solution::State solution (Slot) const;
@@ -44,6 +53,7 @@ namespace nonogram
 
       bool canLock() const;
       bool canUnlock() const;
+      bool isEmpty() const;
 
       bool isMistake (Slot) const;
       std::optional<Slot> findFirstMistake() const;
@@ -51,9 +61,12 @@ namespace nonogram
       void resetAnswer();
 
     private:
-      std::string name_;
+      QString pack_;
+      QString puzzle_;
       Solution solution_;
       Answer answer_;
+
+      friend class file::Puzzles;
     };
   }
 }

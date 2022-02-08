@@ -8,6 +8,11 @@
 
 namespace nonogram
 {
+  namespace file
+  {
+    class Puzzles;
+  }
+
   namespace data
   {
     using ClueState = bool;
@@ -18,6 +23,7 @@ namespace nonogram
       using Data = VectorOfVectors<ClueState>;
 
       ClueStates (Solution const&, Clues::Type);
+      ClueStates (Data data, Data locks);
 
       bool isCrossed (FullIndex) const;
       void cross (FullIndex, ClueState);
@@ -32,10 +38,11 @@ namespace nonogram
       void reset();
 
     private:
-      Clues::Type type_;
       Data data_;
       Data locks_;
       Indices to_lock_;
+
+      friend class file::Puzzles;
     };
   }
 }

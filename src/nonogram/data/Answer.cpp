@@ -13,13 +13,25 @@ namespace nonogram
     {
       for (auto const& type : Clues::all_types)
       {
-        clues_.emplace
+        clue_states_.emplace
           ( std::piecewise_construct
           , std::forward_as_tuple (type)
           , std::forward_as_tuple (solution, type)
           );
       }
     }
+
+    Answer::Answer (Data data, DataLocks data_locks, CluesStates clue_states)
+    : data_ (std::move (data))
+    , data_locks_ (std::move (data_locks))
+    , data_to_lock_
+        ( data_.slots_if
+            ( [&] (Slot slot, Datum datum)
+              { return datum != Datum::Empty && !data_locks_.at (slot); }
+            )
+        )
+    , clue_states_ (std::move (clue_states))
+    {}
 
     Answer::Datum Answer::at (Slot slot) const
     {
@@ -81,12 +93,12 @@ namespace nonogram
 
     bool Answer::isCrossed (Clues::Type type, FullIndex full_index) const
     {
-      return clues_.at (type).isCrossed (full_index);
+      return clue_states_.at (type).isCrossed (full_index);
     }
 
     void Answer::cross (Clues::Type type, FullIndex full_index, bool state)
     {
-      clues_.at (type).cross (full_index, state);
+      clue_states_.at (type).cross (full_index, state);
     }
 
     Solution::ClueIndices Answer::cluesToLock() const
@@ -95,7 +107,7 @@ namespace nonogram
 
       for (auto const& type : Clues::all_types)
       {
-        indices.emplace (type, clues_.at (type).toLock());
+        indices.emplace (type, clue_states_.at (type).toLock());
       }
 
       return indices;
@@ -107,7 +119,7 @@ namespace nonogram
 
       for (auto const& type : Clues::all_types)
       {
-        indices.emplace (type, clues_.at (type).locked());
+        indices.emplace (type, clue_states_.at (type).locked());
       }
 
       return indices;
@@ -115,14 +127,14 @@ namespace nonogram
 
     bool Answer::isClueLocked (Clues::Type type, FullIndex full_index) const
     {
-      return clues_.at (type).isLocked (full_index);
+      return clue_states_.at (type).isLocked (full_index);
     }
 
     void Answer::lockClues (Solution::ClueIndices indices, bool state)
     {
       for (auto const& type : Clues::all_types)
       {
-        clues_.at (type).lock (indices.at (type), state);
+        clue_states_.at (type).lock (indices.at (type), state);
       }
     }
 
@@ -133,7 +145,7 @@ namespace nonogram
           {
             for (auto const& type : Clues::all_types)
             {
-              if (clues_.at (type).canLock())
+              if (clue_states_.at (type).canLock())
               {
                 return true;
               }
@@ -164,13 +176,18 @@ namespace nonogram
 
       for (auto const& type : Clues::all_types)
       {
-        if (clues_.at (type).canUnlock())
+        if (clue_states_.at (type).canUnlock())
         {
           return true;
         }
       }
 
       return false;
+    }
+
+    bool Answer::isEmpty() const
+    {
+      return !canLock() && !canUnlock();
     }
 
     void Answer::reset()
@@ -181,7 +198,7 @@ namespace nonogram
 
       for (auto const& type : Clues::all_types)
       {
-        clues_.at (type).reset();
+        clue_states_.at (type).reset();
       }
     }
   }

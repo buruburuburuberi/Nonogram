@@ -63,9 +63,7 @@ namespace nonogram
       : data_ (data)
       {}
 
-      Array2D (Array2D const& data)
-      : data_ (data.data_)
-      {}
+      Array2D (Array2D const&) = default;
 
       Rows rows() const
       {

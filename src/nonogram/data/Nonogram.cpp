@@ -8,15 +8,33 @@ namespace nonogram
 {
   namespace data
   {
-    Nonogram::Nonogram (std::string name, Solution solution)
-    : name_ (std::move (name))
+    Nonogram::Nonogram ( QString pack
+                       , QString puzzle
+                       , Solution solution
+                       , Answer answer
+                       )
+    : pack_ (std::move (pack))
+    , puzzle_ (std::move (puzzle))
     , solution_ (std::move (solution))
-    , answer_ (solution_)
+    , answer_ (std::move (answer))
     {}
 
-    std::string Nonogram::name() const
+    Nonogram::Nonogram (QString pack, QString puzzle, Solution solution)
+    : Nonogram ( std::move (pack)
+               , std::move (puzzle)
+               , solution
+               , Answer (solution)
+               )
+    {}
+
+    QString Nonogram::pack() const
     {
-      return name_;
+      return pack_;
+    }
+
+    QString Nonogram::puzzle() const
+    {
+      return puzzle_;
     }
 
     Rows Nonogram::dataRows() const
@@ -122,6 +140,11 @@ namespace nonogram
     bool Nonogram::canUnlock() const
     {
       return answer_.canUnlock();
+    }
+
+    bool Nonogram::isEmpty() const
+    {
+      return answer_.isEmpty();
     }
 
     bool Nonogram::isMistake (Slot slot) const

@@ -30,10 +30,10 @@ namespace nonogram
       , Puzzle
       };
 
-      PlayField (QColor bg, QColor fg, QUndoStack&, data::Nonogram);
+      PlayField (QColor bg, QColor fg, QUndoStack&, data::Nonogram&);
 
       void setFillMode (data::Answer::Datum);
-      void setNonogram (data::Nonogram);
+      void setNonogram (data::Nonogram&);
       void checkAnswer();
       void resetAnswer();
 
@@ -41,6 +41,7 @@ namespace nonogram
       bool canUnlock() const;
       void lock();
       void unlock();
+      bool isEmpty() const;
 
       void redo();
       void undo();
@@ -92,7 +93,7 @@ namespace nonogram
       QColor const mistake_color_;
       QColor const locked_color_;
       QUndoStack& undo_stack_;
-      data::Nonogram nonogram_;
+      data::Nonogram& nonogram_;
       data::Answer::Datum fill_mode_;
       std::size_t font_size_;
       std::size_t slot_size_;

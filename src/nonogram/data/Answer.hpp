@@ -9,6 +9,11 @@
 
 namespace nonogram
 {
+  namespace file
+  {
+    class Puzzles;
+  }
+
   namespace data
   {
     class Answer
@@ -22,9 +27,12 @@ namespace nonogram
       , CrossMark = 4
       };
 
+      using Data = Array2D<Datum>;
       using DataLocks = Array2D<bool>;
+      using CluesStates = std::map<Clues::Type, ClueStates>;
 
       Answer (Solution const&);
+      Answer (Data, DataLocks, CluesStates);
 
       Datum at (Slot) const;
       void fill (Slot, Datum);
@@ -42,15 +50,18 @@ namespace nonogram
 
       bool canLock() const;
       bool canUnlock() const;
+      bool isEmpty() const;
 
       void reset();
 
     private:
-      Array2D<Datum> data_;
+      Data data_;
       DataLocks data_locks_;
       Slots data_to_lock_;
 
-      std::map<Clues::Type, ClueStates> clues_;
+      CluesStates clue_states_;
+
+      friend class file::Puzzles;
     };
   }
 }

@@ -2,7 +2,6 @@
 
 #include <nonogram/gui/painting.hpp>
 
-#include <QtCore/QCoreApplication>
 #include <QtCore/QTimer>
 #include <QtGui/QStandardItem>
 #include <QtWidgets/QHBoxLayout>
@@ -23,16 +22,13 @@ namespace nonogram
     MainWindow::MainWindow()
     : select_difficulty_text_ ("---Select Difficulty---")
     , select_level_text_ ("---Select Level---")
-    , puzzles_ (QCoreApplication::applicationDirPath() + "/../puzzles")
     , icon_size_ (22, 22)
     , bg_color_ (Qt::yellow)
     , fg_color_ (Qt::black)
+    , puzzles_()
     , undo_stack_()
-    , play_field_ ( bg_color_
-                  , fg_color_
-                  , undo_stack_
-                  , std::move (puzzles_.titleNonogram())
-                  )
+    , current_nonogram_ (puzzles_.titleNonogram())
+    , play_field_ (bg_color_, fg_color_, undo_stack_, current_nonogram_)
     {
       util::unique_qt_ptr<QLabel> pack_label ("Choose Difficulty:");
       util::unique_qt_ptr<QFrame> level_selection_widget;
@@ -102,8 +98,11 @@ namespace nonogram
                     return;
                   }
 
-                  play_field_->setNonogram
-                    (puzzles_.puzzle (pack_list_->currentText(), text));
+                  writeOutCurrentAnswer();
+
+                  current_nonogram_ =
+                      puzzles_.puzzle (pack_list_->currentText(), text);
+                  play_field_->setNonogram (current_nonogram_);
 
                   reset (false);
                 }
@@ -364,22 +363,6 @@ namespace nonogram
               , this
               , [this] (bool can_redo) { redo_button_->setEnabled (can_redo); }
               );
-
-      connect ( &undo_stack_
-              , &QUndoStack::cleanChanged
-              , this
-              , [&] (bool clean)
-                {
-                  lock_button_->setDisabled (clean);
-                  reset_button_->setDisabled (clean);
-
-                  if (clean)
-                  {
-                    unlock_button_->setDisabled (true);
-                  }
-                }
-              );
-
       connect ( &undo_stack_
               , &QUndoStack::indexChanged
               , this
@@ -387,24 +370,46 @@ namespace nonogram
                 {
                   lock_button_->setEnabled (play_field_->canLock());
                   unlock_button_->setEnabled (play_field_->canUnlock());
+                  reset_button_->setDisabled (play_field_->isEmpty());
                 }
               );
 
       QTimer::singleShot (0, [&] { play_field_->showSolution (true); });
     }
 
+    void MainWindow::closeEvent (QCloseEvent*)
+    {
+      writeOutCurrentAnswer();
+    }
+
+    void MainWindow::writeOutCurrentAnswer()
+    {
+      if ( current_nonogram_.pack() != file::Puzzles::internalPackName()
+        && !current_nonogram_.isEmpty()
+         )
+      {
+        puzzles_.writeAnswer
+          ( current_nonogram_.pack()
+          , current_nonogram_.puzzle()
+          , current_nonogram_
+          );
+      }
+    }
+
     void MainWindow::reset (bool solved)
     {
+      undo_stack_.clear();
+
       check_button_->setDisabled (solved);
       fill_button_->setDisabled (solved);
       cross_button_->setDisabled (solved);
       fill_mark_button_->setDisabled (solved);
       cross_mark_button_->setDisabled (solved);
-      undo_button_->setDisabled (solved);
-      redo_button_->setDisabled (solved);
-      lock_button_->setDisabled (solved);
-      unlock_button_->setDisabled (solved);
-      reset_button_->setDisabled (!solved);
+      undo_button_->setDisabled (true);
+      redo_button_->setDisabled (true);
+      lock_button_->setDisabled (solved || !current_nonogram_.canLock());
+      unlock_button_->setDisabled (solved || !current_nonogram_.canUnlock());
+      reset_button_->setDisabled (play_field_->isEmpty());
       solve_button_->setDisabled (solved);
     }
   }

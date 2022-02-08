@@ -43,3 +43,4 @@ include_directories ("${PROJECT_SOURCE_DIR}/src")
 add_subdirectory (src/nonogram)
 
 install (DIRECTORY "puzzles/" DESTINATION "puzzles")
+install (DIRECTORY DESTINATION "answers")
