@@ -2,10 +2,8 @@
 
 #include <nonogram/gui/painting.hpp>
 
+#include <QtCore/QSettings>
 #include <QtCore/QTimer>
-#include <QtGui/QStandardItem>
-#include <QtWidgets/QHBoxLayout>
-#include <QtWidgets/QLabel>
 #include <QtWidgets/QMessageBox>
 #include <QtWidgets/QScrollBar>
 #include <QtWidgets/QStatusBar>
@@ -20,99 +18,30 @@ namespace nonogram
   namespace gui
   {
     MainWindow::MainWindow()
-    : select_difficulty_text_ ("---Select Difficulty---")
-    , select_level_text_ ("---Select Level---")
-    , icon_size_ (22, 22)
+    : icon_size_ (22, 22)
     , bg_color_ (Qt::yellow)
     , fg_color_ (Qt::black)
     , puzzles_()
+    , start_menu_ (puzzles_, this)
     , undo_stack_()
     , current_nonogram_ (puzzles_.titleNonogram())
+    , level_selection_ (puzzles_, QBoxLayout::LeftToRight)
     , play_field_ (bg_color_, fg_color_, undo_stack_, current_nonogram_)
     {
-      util::unique_qt_ptr<QLabel> pack_label ("Choose Difficulty:");
-      util::unique_qt_ptr<QFrame> level_selection_widget;
-      util::unique_qt_ptr<QLabel> puzzle_label ("Choose Puzzle:");
-      util::unique_qt_ptr<QHBoxLayout> level_selection_layout;
-
-      auto add_item
-      ( [&] (QList<QStandardItem*>& list, QString name, bool enabled)
-        {
-          auto item (new QStandardItem (name));
-          item->setFlags
-            ( enabled
-            ? Qt::ItemIsSelectable | Qt::ItemIsEnabled
-            : Qt::ItemIsEnabled
-            );
-          list.append (item);
-        }
-      );
-
-      QList<QStandardItem*> packs;
-      add_item (packs, select_difficulty_text_, false);
-      for (auto const& pack : puzzles_.packs())
-      {
-        add_item (packs, pack, true);
-
-        QList<QStandardItem*> puzzles;
-        add_item (puzzles, select_level_text_, false);
-        for (auto const& puzzle : puzzles_.puzzlesOfPack (pack))
-        {
-          add_item (puzzles, puzzle, true);
-        }
-        nonogram_models_.emplace
-          ( std::piecewise_construct
-          , std::forward_as_tuple (pack)
-          , std::forward_as_tuple()
-          );
-        nonogram_models_.at (pack).appendColumn (puzzles);
-      }
-      pack_model_.appendColumn (packs);
-
-      pack_list_->setModel (&pack_model_);
-
-      nonogram_list_->setDisabled (true);
-
-      connect ( pack_list_.get()
-              , &QComboBox::currentTextChanged
+      connect ( &start_menu_
+              , &StartMenu::nonogramSelected
               , this
-              , [&] (QString text)
+              , [&] (QString pack, QString puzzle)
                 {
-                  if (text == select_difficulty_text_)
-                  {
-                    return;
-                  }
-
-                  nonogram_list_->setModel (&nonogram_models_.at (text));
-                  nonogram_list_->setEnabled (true);
+                  showLevel (pack, puzzle);
+                  level_selection_->setLevel (pack, puzzle);
                 }
               );
-
-      connect ( nonogram_list_.get()
-              , &QComboBox::currentTextChanged
+      connect ( level_selection_.get()
+              , &LevelSelection::levelSelected
               , this
-              , [&] (QString text)
-                {
-                  if (text == select_level_text_)
-                  {
-                    return;
-                  }
-
-                  writeOutCurrentAnswer();
-
-                  current_nonogram_ =
-                      puzzles_.puzzle (pack_list_->currentText(), text);
-                  play_field_->setNonogram (current_nonogram_);
-
-                  reset (false);
-                }
+              , &MainWindow::showLevel
               );
-
-      level_selection_layout->addWidget (pack_label.release());
-      level_selection_layout->addWidget (pack_list_.release());
-      level_selection_layout->addWidget (puzzle_label.release());
-      level_selection_layout->addWidget (nonogram_list_.release());
-      level_selection_widget->setLayout (level_selection_layout.release());
 
       check_button_->setText ("Check");
       check_button_->setDisabled (true);
@@ -204,12 +133,14 @@ namespace nonogram
       tools_group_->addButton (fill_mark_button_.get());
       tools_group_->addButton (cross_mark_button_.get());
 
-      QToolBar* level_selection_toolbar (addToolBar ("Level Selection"));
-      level_selection_toolbar->addWidget (level_selection_widget.release());
+      level_selection_toolbar_ = addToolBar ("Level Selection");
+      level_selection_toolbar_->addWidget (level_selection_.release());
+      level_selection_toolbar_->hide();
 
       addToolBarBreak();
 
       tools_toolbar_ = addToolBar ("Tools");
+      tools_toolbar_->hide();
 
       tools_toolbar_->addWidget (check_button_.release());
       tools_toolbar_->addWidget (fill_button_.release());
@@ -223,7 +154,7 @@ namespace nonogram
       tools_toolbar_->addWidget (reset_button_.release());
       tools_toolbar_->addWidget (solve_button_.release());
 
-      scroll_area_->setMinimumSize (1280, 720);
+      scroll_area_->setMinimumSize (1440, 720);
       scroll_area_->setWidgetResizable (true);
       scroll_area_->setSizePolicy (QSizePolicy::Expanding, QSizePolicy::Expanding);
       scroll_area_->setWidget (play_field_.release());
@@ -374,7 +305,14 @@ namespace nonogram
                 }
               );
 
-      QTimer::singleShot (0, [&] { play_field_->showSolution (true); });
+      QTimer::singleShot
+        ( 0
+        , [&]
+          {
+            play_field_->showSolution (true);
+            start_menu_.exec();
+          }
+        );
     }
 
     void MainWindow::closeEvent (QCloseEvent*)
@@ -393,6 +331,10 @@ namespace nonogram
           , current_nonogram_.puzzle()
           , current_nonogram_
           );
+
+        QSettings settings;
+        settings.setValue ("current_pack", current_nonogram_.pack());
+        settings.setValue ("current_puzzle", current_nonogram_.puzzle());
       }
     }
 
@@ -411,6 +353,19 @@ namespace nonogram
       unlock_button_->setDisabled (solved || !current_nonogram_.canUnlock());
       reset_button_->setDisabled (play_field_->isEmpty());
       solve_button_->setDisabled (solved);
+    }
+
+    void MainWindow::showLevel (QString pack, QString puzzle)
+    {
+      writeOutCurrentAnswer();
+
+      current_nonogram_ = puzzles_.puzzle (pack, puzzle);
+      play_field_->setNonogram (current_nonogram_);
+
+      level_selection_toolbar_->show();
+      tools_toolbar_->show();
+
+      reset (false);
     }
   }
 }

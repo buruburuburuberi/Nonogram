@@ -2,13 +2,12 @@
 
 #include <nonogram/data/Nonogram.hpp>
 #include <nonogram/file/Puzzles.hpp>
+#include <nonogram/gui/LevelSelection.hpp>
 #include <nonogram/gui/PlayField.hpp>
+#include <nonogram/gui/StartMenu.hpp>
 #include <nonogram/util/unique_qt_ptr.hpp>
 
-#include <QtCore/QString>
-#include <QtGui/QStandardItemModel>
 #include <QtWidgets/QButtonGroup>
-#include <QtWidgets/QComboBox>
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QScrollArea>
 #include <QtWidgets/QToolButton>
@@ -33,19 +32,17 @@ namespace nonogram
       private:
         void writeOutCurrentAnswer();
         void reset (bool solved);
+        void showLevel (QString pack, QString puzzle);
 
-        QString const select_difficulty_text_;
-        QString const select_level_text_;
         QSize const icon_size_;
         QColor const bg_color_;
         QColor const fg_color_;
         file::Puzzles puzzles_;
+        StartMenu start_menu_;
         QUndoStack undo_stack_;
         data::Nonogram current_nonogram_;
-        QStandardItemModel pack_model_;
-        std::map<QString, QStandardItemModel> nonogram_models_;
-        util::unique_qt_ptr<QComboBox> pack_list_;
-        util::unique_qt_ptr<QComboBox> nonogram_list_;
+        util::unique_qt_ptr<LevelSelection> level_selection_;
+        QToolBar* level_selection_toolbar_;
         QToolBar* tools_toolbar_;
         util::unique_qt_ptr<QButtonGroup> tools_group_;
         util::unique_qt_ptr<QScrollArea> scroll_area_;
