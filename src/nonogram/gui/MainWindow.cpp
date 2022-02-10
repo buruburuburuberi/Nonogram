@@ -33,7 +33,6 @@ namespace nonogram
               , [&] (data::Nonogram::ID id)
                 {
                   showLevel (id);
-                  level_selection_->setLevel (id);
                 }
               );
       connect ( level_selection_.get()

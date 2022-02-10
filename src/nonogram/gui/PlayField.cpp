@@ -103,14 +103,9 @@ namespace nonogram
       QRect const play_field_rect_with_offset
         (play_field_rect_.topLeft(), play_field_rect_.size() + QSize (50, 50));
 
-      QSize new_size
-        ( std::max (window_size.width(), play_field_rect_with_offset.width())
-        , std::max (window_size.height(), play_field_rect_with_offset.height())
-        );
-
       QPoint const offset
-        ( (new_size.width() - play_field_rect_with_offset.width()) / 2.0f + 25
-        , (new_size.height() - play_field_rect_with_offset.height()) / 2.0f + 10
+        ( (window_size.width() - play_field_rect_with_offset.width()) / 2.0f + 25
+        , (window_size.height() - play_field_rect_with_offset.height()) / 2.0f + 10
         );
       for (auto const& type : all_field_types)
       {
@@ -118,7 +113,7 @@ namespace nonogram
       }
       play_field_rect_.translate (offset);
 
-      setMinimumSize (new_size);
+      setMinimumSize (play_field_rect_with_offset.size());
     }
 
     void PlayField::setFillMode (data::Answer::Datum mode)
@@ -735,7 +730,7 @@ namespace nonogram
     void PlayField::paintGL()
     {
       QPainter painter (this);
-      painter.fillRect (rect(), Qt::gray);
+      painter.fillRect (rect(), Qt::darkGray);
 
       for (auto const& rect : field_rects_)
       {
