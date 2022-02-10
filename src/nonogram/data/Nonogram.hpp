@@ -9,9 +9,9 @@
 #include <algorithm>
 #include <cstddef>
 #include <optional>
+#include <set>
 #include <stdexcept>
 #include <string>
-#include <vector>
 
 namespace nonogram
 {
@@ -25,11 +25,42 @@ namespace nonogram
     class Nonogram
     {
     public:
-      Nonogram (QString pack, QString puzzle, Solution);
-      Nonogram (QString pack, QString puzzle, Solution, Answer);
+      struct Pack
+      {
+        QString name;
 
-      QString pack() const;
-      QString puzzle() const;
+        bool operator== (Pack const&) const;
+        bool operator< (Pack const&) const;
+      };
+      struct Puzzle
+      {
+        QString name;
+
+        bool operator== (Puzzle const&) const;
+        bool operator< (Puzzle const&) const;
+      };
+
+      using Packs = std::set<Pack>;
+      using Puzzles = std::set<Puzzle>;
+
+      struct ID
+      {
+        ID (Pack, Puzzle);
+        ID (QString);
+
+        Pack pack;
+        Puzzle puzzle;
+
+        QString toString() const;
+
+        bool operator== (ID const&) const;
+        bool operator< (ID const&) const;
+      };
+
+      Nonogram (ID, Solution);
+      Nonogram (ID, Solution, Answer);
+
+      ID id() const;
       Rows dataRows() const;
       Columns dataColumns() const;
       Solution::State solution (Slot) const;
@@ -61,8 +92,7 @@ namespace nonogram
       void resetAnswer();
 
     private:
-      QString pack_;
-      QString puzzle_;
+      ID id_;
       Solution solution_;
       Answer answer_;
 

@@ -1,6 +1,5 @@
 #include <nonogram/gui/StartMenu.hpp>
 
-#include <QtCore/QSettings>
 #include <QtGui/QGuiApplication>
 #include <QtWidgets/QGridLayout>
 #include <QtWidgets/QLabel>
@@ -13,29 +12,21 @@ namespace nonogram
   {
     StartMenu::StartMenu (file::Puzzles const& puzzles, QWidget* _parent)
     : QDialog (_parent)
+    , puzzles_ (puzzles)
+    , current_puzzle_ (puzzles_.currentPuzzle())
     , continue_button_ ("Continue")
     , level_selection_ (puzzles, QBoxLayout::TopToBottom)
     , quit_button_ ("Quit")
     {
-      QSettings settings;
-      auto const has_last_puzzle
-        ( settings.contains ("current_pack")
-       && settings.contains ("current_puzzle")
-        );
-
-      continue_button_->setEnabled (has_last_puzzle);
+      continue_button_->setDescription ("Continue where you left off...");
+      continue_button_->setEnabled (current_puzzle_.has_value());
 
       connect ( continue_button_.get()
               , &QCommandLinkButton::clicked
               , this
               , [&]
                 {
-                  QSettings settings;
-
-                  emit nonogramSelected
-                      ( settings.value ("current_pack").toString()
-                      , settings.value ("current_puzzle").toString()
-                      );
+                  emit nonogramSelected (current_puzzle_.value());
                   accept();
                 }
               );
@@ -43,9 +34,9 @@ namespace nonogram
       connect ( level_selection_.get()
               , &LevelSelection::levelSelected
               , this
-              , [&] (QString pack, QString puzzle)
+              , [&] (data::Nonogram::ID id)
                 {
-                  emit nonogramSelected (pack, puzzle);
+                  emit nonogramSelected (id);
                   accept();
                 }
               );

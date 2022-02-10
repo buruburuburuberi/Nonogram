@@ -5,6 +5,7 @@
 #include <functional>
 #include <set>
 #include <stdexcept>
+#include <tuple>
 #include <vector>
 
 namespace nonogram
@@ -23,8 +24,8 @@ namespace nonogram
 
       bool operator== (Slot const& rhs) const
       {
-        return column.value == rhs.column.value
-            && row.value == rhs.row.value;
+        return std::tie (column.value, row.value)
+            == std::tie (rhs.column.value, rhs.row.value);
       }
 
       bool operator< (Slot const& rhs) const
@@ -33,13 +34,13 @@ namespace nonogram
         {
           return true;
         }
-        else if (row.value > rhs.row.value)
+        else if (row.value == rhs.row.value)
         {
-          return false;
+          return column.value < rhs.column.value;
         }
         else
         {
-          return column.value < rhs.column.value;
+          return false;
         }
       }
     };

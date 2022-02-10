@@ -4,16 +4,19 @@
 
 #include <QtCore/QCoreApplication>
 #include <QtCore/QDirIterator>
+#include <QtCore/QSettings>
 #include <QtCore/QTextStream>
 #include <QtWidgets/QMessageBox>
+
+#include <algorithm>
 
 namespace nonogram
 {
   namespace file
   {
-    QString Puzzles::internalPackName()
+    data::Nonogram::Pack Puzzles::internalPackName()
     {
-      return "Internal";
+      return {"Internal"};
     }
 
     Puzzles::Puzzles()
@@ -27,8 +30,7 @@ namespace nonogram
       while (puzzles_directory_it.hasNext())
       {
         QDir const directory (puzzles_directory_it.next());
-        auto const pack_name (directory.dirName());
-        puzzles_.emplace (pack_name, Files{});
+        data::Nonogram::Pack const pack {directory.dirName()};
 
         QDirIterator file_it (directory.path(), QDir::Files);
         while (file_it.hasNext())
@@ -36,9 +38,10 @@ namespace nonogram
           QFileInfo const file (file_it.next());
           if (file.suffix() == "sgriddler")
           {
-            puzzles_.at (pack_name).emplace
+            data::Nonogram::Puzzle const puzzle {file.baseName()};
+            puzzles_.emplace
               ( std::piecewise_construct
-              , std::forward_as_tuple (file.baseName())
+              , std::forward_as_tuple (data::Nonogram::ID {pack, puzzle})
               , std::forward_as_tuple (file)
               );
           }
@@ -50,9 +53,14 @@ namespace nonogram
       while (answers_directory_it.hasNext())
       {
         QDir const directory (answers_directory_it.next());
-        auto const pack_name (directory.dirName());
+        data::Nonogram::Pack const pack {directory.dirName()};
 
-        if (!puzzles_.count (pack_name))
+        if ( std::none_of
+              ( puzzles_.begin()
+              , puzzles_.end()
+              , [pack] (auto pair) { return pair.first.pack.name == pack.name; }
+              )
+           )
         {
           continue;
         }
@@ -61,14 +69,15 @@ namespace nonogram
         while (file_it.hasNext())
         {
           QFileInfo const file (file_it.next());
-          auto const puzzle_name (file.baseName());
+          data::Nonogram::Puzzle const puzzle {file.baseName()};
+          data::Nonogram::ID const id {pack, puzzle};
 
-          if (!puzzles_.at (pack_name).count (puzzle_name))
+          if (!puzzles_.count (id))
           {
             continue;
           }
 
-          puzzles_.at (pack_name).at (puzzle_name).answer = file;
+          puzzles_.at (id).answer = file;
         }
       }
     }
@@ -76,8 +85,7 @@ namespace nonogram
     data::Nonogram Puzzles::titleNonogram() const
     {
       return
-        { internalPackName()
-        , "Title"
+        { {internalPackName(), data::Nonogram::Puzzle {"Title"}}
         , data::Array2D<bool>
           { { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
             , { 0, 1, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0 }
@@ -97,37 +105,36 @@ namespace nonogram
         };
     }
 
-    QStringList Puzzles::packs() const
+    data::Nonogram::Packs Puzzles::packs() const
     {
-      QStringList packs;
+      data::Nonogram::Packs packs;
 
-      std::transform
-        ( puzzles_.begin()
-        , puzzles_.end()
-        , std::back_inserter (packs)
-        , [] (const Directories::value_type& pack) { return pack.first; }
-        );
+      for (auto const& puzzle : puzzles_)
+      {
+        packs.insert (puzzle.first.pack);
+      }
 
       return packs;
     }
 
-    QStringList Puzzles::puzzlesOfPack (QString pack) const
+    data::Nonogram::Puzzles Puzzles::puzzlesOfPack (data::Nonogram::Pack pack) const
     {
-      QStringList puzzles;
+      data::Nonogram::Puzzles puzzles;
 
-      std::transform
-        ( puzzles_.at (pack).begin()
-        , puzzles_.at (pack).end()
-        , std::back_inserter (puzzles)
-        , [] (const Files::value_type& file) { return file.first; }
-        );
+      for (auto const& puzzle : puzzles_)
+      {
+        if (puzzle.first.pack == pack)
+        {
+          puzzles.insert (puzzle.first.puzzle);
+        }
+      }
 
       return puzzles;
     }
 
-    bool Puzzles::hasAnswer (QString pack, QString puzzle) const
+    bool Puzzles::hasAnswer (data::Nonogram::ID id) const
     {
-      return puzzles_.at (pack).at (puzzle).answer.has_value();
+      return puzzles_.at (id).answer.has_value();
     }
 
     namespace
@@ -159,15 +166,16 @@ namespace nonogram
       }
     }
 
-    data::Answer Puzzles::answer (QString pack, QString puzzle) const
+    data::Answer Puzzles::answer (data::Nonogram::ID id) const
     {
-      auto const file_info (puzzles_.at (pack).at (puzzle).answer.value());
+      auto const file_info (puzzles_.at (id).answer.value());
       if (!file_info.exists())
       {
         QMessageBox::critical
           ( nullptr
           , "File not found!"
-          , QString ("Answer file %1% not found!").arg (puzzle)
+          , QString ("Answer file %1 from pack %2 not found!")
+            .arg (id.puzzle.name).arg (id.pack.name)
           );
       }
 
@@ -268,26 +276,26 @@ namespace nonogram
       return {data, data_locks, clue_states};
     }
 
-    void Puzzles::writeAnswer ( QString pack
-                              , QString puzzle
+    void Puzzles::writeAnswer ( data::Nonogram::ID id
                               , data::Nonogram const& nonogram
                               )
     {
+      auto const pack_name (id.pack.name);
+      auto const puzzle_name (id.puzzle.name);
+
       auto const& answer (nonogram.answer_);
 
       QDir directory (answers_path_);
-      if (!directory.exists (pack))
+      if (!directory.exists (pack_name))
       {
-        directory.mkdir (pack);
+        directory.mkdir (pack_name);
       }
-      directory.cd (pack);
+      directory.cd (pack_name);
 
-      auto const name (puzzles_.at (pack).at (puzzle).puzzle.baseName());
-
-      QFile file (directory.absoluteFilePath (name));
+      QFile file (directory.absoluteFilePath (puzzle_name));
       file.open (QIODevice::WriteOnly);
 
-      puzzles_.at (pack).at (puzzle).answer = file;
+      puzzles_.at (id).answer = file;
 
       QTextStream out (&file);
 
@@ -339,17 +347,61 @@ namespace nonogram
       }
 
       file.close();
+
+      setCurrentPuzzle (id);
     }
 
-    data::Nonogram Puzzles::puzzle (QString pack, QString puzzle) const
+    std::optional<data::Nonogram::ID> Puzzles::currentPuzzle() const
     {
-      auto const file_info (puzzles_.at (pack).at (puzzle).puzzle);
+      QSettings settings;
+      auto const key (QString ("current"));
+      return settings.contains (key)
+           ? std::optional (data::Nonogram::ID (settings.value (key).toString()))
+           : std::nullopt;
+
+    }
+
+    void Puzzles::setCurrentPuzzle (data::Nonogram::ID id)
+    {
+      QSettings settings;
+      settings.setValue (QString ("current"), id.toString());
+    }
+
+    bool Puzzles::hasBeenSolved (data::Nonogram::Pack pack) const
+    {
+      auto const puzzles (puzzlesOfPack (pack));
+
+      return std::all_of
+          ( puzzles.begin()
+          , puzzles.end()
+          , [this, pack] (auto puzzle) { return hasBeenSolved ({pack, puzzle}); }
+          );
+    }
+
+    bool Puzzles::hasBeenSolved (data::Nonogram::ID id) const
+    {
+      QSettings settings;
+      auto const key (QString ("solved-%1").arg (id.toString()));
+      return settings.contains (key) && settings.value (key).toBool();
+    }
+
+    void Puzzles::setSolved (data::Nonogram::ID id)
+    {
+      QSettings settings;
+      settings.setValue ( QString ("solved-%1").arg (id.toString())
+                        , true
+                        );
+    }
+
+    data::Nonogram Puzzles::puzzle (data::Nonogram::ID id) const
+    {
+      auto const file_info (puzzles_.at (id).puzzle);
       if (!file_info.exists())
       {
         QMessageBox::critical
           ( nullptr
           , "File not found!"
-          , QString ("Puzzle file %1% not found!").arg (puzzle)
+          , QString ("Puzzle file %1% not found!").arg (id.puzzle.name)
           );
       }
 
@@ -389,17 +441,16 @@ namespace nonogram
 
       file.close();
 
-      if (hasAnswer (pack, puzzle))
+      if (hasAnswer (id))
       {
-        return { pack
-               , puzzle
+        return { id
                , std::move (data::Solution (data))
-               , answer (pack, puzzle)
+               , answer (id)
                };
       }
       else
       {
-        return {pack, puzzle, std::move (data::Solution (data))};
+        return {id, std::move (data::Solution (data))};
       }
     }
   }

@@ -8,7 +8,6 @@
 #include <QtCore/QCoreApplication>
 #include <QtCore/QTimer>
 #include <QtGui/QPainter>
-#include <QtWidgets/QMessageBox>
 #include <QtWidgets/QToolTip>
 
 namespace nonogram
@@ -640,10 +639,6 @@ namespace nonogram
 
     void PlayField::finishPuzzle()
     {
-      QMessageBox::information ( this
-                               , "Congratulations!"
-                               , "You have solved this puzzle."
-                               );
       current_slot_.reset();
       solved_ = true;
       setDisabled (true);

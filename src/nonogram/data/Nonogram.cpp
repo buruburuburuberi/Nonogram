@@ -1,40 +1,87 @@
 #include <nonogram/data/Nonogram.hpp>
 
+#include <QtCore/QStringList>
+
 #include <cstddef>
 #include <string>
+#include <tuple>
 #include <vector>
 
 namespace nonogram
 {
   namespace data
   {
-    Nonogram::Nonogram ( QString pack
-                       , QString puzzle
+    bool Nonogram::Pack::operator== (Pack const& rhs) const
+    {
+      return name == rhs.name;
+    }
+    bool Nonogram::Pack::operator< (Pack const& rhs) const
+    {
+      return name < rhs.name;
+    }
+
+    bool Nonogram::Puzzle::operator== (Puzzle const& rhs) const
+    {
+      return name == rhs.name;
+    }
+    bool Nonogram::Puzzle::operator< (Puzzle const& rhs) const
+    {
+      return name < rhs.name;
+    }
+
+    Nonogram::ID::ID (Pack _pack, Puzzle _puzzle)
+    : pack {_pack.name}
+    , puzzle {_puzzle.name}
+    {}
+
+    Nonogram::ID::ID (QString string)
+    {
+      auto const strings (string.split ("/"));
+      pack.name = strings.at (0);
+      puzzle.name = strings.at (1);
+    }
+
+    QString Nonogram::ID::toString() const
+    {
+      return QString ("%1/%2").arg (pack.name).arg (puzzle.name);
+    }
+
+    bool Nonogram::ID::operator== (ID const& rhs) const
+    {
+      return std::tie (pack, puzzle) == std::tie (rhs.pack, rhs.puzzle);
+    }
+    bool Nonogram::ID::operator< (ID const& rhs) const
+    {
+      if (pack < rhs.pack)
+      {
+        return true;
+      }
+      else if (pack == rhs.pack)
+      {
+        return puzzle < rhs.puzzle;
+      }
+      else
+      {
+        return false;
+      }
+    }
+
+    Nonogram::Nonogram ( data::Nonogram::ID id
                        , Solution solution
                        , Answer answer
                        )
-    : pack_ (std::move (pack))
-    , puzzle_ (std::move (puzzle))
+    : id_ (std::move (id))
     , solution_ (std::move (solution))
     , answer_ (std::move (answer))
     {}
 
-    Nonogram::Nonogram (QString pack, QString puzzle, Solution solution)
-    : Nonogram ( std::move (pack)
-               , std::move (puzzle)
-               , solution
-               , Answer (solution)
-               )
+    Nonogram::Nonogram (data::Nonogram::ID id, Solution solution)
+    : Nonogram (std::move (id), solution, Answer (solution))
     {}
 
-    QString Nonogram::pack() const
+    Nonogram::ID Nonogram::id() const
     {
-      return pack_;
-    }
-
-    QString Nonogram::puzzle() const
-    {
-      return puzzle_;
+      return id_;
     }
 
     Rows Nonogram::dataRows() const

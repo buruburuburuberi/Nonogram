@@ -2,7 +2,6 @@
 
 #include <nonogram/gui/painting.hpp>
 
-#include <QtCore/QSettings>
 #include <QtCore/QTimer>
 #include <QtWidgets/QMessageBox>
 #include <QtWidgets/QScrollBar>
@@ -31,10 +30,10 @@ namespace nonogram
       connect ( &start_menu_
               , &StartMenu::nonogramSelected
               , this
-              , [&] (QString pack, QString puzzle)
+              , [&] (data::Nonogram::ID id)
                 {
-                  showLevel (pack, puzzle);
-                  level_selection_->setLevel (pack, puzzle);
+                  showLevel (id);
+                  level_selection_->setLevel (id);
                 }
               );
       connect ( level_selection_.get()
@@ -186,7 +185,18 @@ namespace nonogram
       connect ( play_field_.get()
               , &PlayField::solved
               , this
-              , [&] { reset (true); }
+              , [&]
+                {
+                  reset (true);
+
+                  puzzles_.setSolved (current_nonogram_.id());
+                  level_selection_->setSolved (current_nonogram_.id());
+
+                  QMessageBox::information ( this
+                                           , "Congratulations!"
+                                           , "You have solved this puzzle."
+                                           );
+                }
               );
 
       connect ( check_button_.get()
@@ -322,20 +332,14 @@ namespace nonogram
 
     void MainWindow::writeOutCurrentAnswer()
     {
-      if ( current_nonogram_.pack() != file::Puzzles::internalPackName()
-        && !current_nonogram_.isEmpty()
+      if ( current_nonogram_.id().pack == file::Puzzles::internalPackName()
+        || current_nonogram_.isEmpty()
          )
       {
-        puzzles_.writeAnswer
-          ( current_nonogram_.pack()
-          , current_nonogram_.puzzle()
-          , current_nonogram_
-          );
-
-        QSettings settings;
-        settings.setValue ("current_pack", current_nonogram_.pack());
-        settings.setValue ("current_puzzle", current_nonogram_.puzzle());
+        return;
       }
+
+      puzzles_.writeAnswer (current_nonogram_.id(), current_nonogram_);
     }
 
     void MainWindow::reset (bool solved)
@@ -355,11 +359,11 @@ namespace nonogram
       solve_button_->setDisabled (solved);
     }
 
-    void MainWindow::showLevel (QString pack, QString puzzle)
+    void MainWindow::showLevel (data::Nonogram::ID id)
     {
       writeOutCurrentAnswer();
 
-      current_nonogram_ = puzzles_.puzzle (pack, puzzle);
+      current_nonogram_ = puzzles_.puzzle (id);
       play_field_->setNonogram (current_nonogram_);
 
       level_selection_toolbar_->show();

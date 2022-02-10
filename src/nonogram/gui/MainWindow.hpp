@@ -32,7 +32,7 @@ namespace nonogram
       private:
         void writeOutCurrentAnswer();
         void reset (bool solved);
-        void showLevel (QString pack, QString puzzle);
+        void showLevel (data::Nonogram::ID);
 
         QSize const icon_size_;
         QColor const bg_color_;
