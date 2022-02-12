@@ -36,7 +36,7 @@ namespace nonogram
         while (file_it.hasNext())
         {
           QFileInfo const file (file_it.next());
-          if (file.suffix() == "sgriddler")
+          if (file.suffix() == "nonogram")
           {
             data::Nonogram::Puzzle const puzzle {file.baseName()};
             puzzles_.emplace
@@ -426,6 +426,8 @@ namespace nonogram
 
       QString const dimensions_line (in.readLine());
       QStringList const dimensions (dimensions_line.split (" "));
+
+      in.skipWhiteSpace();
 
       data::Array2D<bool> data
         ( data::Columns {dimensions.at (0).toUInt()}

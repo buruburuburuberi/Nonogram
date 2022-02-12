@@ -427,6 +427,7 @@ namespace nonogram
 
     void MainWindow::showLevel (data::Nonogram::ID id)
     {
+      setWindowTitle (id.pack.name + ": " + id.puzzle.name);
       writeOutCurrentAnswer();
 
       current_nonogram_ = puzzles_.puzzle (id);
