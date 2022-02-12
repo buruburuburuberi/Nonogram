@@ -274,7 +274,7 @@ namespace nonogram
                          , QString::number (clue)
                          );
 
-        if (nonogram_.isCrossed (clue_type, full_index))
+        if (!solved_ && nonogram_.isCrossed (clue_type, full_index))
         {
           auto pen (painter.pen());
           pen.setWidth (2);
@@ -409,6 +409,7 @@ namespace nonogram
       QColor const color
         ( ( (nonogram_.id().pack.name != file::Puzzles::internalPackName().name)
          && nonogram_.isDatumLocked (slot)
+         && !solved_
           )
         ? locked_color_
         : fg_color_
@@ -650,6 +651,8 @@ namespace nonogram
 
     void PlayField::finishPuzzle()
     {
+      nonogram_.fillClueLocks (false);
+      nonogram_.fillDataLocks (false);
       current_slot_.reset();
       solved_ = true;
       setDisabled (true);
