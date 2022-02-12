@@ -25,6 +25,8 @@ namespace nonogram
     , undo_stack_()
     , current_nonogram_ (puzzles_.titleNonogram())
     , level_selection_ (puzzles_, QBoxLayout::LeftToRight)
+    , level_selection_toolbar_ (addToolBar ("Level Selection"))
+    , tools_toolbar_ (addToolBar ("Tools"))
     , play_field_ (bg_color_, fg_color_, undo_stack_, current_nonogram_)
     {
       connect ( &start_menu_
@@ -133,15 +135,24 @@ namespace nonogram
       tools_group_->addButton (fill_mark_button_.get());
       tools_group_->addButton (cross_mark_button_.get());
 
-      level_selection_toolbar_ = addToolBar ("Level Selection");
+      util::unique_qt_ptr<QWidget> space_left1;
+      space_left1->setSizePolicy (QSizePolicy::Expanding, QSizePolicy::Expanding);
+      util::unique_qt_ptr<QWidget> space_right1;
+      space_right1->setSizePolicy (QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+      level_selection_toolbar_->addWidget (space_left1.release());
       level_selection_toolbar_->addWidget (level_selection_.release());
+      level_selection_toolbar_->addWidget (space_right1.release());
       level_selection_toolbar_->hide();
 
-      addToolBarBreak();
-
-      tools_toolbar_ = addToolBar ("Tools");
+      addToolBar (Qt::BottomToolBarArea, tools_toolbar_);
       tools_toolbar_->hide();
 
+      util::unique_qt_ptr<QWidget> space_left2;
+      space_left2->setSizePolicy (QSizePolicy::Expanding, QSizePolicy::Expanding);
+      util::unique_qt_ptr<QWidget> space_right2;
+      space_right2->setSizePolicy (QSizePolicy::Expanding, QSizePolicy::Expanding);
+      tools_toolbar_->addWidget (space_left2.release());
       tools_toolbar_->addWidget (check_button_.release());
       tools_toolbar_->addWidget (fill_button_.release());
       tools_toolbar_->addWidget (cross_button_.release());
@@ -153,6 +164,7 @@ namespace nonogram
       tools_toolbar_->addWidget (unlock_button_.release());
       tools_toolbar_->addWidget (reset_button_.release());
       tools_toolbar_->addWidget (solve_button_.release());
+      tools_toolbar_->addWidget (space_right2.release());
 
       scroll_area_->setMinimumSize (1440, 720);
       scroll_area_->setWidgetResizable (true);
