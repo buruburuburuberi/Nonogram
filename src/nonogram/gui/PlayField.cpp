@@ -1,14 +1,21 @@
 #include <nonogram/gui/PlayField.hpp>
 
+#include <nonogram/file/Puzzles.hpp>
 #include <nonogram/gui/command/Cross.hpp>
 #include <nonogram/gui/command/Fill.hpp>
 #include <nonogram/gui/command/Lock.hpp>
 #include <nonogram/gui/painting.hpp>
+#include <nonogram/util/unique_qt_ptr.hpp>
 
 #include <QtCore/QCoreApplication>
 #include <QtCore/QTimer>
 #include <QtGui/QPainter>
+#include <QtWidgets/QDialog>
+#include <QtWidgets/QDialogButtonBox>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QPushButton>
 #include <QtWidgets/QToolTip>
+#include <QtWidgets/QVBoxLayout>
 
 namespace nonogram
 {
@@ -249,9 +256,11 @@ namespace nonogram
 
         auto const clue (nonogram_.clue (clue_type, full_index));
         QColor const color
-            ( nonogram_.isClueLocked (clue_type, full_index)
-            ? locked_color_
-            : fg_color_
+            ( ( (nonogram_.id().pack.name != file::Puzzles::internalPackName().name)
+             && nonogram_.isClueLocked (clue_type, full_index)
+              )
+              ? locked_color_
+              : fg_color_
             );
         painter.setPen (color);
 
@@ -398,7 +407,12 @@ namespace nonogram
       }
 
       QColor const color
-        (nonogram_.isDatumLocked (slot) ? locked_color_ : fg_color_);
+        ( ( (nonogram_.id().pack.name != file::Puzzles::internalPackName().name)
+         && nonogram_.isDatumLocked (slot)
+          )
+        ? locked_color_
+        : fg_color_
+        );
 
       auto const slot_size
         ( ( !solved_
@@ -531,6 +545,8 @@ namespace nonogram
         }
 
         update();
+
+        emit puzzleChanged();
 
         return true;
       }
@@ -806,6 +822,15 @@ namespace nonogram
 
       painter.setPen (Qt::white);
       painter.drawText (QPoint (10, height() - 10), "by Delger Lhamsuren");
+
+      for (auto const& rect : highlights_)
+      {
+        auto pen (painter.pen());
+        pen.setWidth (4);
+        pen.setColor (Qt::red);
+        painter.setPen (pen);
+        painter.drawRect (rect);
+      }
     }
 
     void PlayField::resizeGL (int width, int height)
@@ -830,7 +855,7 @@ namespace nonogram
 
           if (nonogram_.solution (slot))
           {
-            nonogram_.fill (slot, data::Answer::Datum::Filled);
+            nonogram_.fillData (slot, data::Answer::Datum::Filled);
 
             if (animate)
             {
@@ -845,6 +870,366 @@ namespace nonogram
       solved_ = true;
 
       update();
+    }
+
+    void PlayField::showTutorial()
+    {
+      auto showMessageBox
+      ( [&] (QString text, QPoint position)
+        {
+          QDialog message_box;
+          message_box.setWindowFlags (Qt::FramelessWindowHint);
+          message_box.setWindowModality (Qt::ApplicationModal);
+          util::unique_qt_ptr<QVBoxLayout> main_layout;
+          message_box.setFixedSize (400,200);
+          message_box.move (pos() + position);
+          util::unique_qt_ptr<QLabel> message_label (text);
+          message_label->setAlignment (Qt::AlignTop);
+          message_label->setTextFormat (Qt::RichText);
+          message_label->setWordWrap (true);
+          util::unique_qt_ptr<QDialogButtonBox> button_box
+            (QDialogButtonBox::Ok);
+          main_layout->addWidget (message_label.release());
+          main_layout->addWidget (button_box.release());
+          message_box.setLayout (main_layout.release());
+          connect ( button_box.get()
+                  , &QDialogButtonBox::accepted
+                  , &message_box
+                  , &QDialog::accept
+                  );
+          return message_box.exec();
+        }
+      );
+
+      auto waitUntilSlotsAreFilled
+      ( [&] (data::Slots slots_to_fill, data::Answer::Datum datum)
+        {
+          nonogram_.lockData (slots_to_fill, false);
+
+          QEventLoop loop;
+          auto connection
+            ( connect
+                ( this
+                , &PlayField::puzzleChanged
+                , this
+                , [&]
+                  {
+                    if ( std::all_of
+                           ( slots_to_fill.begin()
+                           , slots_to_fill.end()
+                           , [&] (data::Slot slot)
+                             {
+                               return nonogram_.answer (slot) == datum;
+                             }
+                           )
+                       )
+                    {
+                      loop.quit();
+                    }
+                  }
+                )
+            );
+
+          loop.exec();
+          this->disconnect (connection);
+          if (current_hit_)
+          {
+            current_hit_.reset();
+          }
+        }
+      );
+
+      QPoint const position (50, height()/2);
+      auto const slot_size (static_cast<int> (slot_size_));
+      auto const top_rect (field_rects_.at (FieldType::TopClues));
+      auto const bottom_rect (field_rects_.at (FieldType::BottomClues));
+      auto const left_rect (field_rects_.at (FieldType::LeftClues));
+      auto const right_rect (field_rects_.at (FieldType::RightClues));
+      auto const puzzle_rect (field_rects_.at (FieldType::Puzzle));
+
+      nonogram_.fillDataLocks (true);
+      nonogram_.fillClueLocks (true);
+
+      {
+        showMessageBox
+          ( "<b>Nonogram</b> or <b>Paint by Numbers</b> is a logic puzzle game, "
+            "in which squares in a field must be filled in or left blank "
+            "according to the numbers at the side of the grid to reveal a "
+            "hidden picture.<br><br>"
+            "This tutorial will introduce the game mechanics and show you how "
+            "to solve this very simple first puzzle!"
+          , position
+          );
+
+        highlights_ = {field_rects_.at (FieldType::Puzzle)};
+
+        update();
+        QCoreApplication::processEvents (QEventLoop::AllEvents);
+      }
+
+      {
+        showMessageBox
+          ( "The highlighted field is the puzzle field, where you have to fill "
+            "in the right squares to reveal the hidden picture."
+          , position
+          );
+
+        highlights_ = { field_rects_.at (FieldType::LeftClues)
+                      , field_rects_.at (FieldType::RightClues)
+                      };
+
+        update();
+        QCoreApplication::processEvents (QEventLoop::AllEvents);
+      }
+
+      {
+        showMessageBox
+          ( "The highlighted fields are the clues for the rows of the picture, "
+            "which tell you how many segments of filled-in squares there are "
+            "in each row. If there are multiple segments in a row, they must be "
+            "separated by an empty square.\n\n"
+            "The left and right clues are identical and are only shown on both "
+            "sides to ensure that at least one of them is visible in case "
+            "you're solving a very large puzzle."
+          , position
+          );
+        highlights_ = { field_rects_.at (FieldType::TopClues)
+                      , field_rects_.at (FieldType::BottomClues)
+                      };
+        update();
+        QCoreApplication::processEvents (QEventLoop::AllEvents);
+      }
+
+      {
+        showMessageBox
+          ( "These are the clues for the columns of the picture. The same rules "
+            "apply for these."
+          , position
+          );
+
+        highlights_ = { { top_rect.left() + 2 * slot_size
+                        , top_rect.top()
+                        , slot_size
+                        , top_rect.height()
+                        }
+                      , { bottom_rect.left() + 2 * slot_size
+                        , bottom_rect.top()
+                        , slot_size
+                        , bottom_rect.height()
+                       }
+                      };
+        update();
+        QCoreApplication::processEvents (QEventLoop::AllEvents);
+      }
+
+      {
+        showMessageBox
+          ( "Now please take a look at the middle column of the vertical clues. "
+            "It says that the hidden picture contains two segments of two "
+            "filled-in squares."
+          , position
+          );
+
+
+        highlights_ = { { puzzle_rect.left() + 2 * slot_size
+                        , puzzle_rect.top()
+                        , slot_size
+                        , 2 * slot_size
+                        }
+                      , { puzzle_rect.left() + 2 * slot_size
+                        , puzzle_rect.top() + 3 * slot_size
+                        , slot_size
+                        , 2 * slot_size
+                        }
+                      };
+        update();
+        QCoreApplication::processEvents (QEventLoop::AllEvents);
+      }
+
+      {
+        showMessageBox
+          ( "Since the puzzle has five rows, there is only one possible way "
+            "that the two segments of two squares can be placed in this "
+            "column.\n\n"
+            "Please fill in the highlighted squares by clicking on each square "
+            "or by clicking and dragging the mouse over them in one go."
+          , position
+          );
+
+        data::Slots const slots_to_fill
+          { {data::Column {2}, data::Row {0}}
+          , {data::Column {2}, data::Row {1}}
+          , {data::Column {2}, data::Row {3}}
+          , {data::Column {2}, data::Row {4}}
+          };
+        waitUntilSlotsAreFilled (slots_to_fill, data::Answer::Datum::Filled);
+        nonogram_.lockData (slots_to_fill, true);
+      }
+
+      {
+        highlights_ = { { left_rect.left() + slot_size
+                        , left_rect.top()
+                        , slot_size
+                        , slot_size
+                        }
+                      , { right_rect.left()
+                        , right_rect.top()
+                        , slot_size
+                        , slot_size
+                       }
+                      , { left_rect.left() + slot_size
+                        , left_rect.top() + 4 * slot_size
+                        , slot_size
+                        , slot_size
+                        }
+                      , { right_rect.left()
+                        , right_rect.top() + 4 * slot_size
+                        , slot_size
+                        , slot_size
+                        }
+                      };
+        update();
+        QCoreApplication::processEvents (QEventLoop::AllEvents);
+
+        showMessageBox
+          ( "Please take a look at the top and bottom rows of the horizontal "
+            "clues now. It seems that only one square in these two rows can be "
+            "filled. We happen to have just filled out one square in each of "
+            "the two rows.\n\n"
+          , position
+          );
+      }
+
+      {
+        highlights_ = { { puzzle_rect.left()
+                        , puzzle_rect.top()
+                        , 2 * slot_size
+                        , slot_size
+                        }
+                      , { puzzle_rect.left() + 3 * slot_size
+                        , puzzle_rect.top()
+                        , 2 * slot_size
+                        , slot_size
+                        }
+                      , { puzzle_rect.left()
+                        , puzzle_rect.top() + 4 * slot_size
+                        , 2 * slot_size
+                        , slot_size
+                        }
+                      , { puzzle_rect.left() + 3 * slot_size
+                        , puzzle_rect.top() + 4 * slot_size
+                        , 2 * slot_size
+                        , slot_size
+                        }
+                      };
+        update();
+        QCoreApplication::processEvents (QEventLoop::AllEvents);
+
+        showMessageBox
+          ( "Since the only required square is already filled, we can conclude "
+            "that the rest of the squares in the rows must be empty.\n\n"
+            "In order to make this information more apparent, please choose the "
+            "Cross tool on the right of the Fill tool and cross out the "
+            "highlighted squares."
+          , position
+          );
+
+        data::Slots const slots_to_fill
+          { {data::Column {0}, data::Row {0}}
+          , {data::Column {1}, data::Row {0}}
+          , {data::Column {3}, data::Row {0}}
+          , {data::Column {4}, data::Row {0}}
+          , {data::Column {0}, data::Row {4}}
+          , {data::Column {1}, data::Row {4}}
+          , {data::Column {3}, data::Row {4}}
+          , {data::Column {4}, data::Row {4}}
+          };
+        waitUntilSlotsAreFilled (slots_to_fill, data::Answer::Datum::Crossed);
+        nonogram_.lockData (slots_to_fill, true);
+      }
+
+      {
+        highlights_ = { { top_rect.left() + slot_size
+                        , top_rect.top() + slot_size
+                        , slot_size
+                        , slot_size
+                        }
+                      , { bottom_rect.left() + slot_size
+                        , bottom_rect.top()
+                        , slot_size
+                        , slot_size
+                       }
+                      , { top_rect.left() + 3 * slot_size
+                        , top_rect.top() + slot_size
+                        , slot_size
+                        , slot_size
+                        }
+                      , { bottom_rect.left() + 3 * slot_size
+                        , bottom_rect.top()
+                        , slot_size
+                        , slot_size
+                        }
+                      };
+        update();
+        QCoreApplication::processEvents (QEventLoop::AllEvents);
+
+        showMessageBox
+          ( "Crossing out squares that are empty in the picture is not required "
+            "to solve the puzzle, but it can help you see which squares in a "
+            "row or column you have already ruled out.\n\n"
+            "If you look at the highlighted clues, it should be obvious now "
+            "that the segment of three filled-in squares can only be in the "
+            "three empty squares that are left."
+          , position
+          );
+      }
+
+      {
+        highlights_ = { { puzzle_rect.left() + slot_size
+                        , puzzle_rect.top() + slot_size
+                        , slot_size
+                        , 3 * slot_size
+                        }
+                      , { puzzle_rect.left() + 3 * slot_size
+                        , puzzle_rect.top() + slot_size
+                        , slot_size
+                        , 3 * slot_size
+                        }
+                      };
+        update();
+        QCoreApplication::processEvents (QEventLoop::AllEvents);
+
+        showMessageBox
+          ( "Please switch to the Fill tool and fill in the highlighted squares."
+          , position
+          );
+
+        data::Slots const slots_to_fill
+          { {data::Column {1}, data::Row {1}}
+          , {data::Column {1}, data::Row {2}}
+          , {data::Column {1}, data::Row {3}}
+          , {data::Column {3}, data::Row {1}}
+          , {data::Column {3}, data::Row {2}}
+          , {data::Column {3}, data::Row {3}}
+          };
+        waitUntilSlotsAreFilled (slots_to_fill, data::Answer::Datum::Filled);
+      }
+
+      {
+        highlights_.clear();
+        update();
+        QCoreApplication::processEvents (QEventLoop::AllEvents);
+
+        showMessageBox
+          ( "You should now know enough to complete the puzzle!<br><br>"
+            "Good luck!"
+          , position
+          );
+
+        nonogram_.fillDataLocks (false);
+        nonogram_.fillClueLocks (false);
+        update();
+      }
     }
   };
 }

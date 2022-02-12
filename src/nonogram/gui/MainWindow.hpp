@@ -29,10 +29,13 @@ namespace nonogram
       protected:
         void closeEvent (QCloseEvent*);
 
+      private slots:
+        void showLevel (data::Nonogram::ID);
+        void showTutorial();
+
       private:
         void writeOutCurrentAnswer();
         void reset (bool solved);
-        void showLevel (data::Nonogram::ID);
 
         QSize const icon_size_;
         QColor const bg_color_;

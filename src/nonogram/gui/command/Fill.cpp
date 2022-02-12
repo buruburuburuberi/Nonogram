@@ -52,7 +52,7 @@ namespace nonogram
       {
         for (auto const& slot : data_slots_)
         {
-          nonogram_.fill (slot, before_);
+          nonogram_.fillData (slot, before_);
         }
       }
 
@@ -60,7 +60,7 @@ namespace nonogram
       {
         for (auto const& slot : data_slots_)
         {
-          nonogram_.fill (slot, after_);
+          nonogram_.fillData (slot, after_);
         }
       }
 

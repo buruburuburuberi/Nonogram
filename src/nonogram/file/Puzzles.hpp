@@ -51,6 +51,7 @@ namespace nonogram
       data::Nonogram puzzle (data::Nonogram::ID) const;
 
       data::Nonogram titleNonogram() const;
+      data::Nonogram tutorialNonogram() const;
 
     private:
       QString const root_path_;

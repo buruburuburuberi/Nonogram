@@ -65,11 +65,12 @@ namespace nonogram
       Columns dataColumns() const;
       Solution::State solution (Slot) const;
       Answer::Datum answer (Slot) const;
-      void fill (Slot, Answer::Datum);
+      void fillData (Slot, Answer::Datum);
       Slots dataToLock() const;
       Slots lockedData() const;
       bool isDatumLocked (Slot) const;
       void lockData (Slots, bool);
+      void fillDataLocks (bool);
 
       MinorSize maxNumberOfClues (Clues::Type type) const;
       MainSize clueMainSize (Clues::Type) const;
@@ -81,6 +82,7 @@ namespace nonogram
       Solution::ClueIndices lockedClues() const;
       bool isClueLocked (Clues::Type, FullIndex) const;
       void lockClues (Solution::ClueIndices, bool);
+      void fillClueLocks (bool);
 
       bool canLock() const;
       bool canUnlock() const;

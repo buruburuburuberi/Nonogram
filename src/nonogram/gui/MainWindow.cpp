@@ -30,10 +30,12 @@ namespace nonogram
       connect ( &start_menu_
               , &StartMenu::nonogramSelected
               , this
-              , [&] (data::Nonogram::ID id)
-                {
-                  showLevel (id);
-                }
+              , &MainWindow::showLevel
+              );
+      connect ( &start_menu_
+              , &StartMenu::tutorialSelected
+              , this
+              , &MainWindow::showTutorial
               );
       connect ( level_selection_.get()
               , &LevelSelection::levelSelected
@@ -188,8 +190,11 @@ namespace nonogram
                 {
                   reset (true);
 
-                  puzzles_.setSolved (current_nonogram_.id());
-                  level_selection_->setSolved (current_nonogram_.id());
+                  if (current_nonogram_.id().pack.name != puzzles_.internalPackName().name)
+                  {
+                    puzzles_.setSolved (current_nonogram_.id());
+                    level_selection_->setSolved (current_nonogram_.id());
+                  }
 
                   QMessageBox::information ( this
                                            , "Congratulations!"
@@ -260,26 +265,46 @@ namespace nonogram
       connect ( fill_button_.get()
               , &QToolButton::toggled
               , this
-              , [&]
-                { play_field_->setFillMode (data::Answer::Datum::Filled); }
+              , [&] (bool state)
+                {
+                  if (state)
+                  {
+                    play_field_->setFillMode (data::Answer::Datum::Filled);
+                  }
+                }
               );
       connect ( cross_button_.get()
               , &QToolButton::toggled
               , this
-              , [&]
-                { play_field_->setFillMode (data::Answer::Datum::Crossed); }
+              , [&] (bool state)
+                {
+                  if (state)
+                  {
+                    play_field_->setFillMode (data::Answer::Datum::Crossed);
+                  }
+                }
               );
       connect ( fill_mark_button_.get()
               , &QToolButton::toggled
               , this
-              , [&]
-                { play_field_->setFillMode (data::Answer::Datum::FillMark); }
+              , [&] (bool state)
+                {
+                  if (state)
+                  {
+                    play_field_->setFillMode (data::Answer::Datum::FillMark);
+                  }
+                }
               );
       connect ( cross_mark_button_.get()
               , &QToolButton::toggled
               , this
-              , [&]
-                { play_field_->setFillMode (data::Answer::Datum::CrossMark); }
+              , [&] (bool state)
+                {
+                  if (state)
+                  {
+                    play_field_->setFillMode (data::Answer::Datum::CrossMark);
+                  }
+                }
               );
 
       connect ( undo_button_.get()
@@ -290,7 +315,15 @@ namespace nonogram
       connect ( &undo_stack_
               , &QUndoStack::canUndoChanged
               , this
-              , [&] (bool can_undo) { undo_button_->setEnabled (can_undo); }
+              , [&] (bool can_undo)
+                {
+                  if (current_nonogram_.id().pack == puzzles_.internalPackName())
+                  {
+                    return;
+                  }
+
+                  undo_button_->setEnabled (can_undo);
+                }
               );
 
       connect ( redo_button_.get()
@@ -301,16 +334,38 @@ namespace nonogram
       connect ( &undo_stack_
               , &QUndoStack::canRedoChanged
               , this
-              , [this] (bool can_redo) { redo_button_->setEnabled (can_redo); }
+              , [this] (bool can_redo)
+                {
+                  if (current_nonogram_.id().pack == puzzles_.internalPackName())
+                  {
+                    return;
+                  }
+
+                  redo_button_->setEnabled (can_redo);
+                }
               );
       connect ( &undo_stack_
               , &QUndoStack::indexChanged
               , this
-              , [&] (int)
+              , [&] (int index)
                 {
-                  lock_button_->setEnabled (play_field_->canLock());
-                  unlock_button_->setEnabled (play_field_->canUnlock());
-                  reset_button_->setDisabled (play_field_->isEmpty());
+                  if (current_nonogram_.id().pack == puzzles_.internalPackName())
+                  {
+                    return;
+                  }
+
+                  if (index == undo_stack_.cleanIndex())
+                  {
+                    lock_button_->setEnabled (false);
+                    unlock_button_->setEnabled (false);
+                    reset_button_->setDisabled (false);
+                  }
+                  else
+                  {
+                    lock_button_->setEnabled (play_field_->canLock());
+                    unlock_button_->setEnabled (play_field_->canUnlock());
+                    reset_button_->setDisabled (play_field_->isEmpty());
+                  }
                 }
               );
 
@@ -369,6 +424,31 @@ namespace nonogram
       tools_toolbar_->show();
 
       reset (false);
+    }
+
+    void MainWindow::showTutorial()
+    {
+      writeOutCurrentAnswer();
+
+      current_nonogram_ = puzzles_.tutorialNonogram();
+      play_field_->setNonogram (current_nonogram_);
+
+      level_selection_toolbar_->show();
+      tools_toolbar_->show();
+
+      check_button_->setEnabled (false);
+      fill_button_->setEnabled (true);
+      cross_button_->setEnabled (true);
+      fill_mark_button_->setEnabled (true);
+      cross_mark_button_->setEnabled (true);
+      undo_button_->setEnabled (false);
+      redo_button_->setEnabled (false);
+      lock_button_->setEnabled (false);
+      unlock_button_->setEnabled (false);
+      reset_button_->setEnabled (false);
+      solve_button_->setEnabled (false);
+
+      play_field_->showTutorial();
     }
   }
 }

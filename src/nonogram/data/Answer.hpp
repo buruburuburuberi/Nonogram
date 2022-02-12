@@ -35,11 +35,12 @@ namespace nonogram
       Answer (Data, DataLocks, CluesStates);
 
       Datum at (Slot) const;
-      void fill (Slot, Datum);
+      void fillData (Slot, Datum);
       Slots dataToLock() const;
       Slots lockedData() const;
       bool isDatumLocked (Slot) const;
       void lockData (Slots, bool);
+      void fillDataLocks (bool);
 
       bool isCrossed (Clues::Type, FullIndex) const;
       void cross (Clues::Type, FullIndex, bool);
@@ -47,6 +48,7 @@ namespace nonogram
       Solution::ClueIndices lockedClues() const;
       bool isClueLocked (Clues::Type, FullIndex) const;
       void lockClues (Solution::ClueIndices, bool);
+      void fillClueLocks (bool);
 
       bool canLock() const;
       bool canUnlock() const;
@@ -57,7 +59,6 @@ namespace nonogram
     private:
       Data data_;
       DataLocks data_locks_;
-      Slots data_to_lock_;
 
       CluesStates clue_states_;
 

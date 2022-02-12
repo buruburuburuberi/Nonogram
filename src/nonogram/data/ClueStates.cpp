@@ -9,7 +9,6 @@ namespace nonogram
     ClueStates::ClueStates (Solution const& solution, Clues::Type type)
     : data_ (solution.clueMainSize (type))
     , locks_ (solution.clueMainSize (type))
-    , to_lock_()
     {
       for ( MainIndex main_index {0}
           ; main_index.value < solution.clueMainSize (type).value
@@ -24,12 +23,6 @@ namespace nonogram
     ClueStates::ClueStates (Data data, Data locks)
     : data_ (std::move (data))
     , locks_ (std::move (locks))
-    , to_lock_
-        ( data_.indices_if
-            ( [&] (FullIndex index, bool state)
-              { return state && !locks_.at (index); }
-            )
-        )
     {}
 
     bool ClueStates::isCrossed (FullIndex full_index) const
@@ -45,20 +38,14 @@ namespace nonogram
       }
 
       data_.set (full_index, state);
-
-      if (state)
-      {
-        to_lock_.insert (full_index);
-      }
-      else
-      {
-        to_lock_.erase (full_index);
-      }
     }
 
     Indices ClueStates::toLock() const
     {
-      return to_lock_;
+      return data_.indices_if
+          ( [&] (FullIndex index, bool state)
+            { return state && !locks_.at (index); }
+          );
     }
 
     Indices ClueStates::locked() const
@@ -77,20 +64,16 @@ namespace nonogram
       {
         locks_.set (index, state);
       }
+    }
 
-      if (state)
-      {
-        to_lock_.clear();
-      }
-      else
-      {
-        to_lock_ = data_.indices_if ([] (FullIndex, bool state) { return state; });
-      }
+    void ClueStates::fillLocks (bool state)
+    {
+      locks_.fill (state);
     }
 
     bool ClueStates::canLock() const
     {
-      return !to_lock_.empty();
+      return !toLock().empty();
     }
 
     bool ClueStates::canUnlock() const
@@ -119,7 +102,6 @@ namespace nonogram
     {
       data_.fill (false);
       locks_.fill (false);
-      to_lock_.clear();
     }
   }
 }

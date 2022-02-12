@@ -31,6 +31,7 @@ namespace nonogram
       Indices locked() const;
       bool isLocked (FullIndex) const;
       void lock (Indices, bool);
+      void fillLocks (bool);
 
       bool canLock() const;
       bool canUnlock() const;
@@ -40,7 +41,6 @@ namespace nonogram
     private:
       Data data_;
       Data locks_;
-      Indices to_lock_;
 
       friend class file::Puzzles;
     };

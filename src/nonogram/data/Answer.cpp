@@ -9,7 +9,6 @@ namespace nonogram
     Answer::Answer (Solution const& solution)
     : data_ (solution.dataColumns(), solution.dataRows(), Datum::Empty)
     , data_locks_ (solution.dataColumns(), solution.dataRows(), false)
-    , data_to_lock_()
     {
       for (auto const& type : Clues::all_types)
       {
@@ -24,12 +23,6 @@ namespace nonogram
     Answer::Answer (Data data, DataLocks data_locks, CluesStates clue_states)
     : data_ (std::move (data))
     , data_locks_ (std::move (data_locks))
-    , data_to_lock_
-        ( data_.slots_if
-            ( [&] (Slot slot, Datum datum)
-              { return datum != Datum::Empty && !data_locks_.at (slot); }
-            )
-        )
     , clue_states_ (std::move (clue_states))
     {}
 
@@ -38,7 +31,7 @@ namespace nonogram
       return data_.at (slot);
     }
 
-    void Answer::fill (Slot slot, Datum datum)
+    void Answer::fillData (Slot slot, Datum datum)
     {
       if (data_locks_.at (slot))
       {
@@ -46,20 +39,14 @@ namespace nonogram
       }
 
       data_.set (slot, datum);
-
-      if (datum != Datum::Empty)
-      {
-        data_to_lock_.insert (slot);
-      }
-      else
-      {
-        data_to_lock_.erase (slot);
-      }
     }
 
     Slots Answer::dataToLock() const
     {
-      return data_to_lock_;
+      return data_.slots_if
+          ( [&] (Slot slot, Datum datum)
+            { return datum != Datum::Empty && !data_locks_.at (slot); }
+          );
     }
 
     Slots Answer::lockedData() const
@@ -78,17 +65,11 @@ namespace nonogram
       {
         data_locks_.set (slot, state);
       }
+    }
 
-      if (state)
-      {
-        data_to_lock_.clear();
-      }
-      else
-      {
-        data_to_lock_ =
-          data_.slots_if
-            ([] (Slot, Datum datum) { return datum != Datum::Empty; });
-      }
+    void Answer::fillDataLocks (bool state)
+    {
+      data_locks_.fill (state);
     }
 
     bool Answer::isCrossed (Clues::Type type, FullIndex full_index) const
@@ -138,6 +119,14 @@ namespace nonogram
       }
     }
 
+    void Answer::fillClueLocks (bool state)
+    {
+      for (auto const& type : Clues::all_types)
+      {
+        clue_states_.at (type).fillLocks (state);
+      }
+    }
+
     bool Answer::canLock() const
     {
       auto hasCluesToLock
@@ -155,7 +144,7 @@ namespace nonogram
           }
         );
 
-      return !data_to_lock_.empty() || hasCluesToLock();
+      return !dataToLock().empty() || hasCluesToLock();
     }
 
     bool Answer::canUnlock() const
@@ -194,7 +183,6 @@ namespace nonogram
     {
       data_.fill (Answer::Datum::Empty);
       data_locks_.fill (false);
-      data_to_lock_.clear();
 
       for (auto const& type : Clues::all_types)
       {

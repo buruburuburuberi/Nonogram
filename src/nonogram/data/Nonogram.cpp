@@ -104,9 +104,9 @@ namespace nonogram
       return answer_.at (slot);
     }
 
-    void Nonogram::fill (Slot slot, Answer::Datum datum)
+    void Nonogram::fillData (Slot slot, Answer::Datum datum)
     {
-      answer_.fill (slot, datum);
+      answer_.fillData (slot, datum);
     }
 
     Slots Nonogram::dataToLock() const
@@ -127,6 +127,11 @@ namespace nonogram
     void Nonogram::lockData (Slots slots, bool state)
     {
       answer_.lockData (std::move (slots), state);
+    }
+
+    void Nonogram::fillDataLocks (bool state)
+    {
+      answer_.fillDataLocks (state);
     }
 
     MinorSize Nonogram::maxNumberOfClues (Clues::Type type) const
@@ -177,6 +182,11 @@ namespace nonogram
     void Nonogram::lockClues (Solution::ClueIndices indices, bool state)
     {
       answer_.lockClues (std::move (indices), state);
+    }
+
+    void Nonogram::fillClueLocks (bool state)
+    {
+      answer_.fillClueLocks (state);
     }
 
     bool Nonogram::canLock() const

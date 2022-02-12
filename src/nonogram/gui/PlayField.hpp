@@ -47,8 +47,10 @@ namespace nonogram
       void undo();
 
       void showSolution (bool animate);
+      void showTutorial();
 
     signals:
+      void puzzleChanged();
       void panned (QPointF delta);
       void solved();
 
@@ -111,6 +113,7 @@ namespace nonogram
       std::optional<data::Slot> current_slot_;
       std::optional<Hit> current_hit_;
       std::optional<data::Slot> current_error_slot_;
+      std::vector<QRect> highlights_;
       bool solved_;
     };
   }

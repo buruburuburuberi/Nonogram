@@ -105,6 +105,20 @@ namespace nonogram
         };
     }
 
+    data::Nonogram Puzzles::tutorialNonogram() const
+    {
+      return { {internalPackName(), data::Nonogram::Puzzle {"Tutorial"}}
+             , data::Array2D<bool>
+                 { { { 0, 0, 1, 0, 0 }
+                   , { 0, 1, 1, 1, 0 }
+                   , { 1, 1, 0, 1, 1 }
+                   , { 0, 1, 1, 1, 0 }
+                   , { 0, 0, 1, 0, 0 }
+                   }
+                 }
+             };
+    }
+
     data::Nonogram::Packs Puzzles::packs() const
     {
       data::Nonogram::Packs packs;
