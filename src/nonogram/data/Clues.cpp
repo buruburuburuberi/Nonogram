@@ -26,14 +26,14 @@ namespace nonogram
                                     , Type type
                                     )
     {
-      auto const columns
+      Column const columns
         (type == Type::Column ? data.rows().value : data.columns().value);
-      auto const rows
+      Row const rows
         (type == Type::Column ? data.columns().value : data.rows().value);
 
       std::vector<std::vector<Value>> clues;
 
-      clues.resize (rows);
+      clues.resize (rows.value);
 
       auto is_filled
         ( [&] (Column column, Row row)
@@ -45,10 +45,10 @@ namespace nonogram
           }
         );
 
-      for (Row row {0}; row.value < rows; ++row.value)
+      for (Row row {0}; row < rows; ++row)
       {
         unsigned int filled_counter (0);
-        for (Column column {0}; column.value < columns; ++column.value)
+        for (Column column {0}; column < columns; ++column)
         {
           bool const current_square_filled (is_filled (column, row));
 
@@ -57,16 +57,16 @@ namespace nonogram
             filled_counter++;
           }
 
-          if ( column.value > 0
+          if ( column > Column (0)
             && !current_square_filled
-            && is_filled (Column {column.value - 1}, row)
+            && is_filled (Column {column - Column (1)}, row)
              )
           {
             clues[row.value].push_back (filled_counter);
             filled_counter = 0;
           }
 
-          if ( column.value == columns - 1
+          if ( column == columns - Column (1)
             && filled_counter > 0
              )
           {
@@ -82,17 +82,17 @@ namespace nonogram
       return Data (clues);
     }
 
-    MinorSize Clues::maxNumberOfClues() const
+    MinorIndex Clues::maxNumberOfClues() const
     {
       return max_minor_size_;
     }
 
-    MainSize Clues::mainSize() const
+    MainIndex Clues::mainSize() const
     {
       return data_.mainSize();
     }
 
-    MinorSize Clues::minorSize (MainIndex main_index) const
+    MinorIndex Clues::minorSize (MainIndex main_index) const
     {
       return data_.minorSize (main_index);
     }

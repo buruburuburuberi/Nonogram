@@ -1,6 +1,7 @@
 #pragma once
 
 #include <nonogram/data/Array2D.hpp>
+#include <nonogram/util/hard_integral_typedef.hpp>
 
 #include <algorithm>
 #include <cstddef>
@@ -13,10 +14,8 @@ namespace nonogram
 {
   namespace data
   {
-    struct MainIndex { std::size_t value; };
-    struct MainSize { std::size_t value; };
-    struct MinorIndex { std::size_t value; };
-    struct MinorSize { std::size_t value; };
+    HARD_INTEGRAL_TYPEDEF (MainIndex, std::size_t);
+    HARD_INTEGRAL_TYPEDEF (MinorIndex, std::size_t);
 
     struct FullIndex
     {
@@ -25,23 +24,22 @@ namespace nonogram
 
       bool operator== (FullIndex const& rhs) const
       {
-        return minor.value == rhs.minor.value
-            && main.value == rhs.main.value;
+        return minor == rhs.minor && main == rhs.main;
       }
 
       bool operator< (FullIndex const& rhs) const
       {
-        if (main.value < rhs.main.value)
+        if (main < rhs.main)
         {
           return true;
         }
-        else if (main.value > rhs.main.value)
+        else if (main > rhs.main)
         {
           return false;
         }
         else
         {
-          return minor.value < rhs.minor.value;
+          return minor < rhs.minor;
         }
       }
     };
@@ -52,7 +50,7 @@ namespace nonogram
     class VectorOfVectors
     {
     public:
-      VectorOfVectors (MainSize size)
+      VectorOfVectors (MainIndex size)
       {
         data_.resize (size.value);
       }
@@ -65,25 +63,24 @@ namespace nonogram
       : data_ (data.data_)
       {}
 
-      MainSize mainSize() const
+      MainIndex mainSize() const
       {
-        return {data_.size()};
+        return MainIndex (data_.size());
       }
 
-      MinorSize minorSize (MainIndex main_index) const
+      MinorIndex minorSize (MainIndex main_index) const
       {
-        return {data_.at (main_index.value).size()};
+        return MinorIndex (data_.at (main_index.value).size());
       }
 
-      void resize (MainIndex main_index, MinorSize minor_size, T value)
+      void resize (MainIndex main_index, MinorIndex minor_size, T value)
       {
         data_.at (main_index.value).resize (minor_size.value, value);
       }
 
       bool has (MainIndex main_index, MinorIndex minor_index) const
       {
-        return main_index.value < data_.size()
-            && minor_index.value < data_.at (main_index.value).size();
+        return main_index < mainSize() && minor_index < minorSize (main_index);
       }
 
       bool has (FullIndex full_index) const
@@ -107,14 +104,11 @@ namespace nonogram
       {
         Indices indices;
 
-        for ( MainIndex main_index {0}
-            ; main_index.value < data_.size()
-            ; ++main_index.value
-            )
+        for (MainIndex main_index {0}; main_index < mainSize(); ++main_index)
         {
           for ( MinorIndex minor_index {0}
-              ; minor_index.value < data_.at (main_index.value).size()
-              ; ++minor_index.value
+              ; minor_index < minorSize (main_index)
+              ; ++minor_index
               )
           {
             FullIndex const full_index {main_index, minor_index};
@@ -151,20 +145,20 @@ namespace nonogram
     private:
       void checkInvalidAccess (MainIndex index) const
       {
-        if (index.value >= mainSize().value)
+        if (index >= mainSize())
         {
           throw std::invalid_argument
-            ("Invalid access to main_index " + std::to_string (index.value));
+            ("Invalid access to main_index " + index.toString());
         }
       }
       void checkInvalidAccess (MainIndex main_index, MinorIndex minor_index) const
       {
         checkInvalidAccess (main_index);
 
-        if (minor_index.value >= minorSize (main_index).value)
+        if (minor_index >= minorSize (main_index))
         {
           throw std::invalid_argument
-            ("Invalid access to column " + std::to_string (minor_index.value));
+            ("Invalid access to column " + minor_index.toString());
         }
       }
 

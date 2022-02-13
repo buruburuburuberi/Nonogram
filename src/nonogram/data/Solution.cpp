@@ -20,12 +20,12 @@ namespace nonogram
       }
     }
 
-    Rows Solution::dataRows() const
+    Row Solution::dataRows() const
     {
       return data_.rows();
     }
 
-    Columns Solution::dataColumns() const
+    Column Solution::dataColumns() const
     {
       return data_.columns();
     }
@@ -35,17 +35,17 @@ namespace nonogram
       return data_.at (slot);
     }
 
-    MinorSize Solution::maxNumberOfClues (Clues::Type type) const
+    MinorIndex Solution::maxNumberOfClues (Clues::Type type) const
     {
       return clues_.at (type).maxNumberOfClues();
     }
 
-    MainSize Solution::clueMainSize (Clues::Type type) const
+    MainIndex Solution::clueMainSize (Clues::Type type) const
     {
       return clues_.at (type).mainSize();
     }
 
-    MinorSize Solution::clueMinorSize (Clues::Type type, MainIndex main_index) const
+    MinorIndex Solution::clueMinorSize (Clues::Type type, MainIndex main_index) const
     {
       return clues_.at (type).minorSize (main_index);
     }

@@ -31,9 +31,9 @@ namespace nonogram
 
       Clues (Array2D<bool> const&, Type);
 
-      MinorSize maxNumberOfClues() const;
-      MainSize mainSize() const;
-      MinorSize minorSize (MainIndex) const;
+      MinorIndex maxNumberOfClues() const;
+      MainIndex mainSize() const;
+      MinorIndex minorSize (MainIndex) const;
 
       Value clue (FullIndex) const;
 
@@ -41,7 +41,7 @@ namespace nonogram
       Data computeClues (Array2D<bool> const&, Type);
 
       Type type_;
-      MinorSize max_minor_size_;
+      MinorIndex max_minor_size_;
       Data data_;
     };
   }

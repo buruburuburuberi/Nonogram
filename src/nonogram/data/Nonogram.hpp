@@ -61,8 +61,8 @@ namespace nonogram
       Nonogram (ID, Solution, Answer);
 
       ID id() const;
-      Rows dataRows() const;
-      Columns dataColumns() const;
+      Row dataRows() const;
+      Column dataColumns() const;
       Solution::State solution (Slot) const;
       Answer::Datum answer (Slot) const;
       void fillData (Slot, Answer::Datum);
@@ -72,9 +72,9 @@ namespace nonogram
       void lockData (Slots, bool);
       void fillDataLocks (bool);
 
-      MinorSize maxNumberOfClues (Clues::Type type) const;
-      MainSize clueMainSize (Clues::Type) const;
-      MinorSize clueMinorSize (Clues::Type, MainIndex) const;
+      MinorIndex maxNumberOfClues (Clues::Type type) const;
+      MainIndex clueMainSize (Clues::Type) const;
+      MinorIndex clueMinorSize (Clues::Type, MainIndex) const;
       Clues::Value clue (Clues::Type, FullIndex) const;
       ClueState isCrossed (Clues::Type, FullIndex) const;
       void cross (Clues::Type, FullIndex, ClueState);

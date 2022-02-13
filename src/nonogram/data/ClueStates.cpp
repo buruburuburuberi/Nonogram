@@ -11,12 +11,18 @@ namespace nonogram
     , locks_ (solution.clueMainSize (type))
     {
       for ( MainIndex main_index {0}
-          ; main_index.value < solution.clueMainSize (type).value
-          ; ++main_index.value
+          ; main_index < solution.clueMainSize (type)
+          ; ++main_index
           )
       {
-        data_.resize (main_index, solution.clueMinorSize (type, main_index), false);
-        locks_.resize (main_index, solution.clueMinorSize (type, main_index), false);
+        data_.resize ( main_index
+                     , solution.clueMinorSize (type, main_index)
+                     , false
+                     );
+        locks_.resize ( main_index
+                      , solution.clueMinorSize (type, main_index)
+                      , false
+                      );
       }
     }
 
@@ -79,13 +85,13 @@ namespace nonogram
     bool ClueStates::canUnlock() const
     {
       for ( MainIndex main_index {0}
-          ; main_index.value < locks_.mainSize().value
-          ; ++main_index.value
+          ; main_index < locks_.mainSize()
+          ; ++main_index
           )
       {
         for ( MinorIndex minor_index {0}
-            ; minor_index.value < locks_.minorSize (main_index).value
-            ; ++minor_index.value
+            ; minor_index < locks_.minorSize (main_index)
+            ; ++minor_index
             )
         {
           if (locks_.at (main_index, minor_index))

@@ -241,9 +241,7 @@ namespace nonogram
                        , mark_as_error ? mistake_color_ : bg_color_
                        );
 
-      if ( full_index.minor.value
-           < nonogram_.clueMinorSize (clue_type, full_index.main).value
-         )
+      if (full_index.minor < nonogram_.clueMinorSize (clue_type, full_index.main))
       {
         auto const slot_size
           ( ( current_hit_
@@ -302,31 +300,28 @@ namespace nonogram
       auto const max_number_of_clues
         (nonogram_.maxNumberOfClues (clue_type).value);
 
-      data::Columns const columns
+      data::Column const columns
         { clue_type == data::Clues::Type::Row
         ? max_number_of_clues
         : nonogram_.clueMainSize (clue_type).value
         };
-      data::Rows const rows
+      data::Row const rows
         { clue_type == data::Clues::Type::Row
         ? nonogram_.clueMainSize (clue_type).value
         : max_number_of_clues
         };
 
-      for (data::Row row {0}; row.value < rows.value; ++row.value)
+      for (data::Row row {0}; row < rows; ++row)
       {
-        for ( data::Column column {0}
-            ; column.value < columns.value
-            ; ++column.value
-            )
+        for (data::Column column {0}; column < columns; ++column)
         {
           auto const mark_as_error
             ( current_error_slot_
            && ( ( (clue_type == data::Clues::Type::Row)
-               && row.value == current_error_slot_.value().row.value
+               && row == current_error_slot_.value().row
                 )
              || ( (clue_type == data::Clues::Type::Column)
-               && column.value == current_error_slot_.value().column.value
+               && column == current_error_slot_.value().column
                 )
               )
             );
@@ -353,8 +348,7 @@ namespace nonogram
                                         , data::Slot slot
                                         ) const
     {
-      auto const max_number_of_clues
-        (nonogram_.maxNumberOfClues (clue_type).value);
+      auto const max_number_of_clues (nonogram_.maxNumberOfClues (clue_type));
       data::FullIndex full_index
         (data::Clues::toFullIndex (clue_type, slot));
 
@@ -362,9 +356,9 @@ namespace nonogram
       {
         auto const offset
           ( max_number_of_clues
-            - nonogram_.clueMinorSize (clue_type, full_index.main).value
+            - nonogram_.clueMinorSize (clue_type, full_index.main)
           );
-        full_index.minor.value -= offset;
+        full_index.minor = full_index.minor - offset;
       }
 
       return full_index;
@@ -463,15 +457,9 @@ namespace nonogram
 
     void PlayField::drawPuzzle (QPainter& painter)
     {
-      for ( data::Column column {0}
-          ; column.value < nonogram_.dataColumns().value
-          ; ++column.value
-          )
+      for (data::Column column {0}; column < nonogram_.dataColumns(); ++column)
       {
-        for ( data::Row row {0}
-            ; row.value < nonogram_.dataRows().value
-            ; ++row.value
-            )
+        for (data::Row row {0}; row < nonogram_.dataRows(); ++row)
         {
           data::Slot const slot {column, row};
           drawSlot (painter, slot, nonogram_.answer (slot));
@@ -576,8 +564,8 @@ namespace nonogram
             data::FullIndex const full_index
               (fromSlot (field_type, clue_type, slot));
 
-            if ( full_index.minor.value
-              >= nonogram_.clueMinorSize (clue_type, full_index.main).value
+            if ( full_index.minor
+              >= nonogram_.clueMinorSize (clue_type, full_index.main)
                )
             {
               return true;
@@ -847,12 +835,9 @@ namespace nonogram
     {
       setDisabled (true);
 
-      for (data::Row row {0}; row.value < nonogram_.dataRows().value; ++row.value)
+      for (data::Row row {0}; row < nonogram_.dataRows(); ++row)
       {
-        for ( data::Column column {0}
-            ; column.value < nonogram_.dataColumns().value
-            ; ++column.value
-            )
+        for (data::Column column {0}; column < nonogram_.dataColumns(); ++column)
         {
           data::Slot const slot {column, row};
 

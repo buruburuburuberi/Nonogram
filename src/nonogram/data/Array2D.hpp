@@ -1,5 +1,7 @@
 #pragma once
 
+#include <nonogram/util/hard_integral_typedef.hpp>
+
 #include <algorithm>
 #include <cstddef>
 #include <functional>
@@ -12,10 +14,8 @@ namespace nonogram
 {
   namespace data
   {
-    struct Column { std::size_t value; };
-    struct Columns { std::size_t value; };
-    struct Row { std::size_t value; };
-    struct Rows { std::size_t value; };
+    HARD_INTEGRAL_TYPEDEF (Column, std::size_t);
+    HARD_INTEGRAL_TYPEDEF (Row, std::size_t);
 
     struct Slot
     {
@@ -24,19 +24,18 @@ namespace nonogram
 
       bool operator== (Slot const& rhs) const
       {
-        return std::tie (column.value, row.value)
-            == std::tie (rhs.column.value, rhs.row.value);
+        return std::tie (column, row) == std::tie (rhs.column, rhs.row);
       }
 
       bool operator< (Slot const& rhs) const
       {
-        if (row.value < rhs.row.value)
+        if (row < rhs.row)
         {
           return true;
         }
-        else if (row.value == rhs.row.value)
+        else if (row == rhs.row)
         {
-          return column.value < rhs.column.value;
+          return column < rhs.column;
         }
         else
         {
@@ -51,7 +50,7 @@ namespace nonogram
     class Array2D
     {
     public:
-      Array2D (Columns columns, Rows rows, T value = T())
+      Array2D (Column columns, Row rows, T value = T())
       {
         data_.resize (rows.value);
         for (auto& row : data_)
@@ -66,19 +65,19 @@ namespace nonogram
 
       Array2D (Array2D const&) = default;
 
-      Rows rows() const
+      Row rows() const
       {
-        return Rows {data_.size()};
+        return Row {data_.size()};
       }
 
-      Columns columns() const
+      Column columns() const
       {
         if (data_.empty())
         {
-          return Columns {0};
+          return Column {0};
         }
 
-        return Columns {data_.front().size()};
+        return Column {data_.front().size()};
       }
 
       T at (Column column, Row row) const
@@ -97,9 +96,9 @@ namespace nonogram
       {
         Slots slots;
 
-        for (Row row {0}; row.value < rows().value; ++row.value)
+        for (Row row {0}; row < rows(); ++row)
         {
-          for (Column column {0}; column.value < columns().value; ++column.value)
+          for (Column column {0}; column < columns(); ++column)
           {
             Slot const slot {column, row};
             if (check (slot, at (slot)))
@@ -156,18 +155,18 @@ namespace nonogram
     private:
       void checkInvalidAccess (Column column) const
       {
-        if (column.value >= columns().value)
+        if (column >= columns())
         {
           throw std::invalid_argument
-            ("Invalid access to column " + std::to_string (column.value));
+            ("Invalid access to column " + column.toString());
         }
       }
       void checkInvalidAccess (Row row) const
       {
-        if (row.value >= rows().value)
+        if (row >= rows())
         {
           throw std::invalid_argument
-            ("Invalid access to row " + std::to_string (row.value));
+            ("Invalid access to row " + row.toString());
         }
       }
       void checkInvalidAccess (Column column, Row row) const

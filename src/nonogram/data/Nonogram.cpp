@@ -84,12 +84,12 @@ namespace nonogram
       return id_;
     }
 
-    Rows Nonogram::dataRows() const
+    Row Nonogram::dataRows() const
     {
       return solution_.dataRows();
     }
 
-    Columns Nonogram::dataColumns() const
+    Column Nonogram::dataColumns() const
     {
       return solution_.dataColumns();
     }
@@ -134,17 +134,17 @@ namespace nonogram
       answer_.fillDataLocks (state);
     }
 
-    MinorSize Nonogram::maxNumberOfClues (Clues::Type type) const
+    MinorIndex Nonogram::maxNumberOfClues (Clues::Type type) const
     {
       return solution_.maxNumberOfClues (type);
     }
 
-    MainSize Nonogram::clueMainSize (Clues::Type type) const
+    MainIndex Nonogram::clueMainSize (Clues::Type type) const
     {
       return solution_.clueMainSize (type);
     }
 
-    MinorSize Nonogram::clueMinorSize (Clues::Type type, MainIndex main_index) const
+    MinorIndex Nonogram::clueMinorSize (Clues::Type type, MainIndex main_index) const
     {
       return solution_.clueMinorSize (type, main_index);
     }
@@ -215,12 +215,9 @@ namespace nonogram
 
     std::optional<Slot> Nonogram::findFirstMistake() const
     {
-      for (Row row {0}; row.value < dataRows().value; ++row.value)
+      for (Row row {0}; row < dataRows(); ++row)
       {
-        for ( Column column {0}
-            ; column.value < dataColumns().value
-            ; ++column.value
-            )
+        for (Column column {0}; column < dataColumns(); ++column)
         {
           Slot const slot {column, row};
           if (isMistake (slot))
@@ -235,12 +232,9 @@ namespace nonogram
 
     bool Nonogram::isSolved() const
     {
-      for (Row row {0}; row.value < dataRows().value; ++row.value)
+      for (Row row {0}; row < dataRows(); ++row)
       {
-        for ( Column column {0}
-            ; column.value < dataColumns().value
-            ; ++column.value
-            )
+        for (Column column {0}; column < dataColumns(); ++column)
         {
           Slot const slot {column, row};
           auto const datum (answer_.at (slot));

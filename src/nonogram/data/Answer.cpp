@@ -149,12 +149,9 @@ namespace nonogram
 
     bool Answer::canUnlock() const
     {
-      for (Row row {0}; row.value < data_locks_.rows().value; ++row.value)
+      for (Row row {0}; row < data_locks_.rows(); ++row)
       {
-        for ( Column column {0}
-            ; column.value < data_locks_.columns().value
-            ; ++column.value
-            )
+        for (Column column {0}; column < data_locks_.columns(); ++column)
         {
           if (data_locks_.at ({column, row}))
           {

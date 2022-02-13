@@ -23,13 +23,13 @@ namespace nonogram
 
       Solution (Data);
 
-      Rows dataRows() const;
-      Columns dataColumns() const;
+      Row dataRows() const;
+      Column dataColumns() const;
       State at (Slot) const;
 
-      MinorSize maxNumberOfClues (Clues::Type) const;
-      MainSize clueMainSize (Clues::Type) const;
-      MinorSize clueMinorSize (Clues::Type, MainIndex) const;
+      MinorIndex maxNumberOfClues (Clues::Type) const;
+      MainIndex clueMainSize (Clues::Type) const;
+      MinorIndex clueMinorSize (Clues::Type, MainIndex) const;
       Clues::Value clue (Clues::Type, FullIndex) const;
 
     private:

@@ -203,15 +203,15 @@ namespace nonogram
       QString const data_dimensions_line (in.readLine());
       QStringList const data_dimensions (data_dimensions_line.split (" "));
 
-      data::Columns const columns {data_dimensions.at (0).toUInt()};
-      data::Rows const rows {data_dimensions.at (1).toUInt()};
+      data::Column const columns {data_dimensions.at (0).toUInt()};
+      data::Row const rows {data_dimensions.at (1).toUInt()};
 
       data::Answer::Data data (columns, rows);
       data::Answer::DataLocks data_locks (columns, rows);
 
       in.skipWhiteSpace();
 
-      for (data::Row row {0}; row.value < data.rows().value; ++row.value)
+      for (data::Row row {0}; row < data.rows(); ++row)
       {
         QString const line (in.readLine());
         if (line.isEmpty())
@@ -221,10 +221,7 @@ namespace nonogram
 
         QStringList const datum_list (line.split (" ", QString::SkipEmptyParts));
 
-        for ( data::Column column {0}
-            ; column.value < columns.value
-            ; ++column.value
-            )
+        for (data::Column column {0}; column < columns; ++column)
         {
           QStringList const data_lock (datum_list.at (column.value).split (","));
 
@@ -243,15 +240,12 @@ namespace nonogram
 
         QString const clue_main_size_line (in.readLine());
 
-        data::MainSize const main_size {clue_main_size_line.toUInt()};
+        data::MainIndex const main_size {clue_main_size_line.toUInt()};
 
         data::ClueStates::Data clues (main_size);
         data::ClueStates::Data clue_locks (main_size);
 
-        for ( data::MainIndex main {0}
-            ; main.value < clues.mainSize().value
-            ; ++main.value
-            )
+        for (data::MainIndex main {0}; main < clues.mainSize(); ++main)
         {
           QString const line (in.readLine());
           if (line.isEmpty())
@@ -261,14 +255,14 @@ namespace nonogram
 
           QStringList const clue_list (line.split (" ", QString::SkipEmptyParts));
 
-          data::MinorSize const minor_size
+          data::MinorIndex const minor_size
             {static_cast<std::size_t> (clue_list.count())};
           clues.resize (main, minor_size, false);
           clue_locks.resize (main, minor_size, false);
 
           for ( data::MinorIndex minor {0}
               ; minor.value < clue_list.count()
-              ; ++minor.value
+              ; ++minor
               )
           {
             QStringList const clue_lock (clue_list.at (minor.value).split (","));
@@ -316,12 +310,9 @@ namespace nonogram
       out << answer.data_.columns().value << " "
           << answer.data_.rows().value << "\n";
 
-      for (data::Row row {0}; row.value < answer.data_.rows().value; ++row.value)
+      for (data::Row row {0}; row < answer.data_.rows(); ++row)
       {
-        for ( data::Column column {0}
-            ; column.value < answer.data_.columns().value
-            ; ++column.value
-            )
+        for (data::Column column {0}; column < answer.data_.columns(); ++column)
         {
           data::Slot const slot {column, row};
           out << toString (answer.at (slot)) << ","
@@ -335,22 +326,21 @@ namespace nonogram
         out << answer.clue_states_.at (type).data_.mainSize().value << "\n";
 
         for ( data::MainIndex main {0}
-            ; main.value < answer.clue_states_.at (type).data_.mainSize().value
-            ; ++main.value
+            ; main < answer.clue_states_.at (type).data_.mainSize()
+            ; ++main
             )
         {
           for ( data::MinorIndex minor {0}
-              ; minor.value
-                < answer.clue_states_.at (type).data_.minorSize (main).value
-              ; ++minor.value
+              ; minor < answer.clue_states_.at (type).data_.minorSize (main)
+              ; ++minor
               )
           {
             data::FullIndex const full_index {main, minor};
-            out << ( answer.clue_states_.at (type).isCrossed (full_index)
+            out << ( answer.isCrossed (type, full_index)
                    ? "x"
                    : "-"
                    ) << ","
-                << ( answer.clue_states_.at (type).isLocked (full_index)
+                << ( answer.isClueLocked (type, full_index)
                    ? "L"
                    : "U"
                    )
@@ -430,8 +420,8 @@ namespace nonogram
       in.skipWhiteSpace();
 
       data::Array2D<bool> data
-        ( data::Columns {dimensions.at (0).toUInt()}
-        , data::Rows {dimensions.at (1).toUInt()}
+        ( data::Column {dimensions.at (0).toUInt()}
+        , data::Row {dimensions.at (1).toUInt()}
         );
 
       data::Row row {0};
@@ -450,9 +440,9 @@ namespace nonogram
         {
           data.set (column, row, datum == "#");
 
-          column.value++;
+          column++;
         }
-        row.value++;
+        row++;
       }
 
       file.close();
