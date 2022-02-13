@@ -254,7 +254,7 @@ namespace nonogram
 
         auto const clue (nonogram_.clue (clue_type, full_index));
         QColor const color
-            ( ( (nonogram_.id().pack.name != file::Puzzles::internalPackName().name)
+            ( ( !nonogram_.id().internal()
              && nonogram_.isClueLocked (clue_type, full_index)
               )
               ? locked_color_
@@ -401,7 +401,7 @@ namespace nonogram
       }
 
       QColor const color
-        ( ( (nonogram_.id().pack.name != file::Puzzles::internalPackName().name)
+        ( ( !nonogram_.id().internal()
          && nonogram_.isDatumLocked (slot)
          && !solved_
           )

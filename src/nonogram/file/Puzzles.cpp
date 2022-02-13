@@ -14,9 +14,9 @@ namespace nonogram
 {
   namespace file
   {
-    data::Nonogram::Pack Puzzles::internalPackName()
+    data::Nonogram::Pack Puzzles::internalPack()
     {
-      return {"Internal"};
+      return data::Nonogram::Pack ("Internal");
     }
 
     Puzzles::Puzzles()
@@ -58,7 +58,7 @@ namespace nonogram
         if ( std::none_of
               ( puzzles_.begin()
               , puzzles_.end()
-              , [pack] (auto pair) { return pair.first.pack.name == pack.name; }
+              , [pack] (auto pair) { return pair.first.pack == pack; }
               )
            )
         {
@@ -85,7 +85,7 @@ namespace nonogram
     data::Nonogram Puzzles::titleNonogram() const
     {
       return
-        { {internalPackName(), data::Nonogram::Puzzle {"Title"}}
+        { {internalPack(), data::Nonogram::Puzzle {"Title"}}
         , data::Array2D<bool>
           { { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
             , { 0, 1, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0 }
@@ -107,7 +107,7 @@ namespace nonogram
 
     data::Nonogram Puzzles::tutorialNonogram() const
     {
-      return { {internalPackName(), data::Nonogram::Puzzle {"Tutorial"}}
+      return { {internalPack(), data::Nonogram::Puzzle {"Tutorial"}}
              , data::Array2D<bool>
                  { { { 0, 0, 1, 0, 0 }
                    , { 0, 1, 1, 1, 0 }

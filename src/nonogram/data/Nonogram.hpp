@@ -3,6 +3,7 @@
 #include <nonogram/data/Answer.hpp>
 #include <nonogram/data/Array2D.hpp>
 #include <nonogram/data/Solution.hpp>
+#include <nonogram/util/hard_qstring_typedef.hpp>
 
 #include <QtCore/QString>
 
@@ -25,20 +26,8 @@ namespace nonogram
     class Nonogram
     {
     public:
-      struct Pack
-      {
-        QString name;
-
-        bool operator== (Pack const&) const;
-        bool operator< (Pack const&) const;
-      };
-      struct Puzzle
-      {
-        QString name;
-
-        bool operator== (Puzzle const&) const;
-        bool operator< (Puzzle const&) const;
-      };
+      HARD_QSTRING_TYPEDEF (Pack);
+      HARD_QSTRING_TYPEDEF (Puzzle);
 
       using Packs = std::set<Pack>;
       using Puzzles = std::set<Puzzle>;
@@ -50,6 +39,8 @@ namespace nonogram
 
         Pack pack;
         Puzzle puzzle;
+
+        bool internal() const;
 
         QString toString() const;
 

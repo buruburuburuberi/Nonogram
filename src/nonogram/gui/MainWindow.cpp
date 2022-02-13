@@ -202,7 +202,7 @@ namespace nonogram
                 {
                   reset (true);
 
-                  if (current_nonogram_.id().pack.name != puzzles_.internalPackName().name)
+                  if (!current_nonogram_.id().internal())
                   {
                     puzzles_.setSolved (current_nonogram_.id());
                     level_selection_->setSolved (current_nonogram_.id());
@@ -329,7 +329,7 @@ namespace nonogram
               , this
               , [&] (bool can_undo)
                 {
-                  if (current_nonogram_.id().pack == puzzles_.internalPackName())
+                  if (current_nonogram_.id().internal())
                   {
                     return;
                   }
@@ -348,7 +348,7 @@ namespace nonogram
               , this
               , [this] (bool can_redo)
                 {
-                  if (current_nonogram_.id().pack == puzzles_.internalPackName())
+                  if (current_nonogram_.id().internal())
                   {
                     return;
                   }
@@ -361,7 +361,7 @@ namespace nonogram
               , this
               , [&] (int index)
                 {
-                  if (current_nonogram_.id().pack == puzzles_.internalPackName())
+                  if (current_nonogram_.id().internal())
                   {
                     return;
                   }
@@ -398,9 +398,7 @@ namespace nonogram
 
     void MainWindow::writeOutCurrentAnswer()
     {
-      if ( current_nonogram_.id().pack == file::Puzzles::internalPackName()
-        || current_nonogram_.isEmpty()
-         )
+      if (current_nonogram_.id().internal() || current_nonogram_.isEmpty())
       {
         return;
       }
@@ -427,7 +425,7 @@ namespace nonogram
 
     void MainWindow::showLevel (data::Nonogram::ID id)
     {
-      setWindowTitle (id.pack.name + ": " + id.puzzle.name);
+      setWindowTitle (QString ("%1: %2").arg (id.pack.name).arg (id.puzzle.name));
       writeOutCurrentAnswer();
 
       current_nonogram_ = puzzles_.puzzle (id);

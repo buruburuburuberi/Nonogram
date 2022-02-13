@@ -1,5 +1,7 @@
 #include <nonogram/data/Nonogram.hpp>
 
+#include <nonogram/file/Puzzles.hpp>
+
 #include <QtCore/QStringList>
 
 #include <cstddef>
@@ -11,34 +13,21 @@ namespace nonogram
 {
   namespace data
   {
-    bool Nonogram::Pack::operator== (Pack const& rhs) const
-    {
-      return name == rhs.name;
-    }
-    bool Nonogram::Pack::operator< (Pack const& rhs) const
-    {
-      return name < rhs.name;
-    }
-
-    bool Nonogram::Puzzle::operator== (Puzzle const& rhs) const
-    {
-      return name == rhs.name;
-    }
-    bool Nonogram::Puzzle::operator< (Puzzle const& rhs) const
-    {
-      return name < rhs.name;
-    }
-
     Nonogram::ID::ID (Pack _pack, Puzzle _puzzle)
-    : pack {_pack.name}
-    , puzzle {_puzzle.name}
+    : pack (_pack)
+    , puzzle (_puzzle)
     {}
 
     Nonogram::ID::ID (QString string)
     {
       auto const strings (string.split ("/"));
-      pack.name = strings.at (0);
-      puzzle.name = strings.at (1);
+      pack = Pack (strings.at (0));
+      puzzle = Puzzle (strings.at (1));
+    }
+
+    bool Nonogram::ID::internal() const
+    {
+      return pack == file::Puzzles::internalPack();
     }
 
     QString Nonogram::ID::toString() const
@@ -124,9 +113,9 @@ namespace nonogram
       return answer_.isDatumLocked (slot);
     }
 
-    void Nonogram::lockData (Slots slots, bool state)
+    void Nonogram::lockData (Slots to_move, bool state)
     {
-      answer_.lockData (std::move (slots), state);
+      answer_.lockData (std::move (to_move), state);
     }
 
     void Nonogram::fillDataLocks (bool state)

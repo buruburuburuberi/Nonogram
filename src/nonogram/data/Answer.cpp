@@ -59,9 +59,9 @@ namespace nonogram
       return data_locks_.at (slot);
     }
 
-    void Answer::lockData (Slots slots, bool state)
+    void Answer::lockData (Slots to_lock, bool state)
     {
-      for (auto const& slot : slots)
+      for (auto const& slot : to_lock)
       {
         data_locks_.set (slot, state);
       }

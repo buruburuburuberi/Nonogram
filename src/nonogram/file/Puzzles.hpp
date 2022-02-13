@@ -15,7 +15,7 @@ namespace nonogram
     class Puzzles
     {
     public:
-      static data::Nonogram::Pack internalPackName();
+      static data::Nonogram::Pack internalPack();
 
       struct Info
       {
