@@ -74,9 +74,11 @@ namespace nonogram
           }
         }
 
-        max_minor_size_.value = std::max ( max_minor_size_.value
-                                         , clues[row.value].size()
-                                         );
+        max_minor_size_.value =
+            std::max ( max_minor_size_.value
+                     , static_cast<MinorIndex::underlying_type>
+                        (clues[row.value].size())
+                     );
       }
 
       return Data (clues);

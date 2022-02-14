@@ -84,12 +84,12 @@ namespace nonogram
       bool isSolved() const;
       void resetAnswer();
 
+      Answer const& answer() const;
+
     private:
       ID id_;
       Solution solution_;
       Answer answer_;
-
-      friend class file::Puzzles;
     };
   }
 }

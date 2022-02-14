@@ -3,6 +3,7 @@
 #include <nonogram/data/Array2D.hpp>
 
 #include <QtCore/QCoreApplication>
+#include <QtCore/QDataStream>
 #include <QtCore/QDirIterator>
 #include <QtCore/QSettings>
 #include <QtCore/QTextStream>
@@ -196,92 +197,13 @@ namespace nonogram
       QFile file (file_info.filePath());
       file.open (QIODevice::ReadOnly);
 
-      QTextStream in (&file);
+      QDataStream in (&file);
 
-      in.skipWhiteSpace();
-
-      QString const data_dimensions_line (in.readLine());
-      QStringList const data_dimensions (data_dimensions_line.split (" "));
-
-      data::Column const columns {data_dimensions.at (0).toUInt()};
-      data::Row const rows {data_dimensions.at (1).toUInt()};
-
-      data::Answer::Data data (columns, rows);
-      data::Answer::DataLocks data_locks (columns, rows);
-
-      in.skipWhiteSpace();
-
-      for (data::Row row {0}; row < data.rows(); ++row)
-      {
-        QString const line (in.readLine());
-        if (line.isEmpty())
-        {
-          continue;
-        }
-
-        QStringList const datum_list (line.split (" ", QString::SkipEmptyParts));
-
-        for (data::Column column {0}; column < columns; ++column)
-        {
-          QStringList const data_lock (datum_list.at (column.value).split (","));
-
-          data.set (column, row, toDatum (data_lock.at (0)));
-          data_locks.set (column, row, data_lock.at (1) == "L");
-        }
-      }
-
-      in.skipWhiteSpace();
-
-      data::Answer::CluesStates clue_states;
-
-      for (auto const& type : data::Clues::all_types)
-      {
-        in.skipWhiteSpace();
-
-        QString const clue_main_size_line (in.readLine());
-
-        data::MainIndex const main_size {clue_main_size_line.toUInt()};
-
-        data::ClueStates::Data clues (main_size);
-        data::ClueStates::Data clue_locks (main_size);
-
-        for (data::MainIndex main {0}; main < clues.mainSize(); ++main)
-        {
-          QString const line (in.readLine());
-          if (line.isEmpty())
-          {
-            continue;
-          }
-
-          QStringList const clue_list (line.split (" ", QString::SkipEmptyParts));
-
-          data::MinorIndex const minor_size
-            {static_cast<std::size_t> (clue_list.count())};
-          clues.resize (main, minor_size, false);
-          clue_locks.resize (main, minor_size, false);
-
-          for ( data::MinorIndex minor {0}
-              ; minor.value < clue_list.count()
-              ; ++minor
-              )
-          {
-            QStringList const clue_lock (clue_list.at (minor.value).split (","));
-
-            clues.set (main, minor, clue_lock.at (0) == "x");
-            clue_locks.set (main, minor, clue_lock.at (1) == "L");
-          }
-        }
-
-        clue_states.emplace
-          ( std::piecewise_construct
-          , std::forward_as_tuple (type)
-          , std::forward_as_tuple (std::move (clues), std::move (clue_locks))
-          );
-      }
+      data::Answer answer (in);
 
       file.close();
 
-      return {data, data_locks, clue_states};
+      return answer;
     }
 
     void Puzzles::writeAnswer ( data::Nonogram::ID id
@@ -290,8 +212,6 @@ namespace nonogram
     {
       auto const pack_name (id.pack.name);
       auto const puzzle_name (id.puzzle.name);
-
-      auto const& answer (nonogram.answer_);
 
       QDir directory (answers_path_);
       if (!directory.exists (pack_name))
@@ -305,50 +225,9 @@ namespace nonogram
 
       puzzles_.at (id).answer = file;
 
-      QTextStream out (&file);
+      QDataStream out (&file);
 
-      out << answer.data_.columns().value << " "
-          << answer.data_.rows().value << "\n";
-
-      for (data::Row row {0}; row < answer.data_.rows(); ++row)
-      {
-        for (data::Column column {0}; column < answer.data_.columns(); ++column)
-        {
-          data::Slot const slot {column, row};
-          out << toString (answer.at (slot)) << ","
-              << (answer.isDatumLocked (slot) ? "L" : "U") << " ";
-        }
-        out << "\n";
-      }
-
-      for (auto const& type : data::Clues::all_types)
-      {
-        out << answer.clue_states_.at (type).data_.mainSize().value << "\n";
-
-        for ( data::MainIndex main {0}
-            ; main < answer.clue_states_.at (type).data_.mainSize()
-            ; ++main
-            )
-        {
-          for ( data::MinorIndex minor {0}
-              ; minor < answer.clue_states_.at (type).data_.minorSize (main)
-              ; ++minor
-              )
-          {
-            data::FullIndex const full_index {main, minor};
-            out << ( answer.isCrossed (type, full_index)
-                   ? "x"
-                   : "-"
-                   ) << ","
-                << ( answer.isClueLocked (type, full_index)
-                   ? "L"
-                   : "U"
-                   )
-                << " ";
-          }
-          out << "\n";
-        }
-      }
+      out << nonogram.answer();
 
       file.close();
 

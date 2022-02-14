@@ -4,6 +4,8 @@
 #include <nonogram/data/Clues.hpp>
 #include <nonogram/data/Solution.hpp>
 
+#include <QtCore/QDataStream>
+
 #include <set>
 
 namespace nonogram
@@ -38,11 +40,13 @@ namespace nonogram
 
       void reset();
 
+      // serialization
+      ClueStates (QDataStream&);
+      friend QDataStream& operator<< (QDataStream&, ClueStates const&);
+
     private:
       Data data_;
       Data locks_;
-
-      friend class file::Puzzles;
     };
   }
 }

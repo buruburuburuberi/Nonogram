@@ -4,6 +4,8 @@
 #include <nonogram/data/ClueStates.hpp>
 #include <nonogram/data/Solution.hpp>
 
+#include <QtCore/QDataStream>
+
 #include <cstddef>
 #include <map>
 
@@ -56,13 +58,18 @@ namespace nonogram
 
       void reset();
 
+      // serialization
+      friend QDataStream& operator>> (QDataStream&, Datum&);
+      friend QDataStream& operator<< (QDataStream&, Datum const&);
+
+      Answer (QDataStream&);
+      friend QDataStream& operator<< (QDataStream&, Answer const&);
+
     private:
       Data data_;
       DataLocks data_locks_;
 
       CluesStates clue_states_;
-
-      friend class file::Puzzles;
     };
   }
 }

@@ -3,6 +3,8 @@
 #include <nonogram/data/Array2D.hpp>
 #include <nonogram/util/hard_integral_typedef.hpp>
 
+#include <QtCore/QDataStream>
+
 #include <algorithm>
 #include <cstddef>
 #include <functional>
@@ -15,8 +17,8 @@ namespace nonogram
 {
   namespace data
   {
-    HARD_INTEGRAL_TYPEDEF (MainIndex, std::size_t);
-    HARD_INTEGRAL_TYPEDEF (MinorIndex, std::size_t);
+    HARD_INTEGRAL_TYPEDEF (MainIndex, unsigned long long int);
+    HARD_INTEGRAL_TYPEDEF (MinorIndex, unsigned long long int);
 
     struct FullIndex
     {
@@ -130,6 +132,50 @@ namespace nonogram
       void set (FullIndex full_index, T value)
       {
         set (full_index.main, full_index.minor, value);
+      }
+
+      // serialization
+      VectorOfVectors (QDataStream& ds)
+      {
+        MainIndex::underlying_type main_size_value;
+        ds >> main_size_value;
+        MainIndex main_size {main_size_value};
+        data_.resize (main_size.value);
+
+        for (MainIndex main {0}; main < main_size; ++main)
+        {
+          MinorIndex::underlying_type minor_size_value;
+          ds >> minor_size_value;
+          MinorIndex minor_size {minor_size_value};
+          data_.at (main.value).resize (minor_size.value);
+
+          for (MinorIndex minor {0}; minor < minor_size; ++minor)
+          {
+            T value;
+            ds >> value;
+            data_[main.value][minor.value] = value;
+          }
+        }
+      }
+      friend QDataStream& operator<< ( QDataStream& ds
+                                     , VectorOfVectors const& data
+                                     )
+      {
+        auto const main_size (data.mainSize());
+        ds << main_size.value;
+
+        for (MainIndex main {0}; main < main_size; ++main)
+        {
+          auto const minor_size (data.minorSize (main));
+          ds << minor_size.value;
+
+          for (MinorIndex minor {0}; minor < minor_size; ++minor)
+          {
+            ds << data.at (main, minor);
+          }
+        }
+
+        return ds;
       }
 
     private:

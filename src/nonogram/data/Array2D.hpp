@@ -2,6 +2,8 @@
 
 #include <nonogram/util/hard_integral_typedef.hpp>
 
+#include <QtCore/QDataStream>
+
 #include <algorithm>
 #include <cstddef>
 #include <functional>
@@ -14,8 +16,8 @@ namespace nonogram
 {
   namespace data
   {
-    HARD_INTEGRAL_TYPEDEF (Column, std::size_t);
-    HARD_INTEGRAL_TYPEDEF (Row, std::size_t);
+    HARD_INTEGRAL_TYPEDEF (Column, unsigned long long int);
+    HARD_INTEGRAL_TYPEDEF (Row, unsigned long long int);
 
     struct Slot
     {
@@ -83,7 +85,7 @@ namespace nonogram
 
       Slots slots_if (std::function<bool (Slot, T)> check) const
       {
-        Slots slots;
+        Slots data;
 
         for (Row row {0}; row < rows(); ++row)
         {
@@ -92,12 +94,12 @@ namespace nonogram
             Slot const slot {column, row};
             if (check (slot, at (slot)))
             {
-              slots.insert (slot);
+              data.insert (slot);
             }
           }
         }
 
-        return slots;
+        return data;
       }
 
       std::vector<T> column (Column column) const
@@ -139,6 +141,48 @@ namespace nonogram
       void set (Slot slot, T value)
       {
         set (slot.column, slot.row, value);
+      }
+
+      // serialization
+      Array2D (QDataStream& ds)
+      {
+        Row::underlying_type rows_value;
+        ds >> rows_value;
+        Row rows {rows_value};
+        data_.resize (rows.value);
+
+        Column::underlying_type columns_value;
+        ds >> columns_value;
+        Column columns {columns_value};
+
+        for (Row row {0}; row < rows; ++row)
+        {
+          data_.at (row.value).resize (columns.value);
+
+          for (Column column {0}; column < columns; ++column)
+          {
+            T value;
+            ds >> value;
+            data_[row.value][column.value] = value;
+          }
+        }
+      }
+      friend QDataStream& operator<< (QDataStream& ds, Array2D const& array)
+      {
+        auto const rows (array.rows());
+        auto const columns (array.columns());
+        ds << rows.value;
+        ds << columns.value;
+
+        for (Row row {0}; row < rows; ++row)
+        {
+          for (Column column {0}; column < columns; ++column)
+          {
+            ds << array.data_.at (row.value).at (column.value);
+          }
+        }
+
+        return ds;
       }
 
     private:

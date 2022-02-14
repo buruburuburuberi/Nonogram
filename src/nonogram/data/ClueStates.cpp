@@ -109,5 +109,18 @@ namespace nonogram
       data_.fill (false);
       locks_.fill (false);
     }
+
+    ClueStates::ClueStates (QDataStream& ds)
+     : data_ (ds)
+     , locks_ (ds)
+     {}
+
+     QDataStream& operator<< (QDataStream& ds, ClueStates const& clue_states)
+     {
+       ds << clue_states.data_;
+       ds << clue_states.locks_;
+
+       return ds;
+     }
   }
 }

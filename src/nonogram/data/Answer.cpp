@@ -186,5 +186,46 @@ namespace nonogram
         clue_states_.at (type).reset();
       }
     }
+
+    QDataStream& operator>> (QDataStream& ds, Answer::Datum& datum)
+    {
+      unsigned int value;
+      ds >> value;
+      datum = static_cast<Answer::Datum> (value);
+
+      return ds;
+    }
+    QDataStream& operator<< (QDataStream& ds, Answer::Datum const& datum)
+    {
+      ds << static_cast<unsigned int> (datum);
+
+      return ds;
+    }
+
+    Answer::Answer (QDataStream& ds)
+    : data_ (ds)
+    , data_locks_ (ds)
+    {
+      for (auto const& type : Clues::all_types)
+      {
+        clue_states_.emplace
+          ( std::piecewise_construct
+          , std::forward_as_tuple (type)
+          , std::forward_as_tuple (ds)
+          );
+      }
+    }
+    QDataStream& operator<< (QDataStream& ds, Answer const& answer)
+    {
+      ds << answer.data_;
+      ds << answer.data_locks_;
+
+      for (auto const& type : Clues::all_types)
+      {
+        ds << answer.clue_states_.at (type);
+      }
+
+      return ds;
+    }
   }
 }

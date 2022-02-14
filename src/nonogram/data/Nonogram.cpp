@@ -230,5 +230,10 @@ namespace nonogram
     {
       answer_.reset();
     }
+
+    Answer const& Nonogram::answer() const
+    {
+      return answer_;
+    }
   }
 }
