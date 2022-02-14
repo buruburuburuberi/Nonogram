@@ -41,18 +41,7 @@ namespace nonogram
     }
     bool Nonogram::ID::operator< (ID const& rhs) const
     {
-      if (pack < rhs.pack)
-      {
-        return true;
-      }
-      else if (pack == rhs.pack)
-      {
-        return puzzle < rhs.puzzle;
-      }
-      else
-      {
-        return false;
-      }
+      return std::tie (pack, puzzle) < std::tie (rhs.pack, rhs.puzzle);
     }
 
     Nonogram::Nonogram ( data::Nonogram::ID id

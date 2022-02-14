@@ -29,18 +29,7 @@ namespace nonogram
 
       bool operator< (Slot const& rhs) const
       {
-        if (row < rhs.row)
-        {
-          return true;
-        }
-        else if (row == rhs.row)
-        {
-          return column < rhs.column;
-        }
-        else
-        {
-          return false;
-        }
+        return std::tie (row, column) < std::tie (rhs.row, rhs.column);
       }
     };
 

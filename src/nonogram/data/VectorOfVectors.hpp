@@ -8,6 +8,7 @@
 #include <functional>
 #include <set>
 #include <stdexcept>
+#include <tuple>
 #include <vector>
 
 namespace nonogram
@@ -24,23 +25,12 @@ namespace nonogram
 
       bool operator== (FullIndex const& rhs) const
       {
-        return minor == rhs.minor && main == rhs.main;
+        return std::tie (main, minor) == std::tie (rhs.main, rhs.minor);
       }
 
       bool operator< (FullIndex const& rhs) const
       {
-        if (main < rhs.main)
-        {
-          return true;
-        }
-        else if (main > rhs.main)
-        {
-          return false;
-        }
-        else
-        {
-          return minor < rhs.minor;
-        }
+        return std::tie (main, minor) < std::tie (rhs.main, rhs.minor);
       }
     };
 
