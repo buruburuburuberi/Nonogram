@@ -1,5 +1,7 @@
 #include <nonogram/gui/painting.hpp>
 
+#include <nonogram/util/ScopedQPainterState.hpp>
+
 #include <QtGui/QColor>
 #include <QtGui/QPixmap>
 
@@ -9,6 +11,8 @@ namespace nonogram
   {
     void drawBackground (QPainter& painter, QRect rect, QColor color)
     {
+      util::ScopedQPainterState const state (painter);
+
       painter.fillRect (rect.adjusted (1, 1, -1, -1), color);
     }
 
@@ -18,6 +22,8 @@ namespace nonogram
                   , bool solved
                   )
     {
+      util::ScopedQPainterState const state (painter);
+
       auto fill_rect
         ( [&]
           {
@@ -46,6 +52,8 @@ namespace nonogram
                    , QColor color
                    )
     {
+      util::ScopedQPainterState const state (painter);
+
       auto pen (painter.pen());
       pen.setWidth (2);
       pen.setColor (color);
@@ -66,6 +74,8 @@ namespace nonogram
                       , QColor color
                       )
     {
+      util::ScopedQPainterState const state (painter);
+
       painter.setBrush (color);
 
       QRect fill_mark_rect
@@ -84,6 +94,8 @@ namespace nonogram
                        , QColor color
                        )
     {
+      util::ScopedQPainterState const state (painter);
+
       auto pen (painter.pen());
       pen.setWidth (2);
       pen.setColor (color);

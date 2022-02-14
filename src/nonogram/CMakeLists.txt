@@ -15,6 +15,7 @@ set (SOURCES data/Answer.cpp
              gui/command/Fill.cpp
              gui/command/Lock.cpp
              util/print_exception.cpp
+             util/ScopedQPainterState.cpp
              main.cpp
 )
 set (LIBRARIES Qt5::OpenGL Qt5::Widgets)
