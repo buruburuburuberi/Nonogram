@@ -1,5 +1,7 @@
 #pragma once
 
+#include <nonogram/data/clues/FullIndex.hpp>
+#include <nonogram/data/grid/Cell.hpp>
 #include <nonogram/data/Nonogram.hpp>
 
 #include <QtGui/QMouseEvent>

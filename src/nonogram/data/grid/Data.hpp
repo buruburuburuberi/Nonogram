@@ -1,6 +1,9 @@
 #pragma once
 
-#include <nonogram/util/hard_integral_typedef.hpp>
+#include <nonogram/data/grid/Cell.hpp>
+#include <nonogram/data/grid/Cells.hpp>
+#include <nonogram/data/grid/Column.hpp>
+#include <nonogram/data/grid/Row.hpp>
 
 #include <QtCore/QDataStream>
 
@@ -18,27 +21,6 @@ namespace nonogram
   {
     namespace grid
     {
-      HARD_INTEGRAL_TYPEDEF (Column, unsigned long long int);
-      HARD_INTEGRAL_TYPEDEF (Row, unsigned long long int);
-
-      struct Cell
-      {
-        Column column;
-        Row row;
-
-        bool operator== (Cell const& rhs) const
-        {
-          return std::tie (column, row) == std::tie (rhs.column, rhs.row);
-        }
-
-        bool operator< (Cell const& rhs) const
-        {
-          return std::tie (row, column) < std::tie (rhs.row, rhs.column);
-        }
-      };
-
-      using Cells = std::set<Cell>;
-
       template<typename T>
       class Data
       {

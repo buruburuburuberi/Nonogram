@@ -1,6 +1,7 @@
 #pragma once
 
 #include <nonogram/data/clues/Data.hpp>
+#include <nonogram/data/grid/Cell.hpp>
 #include <nonogram/data/grid/Data.hpp>
 
 #include <QtCore/QSize>

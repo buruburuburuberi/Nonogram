@@ -3,7 +3,7 @@
 #include <nonogram/gui/command/Base.hpp>
 #include <nonogram/data/Answer.hpp>
 #include <nonogram/data/Solution.hpp>
-#include <nonogram/data/clues/Data.hpp>
+#include <nonogram/data/clues/FullIndices.hpp>
 
 #include <QtWidgets/QUndoCommand>
 

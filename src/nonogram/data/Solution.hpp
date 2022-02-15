@@ -1,8 +1,13 @@
 #pragma once
 
-#include <nonogram/data/clues/Data.hpp>
-#include <nonogram/data/grid/Data.hpp>
 #include <nonogram/data/Clues.hpp>
+#include <nonogram/data/grid/Column.hpp>
+#include <nonogram/data/grid/Data.hpp>
+#include <nonogram/data/grid/Row.hpp>
+#include <nonogram/data/clues/FullIndex.hpp>
+#include <nonogram/data/clues/FullIndices.hpp>
+#include <nonogram/data/clues/MainIndex.hpp>
+#include <nonogram/data/clues/MinorIndex.hpp>
 
 #include <QtCore/QSize>
 

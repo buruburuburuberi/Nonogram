@@ -4,8 +4,8 @@
 #include <nonogram/gui/command/Cross.hpp>
 #include <nonogram/gui/command/Fill.hpp>
 #include <nonogram/data/Answer.hpp>
-#include <nonogram/data/clues/Data.hpp>
-#include <nonogram/data/grid/Data.hpp>
+#include <nonogram/data/clues/FullIndices.hpp>
+#include <nonogram/data/grid/Cells.hpp>
 
 #include <map>
 #include <optional>

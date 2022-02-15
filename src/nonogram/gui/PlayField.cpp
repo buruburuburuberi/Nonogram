@@ -1,5 +1,7 @@
 #include <nonogram/gui/PlayField.hpp>
 
+#include <nonogram/data/grid/Column.hpp>
+#include <nonogram/data/grid/Row.hpp>
 #include <nonogram/file/Puzzles.hpp>
 #include <nonogram/gui/command/Cross.hpp>
 #include <nonogram/gui/command/Fill.hpp>

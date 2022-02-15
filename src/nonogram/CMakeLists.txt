@@ -4,6 +4,8 @@ set (SOURCES data/Answer.cpp
              data/ClueStates.cpp
              data/Nonogram.cpp
              data/Solution.cpp
+             data/clues/FullIndex.cpp
+             data/grid/Cell.cpp
              file/Puzzles.cpp
              gui/LevelSelection.cpp
              gui/MainWindow.cpp

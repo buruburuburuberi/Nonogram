@@ -1,6 +1,8 @@
 #pragma once
 
-#include <nonogram/data/clues/Data.hpp>
+#include <nonogram/data/clues/FullIndex.hpp>
+#include <nonogram/data/grid/Cell.hpp>
+#include <nonogram/data/grid/Cells.hpp>
 #include <nonogram/data/grid/Data.hpp>
 #include <nonogram/data/ClueStates.hpp>
 #include <nonogram/data/Solution.hpp>

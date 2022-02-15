@@ -1,5 +1,8 @@
 #include <nonogram/data/ClueStates.hpp>
 
+#include <nonogram/data/clues/MainIndex.hpp>
+#include <nonogram/data/clues/MinorIndex.hpp>
+
 #include <string>
 
 namespace nonogram

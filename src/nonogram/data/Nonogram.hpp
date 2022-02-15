@@ -2,8 +2,14 @@
 
 #include <nonogram/data/Answer.hpp>
 #include <nonogram/data/Solution.hpp>
-#include <nonogram/data/clues/Data.hpp>
-#include <nonogram/data/grid/Data.hpp>
+#include <nonogram/data/clues/FullIndex.hpp>
+#include <nonogram/data/clues/FullIndices.hpp>
+#include <nonogram/data/clues/MainIndex.hpp>
+#include <nonogram/data/clues/MinorIndex.hpp>
+#include <nonogram/data/grid/Cell.hpp>
+#include <nonogram/data/grid/Cells.hpp>
+#include <nonogram/data/grid/Column.hpp>
+#include <nonogram/data/grid/Row.hpp>
 #include <nonogram/util/hard_qstring_typedef.hpp>
 
 #include <QtCore/QString>

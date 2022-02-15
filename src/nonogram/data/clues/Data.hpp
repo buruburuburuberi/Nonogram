@@ -1,6 +1,9 @@
 #pragma once
 
-#include <nonogram/util/hard_integral_typedef.hpp>
+#include <nonogram/data/clues/FullIndex.hpp>
+#include <nonogram/data/clues/FullIndices.hpp>
+#include <nonogram/data/clues/MainIndex.hpp>
+#include <nonogram/data/clues/MinorIndex.hpp>
 
 #include <QtCore/QDataStream>
 
@@ -18,27 +21,6 @@ namespace nonogram
   {
     namespace clues
     {
-      HARD_INTEGRAL_TYPEDEF (MainIndex, unsigned long long int);
-      HARD_INTEGRAL_TYPEDEF (MinorIndex, unsigned long long int);
-
-      struct FullIndex
-      {
-        MainIndex main;
-        MinorIndex minor;
-
-        bool operator== (FullIndex const& rhs) const
-        {
-          return std::tie (main, minor) == std::tie (rhs.main, rhs.minor);
-        }
-
-        bool operator< (FullIndex const& rhs) const
-        {
-          return std::tie (main, minor) < std::tie (rhs.main, rhs.minor);
-        }
-      };
-
-      using FullIndices = std::set<FullIndex>;
-
       template<typename T>
       class Data
       {
