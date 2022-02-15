@@ -15,11 +15,6 @@ namespace nonogram
 {
   namespace file
   {
-    data::Nonogram::Pack Puzzles::internalPack()
-    {
-      return data::Nonogram::Pack ("Internal");
-    }
-
     Puzzles::Info::Info (QFileInfo _puzzle)
     : puzzle (_puzzle)
     {}
@@ -30,7 +25,8 @@ namespace nonogram
     {}
 
     Puzzles::Puzzles()
-    : root_path_ (QCoreApplication::applicationDirPath())
+    : current_puzzle_key_ ("current")
+    , root_path_ (QCoreApplication::applicationDirPath())
     , answers_path_ (root_path_ + "/../answers")
     , puzzles_path_ (root_path_ + "/../puzzles")
     , puzzles_()
@@ -92,10 +88,15 @@ namespace nonogram
       }
     }
 
+    QString Puzzles::solvedKey (data::Nonogram::ID id) const
+    {
+      return QString ("solved-%1").arg (id.toString());
+    }
+
     data::Nonogram Puzzles::titleNonogram() const
     {
       return
-        { {internalPack(), data::Nonogram::Puzzle {"Title"}}
+        { {data::Nonogram::internalPack(), data::Nonogram::Puzzle {"Title"}}
         , data::Array2D<bool>
           { { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
             , { 0, 1, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0 }
@@ -117,7 +118,9 @@ namespace nonogram
 
     data::Nonogram Puzzles::tutorialNonogram() const
     {
-      return { {internalPack(), data::Nonogram::Puzzle {"Tutorial"}}
+      return { { data::Nonogram::internalPack()
+               , data::Nonogram::Puzzle {"Tutorial"}
+               }
              , data::Array2D<bool>
                  { { { 0, 0, 1, 0, 0 }
                    , { 0, 1, 1, 1, 0 }
@@ -240,23 +243,20 @@ namespace nonogram
 
       file.close();
 
-      setCurrentPuzzle (id);
+      QSettings settings;
+      settings.setValue (current_puzzle_key_, id.toString());
     }
 
     std::optional<data::Nonogram::ID> Puzzles::currentPuzzle() const
     {
       QSettings settings;
-      auto const key (QString ("current"));
-      return settings.contains (key)
-           ? std::optional (data::Nonogram::ID (settings.value (key).toString()))
+      return settings.contains (current_puzzle_key_)
+           ? std::optional
+               ( data::Nonogram::ID
+                   (settings.value (current_puzzle_key_).toString())
+               )
            : std::nullopt;
 
-    }
-
-    void Puzzles::setCurrentPuzzle (data::Nonogram::ID id)
-    {
-      QSettings settings;
-      settings.setValue (QString ("current"), id.toString());
     }
 
     bool Puzzles::hasBeenSolved (data::Nonogram::Pack pack) const
@@ -273,16 +273,14 @@ namespace nonogram
     bool Puzzles::hasBeenSolved (data::Nonogram::ID id) const
     {
       QSettings settings;
-      auto const key (QString ("solved-%1").arg (id.toString()));
+      auto const key (solvedKey (id));
       return settings.contains (key) && settings.value (key).toBool();
     }
 
     void Puzzles::setSolved (data::Nonogram::ID id)
     {
       QSettings settings;
-      settings.setValue ( QString ("solved-%1").arg (id.toString())
-                        , true
-                        );
+      settings.setValue (solvedKey (id), true);
     }
 
     data::Nonogram Puzzles::puzzle (data::Nonogram::ID id) const

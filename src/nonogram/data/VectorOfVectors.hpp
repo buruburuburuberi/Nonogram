@@ -36,7 +36,7 @@ namespace nonogram
       }
     };
 
-    using Indices = std::set<data::FullIndex>;
+    using FullIndices = std::set<data::FullIndex>;
 
     template<typename T>
     class VectorOfVectors
@@ -92,9 +92,9 @@ namespace nonogram
         return at (full_index.main, full_index.minor);
       }
 
-      Indices indices_if (std::function<bool (FullIndex, T)> check) const
+      FullIndices indices_if (std::function<bool (FullIndex, T)> check) const
       {
-        Indices indices;
+        FullIndices indices;
 
         for (MainIndex main_index {0}; main_index < mainSize(); ++main_index)
         {

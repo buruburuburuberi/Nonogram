@@ -83,6 +83,23 @@ namespace nonogram
         return at (slot.column, slot.row);
       }
 
+      bool any_of (std::function<bool (Slot, T)> check) const
+      {
+        for (Row row {0}; row < rows(); ++row)
+        {
+          for (Column column {0}; column < columns(); ++column)
+          {
+            Slot const slot {column, row};
+            if (check (slot, at (slot)))
+            {
+              return true;
+            }
+          }
+        }
+
+        return false;
+      }
+
       Slots slots_if (std::function<bool (Slot, T)> check) const
       {
         Slots data;

@@ -15,19 +15,6 @@ namespace nonogram
     class Puzzles
     {
     public:
-      static data::Nonogram::Pack internalPack();
-
-      struct Info
-      {
-        Info (QFileInfo _puzzle);
-        Info (QFileInfo _puzzle, QFileInfo _answer);
-
-        QFileInfo puzzle;
-        std::optional<QFileInfo> answer;
-      };
-
-      using Files = std::map<data::Nonogram::ID, Info>;
-
       Puzzles();
 
       data::Nonogram::Packs packs() const;
@@ -38,7 +25,6 @@ namespace nonogram
       void writeAnswer (data::Nonogram::ID, data::Nonogram const&);
 
       std::optional<data::Nonogram::ID> currentPuzzle() const;
-      void setCurrentPuzzle (data::Nonogram::ID);
       bool hasBeenSolved (data::Nonogram::Pack) const;
       bool hasBeenSolved (data::Nonogram::ID) const;
       void setSolved (data::Nonogram::ID);
@@ -48,10 +34,23 @@ namespace nonogram
       data::Nonogram tutorialNonogram() const;
 
     private:
+      QString solvedKey (data::Nonogram::ID) const;
+
+      QString const current_puzzle_key_;
       QString const root_path_;
       QString const answers_path_;
       QString const puzzles_path_;
-      Files puzzles_;
+
+      struct Info
+      {
+        Info (QFileInfo _puzzle);
+        Info (QFileInfo _puzzle, QFileInfo _answer);
+
+        QFileInfo puzzle;
+        std::optional<QFileInfo> answer;
+      };
+
+      std::map<data::Nonogram::ID, Info> puzzles_;
     };
   }
 }

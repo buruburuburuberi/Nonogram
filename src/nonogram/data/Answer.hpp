@@ -3,19 +3,14 @@
 #include <nonogram/data/Array2D.hpp>
 #include <nonogram/data/ClueStates.hpp>
 #include <nonogram/data/Solution.hpp>
+#include <nonogram/data/VectorOfVectors.hpp>
 
 #include <QtCore/QDataStream>
 
-#include <cstddef>
 #include <map>
 
 namespace nonogram
 {
-  namespace file
-  {
-    class Puzzles;
-  }
-
   namespace data
   {
     class Answer

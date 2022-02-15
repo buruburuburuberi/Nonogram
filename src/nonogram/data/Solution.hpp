@@ -19,7 +19,7 @@ namespace nonogram
       using State = bool;
       using Data = Array2D<bool>;
 
-      using ClueIndices = std::map<Clues::Type, Indices>;
+      using ClueIndices = std::map<Clues::Type, FullIndices>;
 
       Solution (Data);
 

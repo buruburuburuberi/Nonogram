@@ -1,9 +1,11 @@
 #pragma once
 
+#include <nonogram/data/Array2D.hpp>
 #include <nonogram/data/VectorOfVectors.hpp>
 
 #include <QtCore/QSize>
 
+#include <array>
 #include <cstddef>
 #include <map>
 

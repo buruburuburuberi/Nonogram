@@ -46,7 +46,7 @@ namespace nonogram
       data_.set (full_index, state);
     }
 
-    Indices ClueStates::toLock() const
+    FullIndices ClueStates::toLock() const
     {
       return data_.indices_if
           ( [&] (FullIndex index, bool state)
@@ -54,7 +54,7 @@ namespace nonogram
           );
     }
 
-    Indices ClueStates::locked() const
+    FullIndices ClueStates::locked() const
     {
       return locks_.indices_if ([] (FullIndex, bool state) { return state; });
     }
@@ -64,7 +64,7 @@ namespace nonogram
       return locks_.at (full_index);
     }
 
-    void ClueStates::lock (Indices indices, ClueState state)
+    void ClueStates::lock (FullIndices indices, ClueState state)
     {
       for (auto const& index : indices)
       {

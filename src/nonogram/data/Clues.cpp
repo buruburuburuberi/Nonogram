@@ -1,8 +1,7 @@
 #include <nonogram/data/Clues.hpp>
 
-#include <iostream>
+#include <algorithm>
 #include <stdexcept>
-#include <string>
 
 namespace nonogram
 {
@@ -62,7 +61,7 @@ namespace nonogram
             && is_filled (Column {column - Column (1)}, row)
              )
           {
-            clues[row.value].push_back (filled_counter);
+            clues.at (row.value).push_back (filled_counter);
             filled_counter = 0;
           }
 
@@ -70,14 +69,14 @@ namespace nonogram
             && filled_counter > 0
              )
           {
-            clues[row.value].push_back (filled_counter);
+            clues.at (row.value).push_back (filled_counter);
           }
         }
 
         max_minor_size_.value =
             std::max ( max_minor_size_.value
                      , static_cast<MinorIndex::underlying_type>
-                        (clues[row.value].size())
+                        (clues.at (row.value).size())
                      );
       }
 

@@ -13,6 +13,11 @@ namespace nonogram
 {
   namespace data
   {
+    Nonogram::Pack Nonogram::internalPack()
+    {
+      return Pack ("Internal");
+    }
+
     Nonogram::ID::ID (Pack _pack, Puzzle _puzzle)
     : pack (_pack)
     , puzzle (_puzzle)
@@ -27,7 +32,7 @@ namespace nonogram
 
     bool Nonogram::ID::internal() const
     {
-      return pack == file::Puzzles::internalPack();
+      return pack == internalPack();
     }
 
     QString Nonogram::ID::toString() const

@@ -16,11 +16,6 @@
 
 namespace nonogram
 {
-  namespace file
-  {
-    class Puzzles;
-  }
-
   namespace data
   {
     class Nonogram
@@ -28,6 +23,8 @@ namespace nonogram
     public:
       HARD_QSTRING_TYPEDEF (Pack);
       HARD_QSTRING_TYPEDEF (Puzzle);
+
+      static Pack internalPack();
 
       using Packs = std::set<Pack>;
       using Puzzles = std::set<Puzzle>;

@@ -6,15 +6,8 @@
 
 #include <QtCore/QDataStream>
 
-#include <set>
-
 namespace nonogram
 {
-  namespace file
-  {
-    class Puzzles;
-  }
-
   namespace data
   {
     using ClueState = bool;
@@ -29,10 +22,10 @@ namespace nonogram
 
       bool isCrossed (FullIndex) const;
       void cross (FullIndex, ClueState);
-      Indices toLock() const;
-      Indices locked() const;
+      FullIndices toLock() const;
+      FullIndices locked() const;
       bool isLocked (FullIndex) const;
-      void lock (Indices, bool);
+      void lock (FullIndices, bool);
       void fillLocks (bool);
 
       bool canLock() const;

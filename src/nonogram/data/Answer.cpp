@@ -1,6 +1,9 @@
 #include <nonogram/data/Answer.hpp>
 
-#include <string>
+#include <algorithm>
+#include <stdexcept>
+#include <tuple>
+#include <utility>
 
 namespace nonogram
 {
@@ -121,54 +124,35 @@ namespace nonogram
 
     void Answer::fillClueLocks (bool state)
     {
-      for (auto const& type : Clues::all_types)
+      for (auto& clue_state : clue_states_)
       {
-        clue_states_.at (type).fillLocks (state);
+        clue_state.second.fillLocks (state);
       }
     }
 
     bool Answer::canLock() const
     {
-      auto hasCluesToLock
-        ( [&]
-          {
-            for (auto const& type : Clues::all_types)
-            {
-              if (clue_states_.at (type).canLock())
-              {
-                return true;
-              }
-            }
-
-            return false;
-          }
-        );
-
-      return !dataToLock().empty() || hasCluesToLock();
+      return data_.any_of
+             ( [&] (Slot slot, Datum datum)
+               { return datum != Datum::Empty && !data_locks_.at (slot); }
+             )
+          || std::any_of
+               ( clue_states_.begin()
+               , clue_states_.end()
+               , [&] (auto const& clue_state)
+                 { return clue_state.second.canLock(); }
+               );
     }
 
     bool Answer::canUnlock() const
     {
-      for (Row row {0}; row < data_locks_.rows(); ++row)
-      {
-        for (Column column {0}; column < data_locks_.columns(); ++column)
-        {
-          if (data_locks_.at ({column, row}))
-          {
-            return true;
-          }
-        }
-      }
-
-      for (auto const& type : Clues::all_types)
-      {
-        if (clue_states_.at (type).canUnlock())
-        {
-          return true;
-        }
-      }
-
-      return false;
+      return data_locks_.any_of ([&] (Slot, bool state) { return state; })
+          || std::any_of
+               ( clue_states_.begin()
+               , clue_states_.end()
+               , [&] (auto const& clue_state)
+                 { return clue_state.second.canUnlock(); }
+               );
     }
 
     bool Answer::isEmpty() const
@@ -181,9 +165,9 @@ namespace nonogram
       data_.fill (Answer::Datum::Empty);
       data_locks_.fill (false);
 
-      for (auto const& type : Clues::all_types)
+      for (auto& clue_state : clue_states_)
       {
-        clue_states_.at (type).reset();
+        clue_state.second.reset();
       }
     }
 
@@ -220,9 +204,9 @@ namespace nonogram
       ds << answer.data_;
       ds << answer.data_locks_;
 
-      for (auto const& type : Clues::all_types)
+      for (auto const& clue_state : answer.clue_states_)
       {
-        ds << answer.clue_states_.at (type);
+        ds << clue_state.second;
       }
 
       return ds;
