@@ -61,6 +61,7 @@ namespace nonogram
         util::unique_qt_ptr<QToolButton> redo_button_;
         util::unique_qt_ptr<QToolButton> undo_button_;
         util::unique_qt_ptr<QToolButton> solve_button_;
+        util::unique_qt_ptr<QToolButton> controls_button_;
     };
   }
 }

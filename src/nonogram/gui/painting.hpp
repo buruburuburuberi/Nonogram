@@ -36,5 +36,6 @@ namespace nonogram
     QIcon createRedoIcon (QSize, QColor bg, QColor fg);
     QIcon createResetIcon (QSize, QColor bg, QColor fg);
     QIcon createSolveIcon (QSize, QColor bg, QColor fg);
+    QIcon createControlsIcon (QSize, QColor bg, QColor fg);
   }
 }

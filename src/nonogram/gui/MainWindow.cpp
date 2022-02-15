@@ -49,21 +49,25 @@ namespace nonogram
       check_button_->setDisabled (true);
       check_button_->setToolButtonStyle (Qt::ToolButtonTextUnderIcon);
       check_button_->setIcon (createCheckIcon (icon_size_, bg_color_, fg_color_));
+      check_button_->setShortcut (QKeySequence (Qt::Key_C));
 
       lock_button_->setText ("Lock");
       lock_button_->setDisabled (true);
       lock_button_->setToolButtonStyle (Qt::ToolButtonTextUnderIcon);
       lock_button_->setIcon (createLockIcon (icon_size_, bg_color_, fg_color_));
+      lock_button_->setShortcut (QKeySequence (Qt::Key_L));
 
       unlock_button_->setText ("Unlock");
       unlock_button_->setDisabled (true);
       unlock_button_->setToolButtonStyle (Qt::ToolButtonTextUnderIcon);
       unlock_button_->setIcon (createUnlockIcon (icon_size_, bg_color_, fg_color_));
+      unlock_button_->setShortcut (QKeySequence (Qt::Key_U));
 
       reset_button_->setText ("Reset");
       reset_button_->setDisabled (true);
       reset_button_->setToolButtonStyle (Qt::ToolButtonTextUnderIcon);
       reset_button_->setIcon (createResetIcon (icon_size_, bg_color_, fg_color_));
+      reset_button_->setShortcut (QKeySequence (Qt::Key_R));
 
       fill_button_->setText ("Fill");
       fill_button_->setDisabled (true);
@@ -77,6 +81,7 @@ namespace nonogram
                      , fg_color_
                      )
         );
+      fill_button_->setShortcut (QKeySequence (Qt::Key_F));
 
       cross_button_->setText ("Cross");
       cross_button_->setDisabled (true);
@@ -89,6 +94,7 @@ namespace nonogram
                      , fg_color_
                      )
         );
+      cross_button_->setShortcut (QKeySequence (Qt::Key_X));
 
       fill_mark_button_->setText ("Fill Mark");
       fill_mark_button_->setDisabled (true);
@@ -101,6 +107,7 @@ namespace nonogram
                      , fg_color_
                      )
         );
+      fill_mark_button_->setShortcut (QKeySequence ("Alt+F"));
 
       cross_mark_button_->setText ("Cross Mark");
       cross_mark_button_->setDisabled (true);
@@ -113,21 +120,31 @@ namespace nonogram
                      , fg_color_
                      )
         );
+      cross_mark_button_->setShortcut (QKeySequence ("Alt+X"));
 
       undo_button_->setText ("Undo");
       undo_button_->setDisabled (true);
       undo_button_->setToolButtonStyle (Qt::ToolButtonTextUnderIcon);
       undo_button_->setIcon (createUndoIcon (icon_size_, bg_color_, fg_color_));
+      undo_button_->setShortcut (QKeySequence::Undo);
 
       redo_button_->setText ("Redo");
       redo_button_->setDisabled (true);
       redo_button_->setToolButtonStyle (Qt::ToolButtonTextUnderIcon);
       redo_button_->setIcon (createRedoIcon (icon_size_, bg_color_, fg_color_));
+      redo_button_->setShortcut (QKeySequence::Redo);
 
       solve_button_->setText ("Show Solution");
       solve_button_->setDisabled (true);
       solve_button_->setToolButtonStyle (Qt::ToolButtonTextUnderIcon);
       solve_button_->setIcon (createSolveIcon (icon_size_, bg_color_, fg_color_));
+      solve_button_->setShortcut (QKeySequence (Qt::Key_S));
+
+      controls_button_->setText ("Show Controls");
+      controls_button_->setToolButtonStyle (Qt::ToolButtonTextUnderIcon);
+      controls_button_->setIcon
+        (createControlsIcon (icon_size_, bg_color_, fg_color_));
+      controls_button_->setShortcut (QKeySequence::HelpContents);
 
       tools_group_->setExclusive (true);
       tools_group_->addButton (fill_button_.get());
@@ -164,6 +181,7 @@ namespace nonogram
       tools_toolbar_->addWidget (unlock_button_.release());
       tools_toolbar_->addWidget (reset_button_.release());
       tools_toolbar_->addWidget (solve_button_.release());
+      tools_toolbar_->addWidget (controls_button_.release());
       tools_toolbar_->addWidget (space_right2.release());
 
       scroll_area_->setMinimumSize (1440, 720);
@@ -274,6 +292,32 @@ namespace nonogram
                   }
                 }
               );
+      connect
+        ( controls_button_.get()
+        , &QToolButton::clicked
+        , this
+        , [&]
+          {
+            QMessageBox::information
+            ( this
+            , "Controls"
+            , "<table>"
+              "  <tr>"
+              "    <td><b>LMB Click</b>:</td>"
+              "    <td>Fill in a square.</td>"
+              "  </tr>"
+              "  <tr>"
+              "    <td><b>LMB Drag</b>:</td>"
+              "    <td>Fill in multiple squares in one go.</td>"
+              "  </tr>"
+              "  <tr>"
+              "    <td><b>RMB Drag</b>:</td>"
+              "    <td>Pan across a puzzle (when scrollbars are visible).</td>"
+              "  </tr>"
+              "</table>"
+            );
+          }
+        );
       connect ( fill_button_.get()
               , &QToolButton::toggled
               , this

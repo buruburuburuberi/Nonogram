@@ -174,7 +174,7 @@ namespace nonogram
       font.setBold (true);
       painter.setFont (font);
 
-      painter.drawText (pixmap.rect(), Qt::AlignCenter, "?");
+      painter.drawText (pixmap.rect(), Qt::AlignCenter, "C");
 
       return pixmap;
     }
@@ -320,6 +320,24 @@ namespace nonogram
         };
 
       painter.drawPolygon (points.data(), points.size());
+
+      return pixmap;
+    }
+
+    QIcon createControlsIcon (QSize size, QColor bg_color, QColor fg_color)
+    {
+      QPixmap pixmap (size);
+      QPainter painter (&pixmap);
+      pixmap.fill (Qt::black);
+
+      drawBackground (painter, pixmap.rect(), bg_color);
+
+      QFont font;
+      font.setPixelSize (20);
+      font.setBold (true);
+      painter.setFont (font);
+
+      painter.drawText (pixmap.rect(), Qt::AlignCenter, "?");
 
       return pixmap;
     }
