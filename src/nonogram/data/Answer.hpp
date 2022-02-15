@@ -1,9 +1,9 @@
 #pragma once
 
-#include <nonogram/data/Array2D.hpp>
+#include <nonogram/data/clues/Data.hpp>
+#include <nonogram/data/grid/Data.hpp>
 #include <nonogram/data/ClueStates.hpp>
 #include <nonogram/data/Solution.hpp>
-#include <nonogram/data/VectorOfVectors.hpp>
 
 #include <QtCore/QDataStream>
 
@@ -24,26 +24,26 @@ namespace nonogram
       , CrossMark = 4
       };
 
-      using Data = Array2D<Datum>;
-      using DataLocks = Array2D<bool>;
+      using Data = grid::Data<Datum>;
+      using DataLocks = grid::Data<bool>;
       using CluesStates = std::map<Clues::Type, ClueStates>;
 
       Answer (Solution const&);
       Answer (Data, DataLocks, CluesStates);
 
-      Datum at (Slot) const;
-      void fillData (Slot, Datum);
-      Slots dataToLock() const;
-      Slots lockedData() const;
-      bool isDatumLocked (Slot) const;
-      void lockData (Slots, bool);
+      Datum at (grid::Cell) const;
+      void fillData (grid::Cell, Datum);
+      grid::Cells dataToLock() const;
+      grid::Cells lockedData() const;
+      bool isDatumLocked (grid::Cell) const;
+      void lockData (grid::Cells, bool);
       void fillDataLocks (bool);
 
-      bool isCrossed (Clues::Type, FullIndex) const;
-      void cross (Clues::Type, FullIndex, bool);
+      bool isCrossed (Clues::Type, clues::FullIndex) const;
+      void cross (Clues::Type, clues::FullIndex, bool);
       Solution::ClueIndices cluesToLock() const;
       Solution::ClueIndices lockedClues() const;
-      bool isClueLocked (Clues::Type, FullIndex) const;
+      bool isClueLocked (Clues::Type, clues::FullIndex) const;
       void lockClues (Solution::ClueIndices, bool);
       void fillClueLocks (bool);
 

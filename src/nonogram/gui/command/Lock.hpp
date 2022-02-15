@@ -3,8 +3,9 @@
 #include <nonogram/gui/command/Base.hpp>
 #include <nonogram/gui/command/Cross.hpp>
 #include <nonogram/gui/command/Fill.hpp>
-#include <nonogram/data/Array2D.hpp>
 #include <nonogram/data/Answer.hpp>
+#include <nonogram/data/clues/Data.hpp>
+#include <nonogram/data/grid/Data.hpp>
 
 #include <map>
 #include <optional>
@@ -29,7 +30,7 @@ namespace nonogram
         Lock (data::Nonogram&, bool unlock);
 
         bool const unlock_;
-        data::Slots data_slots_;
+        data::grid::Cells data_cells_;
         data::Solution::ClueIndices clue_indices_;
       };
     }

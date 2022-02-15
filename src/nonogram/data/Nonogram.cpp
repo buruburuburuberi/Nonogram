@@ -67,47 +67,47 @@ namespace nonogram
       return id_;
     }
 
-    Row Nonogram::dataRows() const
+    grid::Row Nonogram::dataRows() const
     {
       return solution_.dataRows();
     }
 
-    Column Nonogram::dataColumns() const
+    grid::Column Nonogram::dataColumns() const
     {
       return solution_.dataColumns();
     }
 
-    Solution::State Nonogram::solution (Slot slot) const
+    Solution::State Nonogram::solution (grid::Cell cell) const
     {
-      return solution_.at (slot);
+      return solution_.at (cell);
     }
 
-    Answer::Datum Nonogram::answer (Slot slot) const
+    Answer::Datum Nonogram::answer (grid::Cell cell) const
     {
-      return answer_.at (slot);
+      return answer_.at (cell);
     }
 
-    void Nonogram::fillData (Slot slot, Answer::Datum datum)
+    void Nonogram::fillData (grid::Cell cell, Answer::Datum datum)
     {
-      answer_.fillData (slot, datum);
+      answer_.fillData (cell, datum);
     }
 
-    Slots Nonogram::dataToLock() const
+    grid::Cells Nonogram::dataToLock() const
     {
       return answer_.dataToLock();
     }
 
-    Slots Nonogram::lockedData() const
+    grid::Cells Nonogram::lockedData() const
     {
       return answer_.lockedData();
     }
 
-    bool Nonogram::isDatumLocked (Slot slot) const
+    bool Nonogram::isDatumLocked (grid::Cell cell) const
     {
-      return answer_.isDatumLocked (slot);
+      return answer_.isDatumLocked (cell);
     }
 
-    void Nonogram::lockData (Slots to_move, bool state)
+    void Nonogram::lockData (grid::Cells to_move, bool state)
     {
       answer_.lockData (std::move (to_move), state);
     }
@@ -117,32 +117,39 @@ namespace nonogram
       answer_.fillDataLocks (state);
     }
 
-    MinorIndex Nonogram::maxNumberOfClues (Clues::Type type) const
+    clues::MinorIndex Nonogram::maxNumberOfClues (Clues::Type type) const
     {
       return solution_.maxNumberOfClues (type);
     }
 
-    MainIndex Nonogram::clueMainSize (Clues::Type type) const
+    clues::MainIndex Nonogram::clueMainSize (Clues::Type type) const
     {
       return solution_.clueMainSize (type);
     }
 
-    MinorIndex Nonogram::clueMinorSize (Clues::Type type, MainIndex main_index) const
+    clues::MinorIndex Nonogram::clueMinorSize ( Clues::Type type
+                                              , clues::MainIndex main_index
+                                              ) const
     {
       return solution_.clueMinorSize (type, main_index);
     }
 
-    Clues::Value Nonogram::clue (Clues::Type type, FullIndex full_index) const
+    Clues::Value Nonogram::clue ( Clues::Type type
+                                , clues::FullIndex full_index
+                                ) const
     {
       return solution_.clue (type, full_index);
     }
 
-    ClueState Nonogram::isCrossed (Clues::Type type, FullIndex full_index) const
+    ClueState Nonogram::isCrossed (Clues::Type type, clues::FullIndex full_index) const
     {
       return answer_.isCrossed (type, full_index);
     }
 
-    void Nonogram::cross (Clues::Type type, FullIndex full_index, ClueState state)
+    void Nonogram::cross ( Clues::Type type
+                         , clues::FullIndex full_index
+                         , ClueState state
+                         )
     {
       answer_.cross (type, full_index, state);
     }
@@ -157,7 +164,9 @@ namespace nonogram
       return answer_.lockedClues();
     }
 
-    bool Nonogram::isClueLocked (Clues::Type type, FullIndex full_index) const
+    bool Nonogram::isClueLocked ( Clues::Type type
+                                , clues::FullIndex full_index
+                                ) const
     {
       return answer_.isClueLocked (type, full_index);
     }
@@ -187,25 +196,25 @@ namespace nonogram
       return answer_.isEmpty();
     }
 
-    bool Nonogram::isMistake (Slot slot) const
+    bool Nonogram::isMistake (grid::Cell cell) const
     {
-      auto const datum (answer_.at (slot));
+      auto const datum (answer_.at (cell));
       return ( (datum == Answer::Datum::Filled)
             || (datum == Answer::Datum::Crossed)
              )
-          && solution_.at (slot) != (datum == data::Answer::Datum::Filled);
+          && solution_.at (cell) != (datum == data::Answer::Datum::Filled);
     }
 
-    std::optional<Slot> Nonogram::findFirstMistake() const
+    std::optional<grid::Cell> Nonogram::findFirstMistake() const
     {
-      for (Row row {0}; row < dataRows(); ++row)
+      for (grid::Row row {0}; row < dataRows(); ++row)
       {
-        for (Column column {0}; column < dataColumns(); ++column)
+        for (grid::Column column {0}; column < dataColumns(); ++column)
         {
-          Slot const slot {column, row};
-          if (isMistake (slot))
+          grid::Cell const cell {column, row};
+          if (isMistake (cell))
           {
-            return slot;
+            return cell;
           }
         }
       }
@@ -215,13 +224,13 @@ namespace nonogram
 
     bool Nonogram::isSolved() const
     {
-      for (Row row {0}; row < dataRows(); ++row)
+      for (grid::Row row {0}; row < dataRows(); ++row)
       {
-        for (Column column {0}; column < dataColumns(); ++column)
+        for (grid::Column column {0}; column < dataColumns(); ++column)
         {
-          Slot const slot {column, row};
-          auto const datum (answer_.at (slot));
-          if (solution_.at (slot) != (datum == data::Answer::Datum::Filled))
+          grid::Cell const cell {column, row};
+          auto const datum (answer_.at (cell));
+          if (solution_.at (cell) != (datum == data::Answer::Datum::Filled))
           {
             return false;
           }

@@ -1,9 +1,9 @@
 #pragma once
 
 #include <nonogram/gui/command/Base.hpp>
-#include <nonogram/data/Array2D.hpp>
 #include <nonogram/data/Answer.hpp>
 #include <nonogram/data/Solution.hpp>
+#include <nonogram/data/clues/Data.hpp>
 
 #include <QtWidgets/QUndoCommand>
 

@@ -1,8 +1,9 @@
 #pragma once
 
 #include <nonogram/data/Answer.hpp>
-#include <nonogram/data/Array2D.hpp>
 #include <nonogram/data/Solution.hpp>
+#include <nonogram/data/clues/Data.hpp>
+#include <nonogram/data/grid/Data.hpp>
 #include <nonogram/util/hard_qstring_typedef.hpp>
 
 #include <QtCore/QString>
@@ -49,26 +50,26 @@ namespace nonogram
       Nonogram (ID, Solution, Answer);
 
       ID id() const;
-      Row dataRows() const;
-      Column dataColumns() const;
-      Solution::State solution (Slot) const;
-      Answer::Datum answer (Slot) const;
-      void fillData (Slot, Answer::Datum);
-      Slots dataToLock() const;
-      Slots lockedData() const;
-      bool isDatumLocked (Slot) const;
-      void lockData (Slots, bool);
+      grid::Row dataRows() const;
+      grid::Column dataColumns() const;
+      Solution::State solution (grid::Cell) const;
+      Answer::Datum answer (grid::Cell) const;
+      void fillData (grid::Cell, Answer::Datum);
+      grid::Cells dataToLock() const;
+      grid::Cells lockedData() const;
+      bool isDatumLocked (grid::Cell) const;
+      void lockData (grid::Cells, bool);
       void fillDataLocks (bool);
 
-      MinorIndex maxNumberOfClues (Clues::Type type) const;
-      MainIndex clueMainSize (Clues::Type) const;
-      MinorIndex clueMinorSize (Clues::Type, MainIndex) const;
-      Clues::Value clue (Clues::Type, FullIndex) const;
-      ClueState isCrossed (Clues::Type, FullIndex) const;
-      void cross (Clues::Type, FullIndex, ClueState);
+      clues::MinorIndex maxNumberOfClues (Clues::Type type) const;
+      clues::MainIndex clueMainSize (Clues::Type) const;
+      clues::MinorIndex clueMinorSize (Clues::Type, clues::MainIndex) const;
+      Clues::Value clue (Clues::Type, clues::FullIndex) const;
+      ClueState isCrossed (Clues::Type, clues::FullIndex) const;
+      void cross (Clues::Type, clues::FullIndex, ClueState);
       Solution::ClueIndices cluesToLock() const;
       Solution::ClueIndices lockedClues() const;
-      bool isClueLocked (Clues::Type, FullIndex) const;
+      bool isClueLocked (Clues::Type, clues::FullIndex) const;
       void lockClues (Solution::ClueIndices, bool);
       void fillClueLocks (bool);
 
@@ -76,8 +77,8 @@ namespace nonogram
       bool canUnlock() const;
       bool isEmpty() const;
 
-      bool isMistake (Slot) const;
-      std::optional<Slot> findFirstMistake() const;
+      bool isMistake (grid::Cell) const;
+      std::optional<grid::Cell> findFirstMistake() const;
       bool isSolved() const;
       void resetAnswer();
 

@@ -154,10 +154,10 @@ namespace nonogram
       update();
     }
 
-    void PlayField::checkSlot (data::Slot slot)
+    void PlayField::checkCell (data::grid::Cell cell)
     {
-      current_error_slot_ = nonogram_.isMistake (slot)
-                          ? std::optional (slot)
+      current_error_slot_ = nonogram_.isMistake (cell)
+                          ? std::optional (cell)
                           : std::nullopt;
       update();
     }
@@ -214,24 +214,24 @@ namespace nonogram
       update();
     }
 
-    QPoint PlayField::clueCenter (QRect clues_rect, data::Slot slot) const
+    QPoint PlayField::clueCenter (QRect clues_rect, data::grid::Cell cell) const
     {
       auto const half_slot_size (slot_size_ / 2.f);
       return QPoint
-        ( clues_rect.x() + slot.column.value * slot_size_ + half_slot_size
-        , clues_rect.y() + slot.row.value * slot_size_ + half_slot_size
+        ( clues_rect.x() + cell.column.value * slot_size_ + half_slot_size
+        , clues_rect.y() + cell.row.value * slot_size_ + half_slot_size
         );
     }
 
     void PlayField::drawClue ( QPainter& painter
                              , FieldType field_type
                              , data::Clues::Type clue_type
-                             , data::Slot slot
-                             , data::FullIndex full_index
+                             , data::grid::Cell cell
+                             , data::clues::FullIndex full_index
                              , bool mark_as_error
                              )
     {
-      auto const clue_center (clueCenter (field_rects_.at (field_type), slot));
+      auto const clue_center (clueCenter (field_rects_.at (field_type), cell));
 
       auto const background_size (slot_size_ - 2);
       QRect background_rect (0, 0, background_size, background_size);
@@ -246,7 +246,7 @@ namespace nonogram
         auto const slot_size
           ( ( current_hit_
            && std::holds_alternative<data::ClueState> (current_hit_->data)
-           && current_hit_->current_slot == slot
+           && current_hit_->current_slot == cell
             )
           ? slot_size_ - 4
           : slot_size_
@@ -300,20 +300,20 @@ namespace nonogram
       auto const max_number_of_clues
         (nonogram_.maxNumberOfClues (clue_type).value);
 
-      data::Column const columns
+      data::grid::Column const columns
         { clue_type == data::Clues::Type::Row
         ? max_number_of_clues
         : nonogram_.clueMainSize (clue_type).value
         };
-      data::Row const rows
+      data::grid::Row const rows
         { clue_type == data::Clues::Type::Row
         ? nonogram_.clueMainSize (clue_type).value
         : max_number_of_clues
         };
 
-      for (data::Row row {0}; row < rows; ++row)
+      for (data::grid::Row row {0}; row < rows; ++row)
       {
-        for (data::Column column {0}; column < columns; ++column)
+        for (data::grid::Column column {0}; column < columns; ++column)
         {
           auto const mark_as_error
             ( current_error_slot_
@@ -326,31 +326,31 @@ namespace nonogram
               )
             );
 
-          data::Slot const slot {column, row};
-          data::FullIndex const full_index
-            (fromSlot (field_type, clue_type, slot));
+          data::grid::Cell const cell {column, row};
+          data::clues::FullIndex const full_index
+            (fromCell (field_type, clue_type, cell));
 
           drawClue
-            (painter, field_type, clue_type, slot, full_index, mark_as_error);
+            (painter, field_type, clue_type, cell, full_index, mark_as_error);
         }
       }
     }
 
-    data::Slot PlayField::fromPosition (QRect rect, QPoint position) const
+    data::grid::Cell PlayField::fromPosition (QRect rect, QPoint position) const
     {
-      return { data::Column {(position.x() - rect.x()) / slot_size_}
-             , data::Row {(position.y() - rect.y()) / slot_size_}
+      return { data::grid::Column {(position.x() - rect.x()) / slot_size_}
+             , data::grid::Row {(position.y() - rect.y()) / slot_size_}
              };
     }
 
-    data::FullIndex PlayField::fromSlot ( FieldType field_type
-                                        , data::Clues::Type clue_type
-                                        , data::Slot slot
-                                        ) const
+    data::clues::FullIndex PlayField::fromCell ( FieldType field_type
+                                               , data::Clues::Type clue_type
+                                               , data::grid::Cell cell
+                                               ) const
     {
       auto const max_number_of_clues (nonogram_.maxNumberOfClues (clue_type));
-      data::FullIndex full_index
-        (data::Clues::toFullIndex (clue_type, slot));
+      data::clues::FullIndex full_index
+        (data::Clues::toFullIndex (clue_type, cell));
 
       if (field_type == FieldType::LeftClues || field_type == FieldType::TopClues)
       {
@@ -364,30 +364,30 @@ namespace nonogram
       return full_index;
     }
 
-    QPoint PlayField::slotCenter (data::Slot slot) const
+    QPoint PlayField::slotCenter (data::grid::Cell cell) const
     {
       auto const half_slot_size (slot_size_ / 2.f);
       return QPoint
         ( field_rects_.at (FieldType::Puzzle).x()
-          + slot.column.value * slot_size_ + half_slot_size
+          + cell.column.value * slot_size_ + half_slot_size
         , field_rects_.at (FieldType::Puzzle).y()
-          + slot.row.value * slot_size_ + half_slot_size
+          + cell.row.value * slot_size_ + half_slot_size
         );
     }
 
-    void PlayField::drawSlot ( QPainter& painter
-                             , data::Slot slot
+    void PlayField::drawCell ( QPainter& painter
+                             , data::grid::Cell cell
                              , data::Answer::Datum datum
                              )
     {
-      auto const slot_center (slotCenter (slot));
+      auto const slot_center (slotCenter (cell));
 
       QRect background_rect (0, 0, slot_size_, slot_size_);
       background_rect.moveCenter (slot_center);
       drawBackground
         ( painter
         , background_rect
-        , current_error_slot_ && current_error_slot_.value() == slot
+        , current_error_slot_ && current_error_slot_.value() == cell
           ? mistake_color_
           : bg_color_
         );
@@ -402,7 +402,7 @@ namespace nonogram
 
       QColor const color
         ( ( !nonogram_.id().internal()
-         && nonogram_.isDatumLocked (slot)
+         && nonogram_.isDatumLocked (cell)
          && !solved_
           )
         ? locked_color_
@@ -413,7 +413,7 @@ namespace nonogram
         ( ( !solved_
          && current_hit_
          && std::holds_alternative<data::Answer::Datum> (current_hit_->data)
-         && current_hit_->current_slot == slot
+         && current_hit_->current_slot == cell
           )
         ? slot_size_ - 4
         : slot_size_
@@ -457,34 +457,38 @@ namespace nonogram
 
     void PlayField::drawPuzzle (QPainter& painter)
     {
-      for (data::Column column {0}; column < nonogram_.dataColumns(); ++column)
+      for ( data::grid::Column column {0}
+          ; column < nonogram_.dataColumns()
+          ; ++column
+          )
       {
-        for (data::Row row {0}; row < nonogram_.dataRows(); ++row)
+        for (data::grid::Row row {0}; row < nonogram_.dataRows(); ++row)
         {
-          data::Slot const slot {column, row};
-          drawSlot (painter, slot, nonogram_.answer (slot));
+          data::grid::Cell const cell {column, row};
+          drawCell (painter, cell, nonogram_.answer (cell));
         }
       }
     }
 
-    bool PlayField::fillSlot (QPoint position, bool first_hit)
+    bool PlayField::fillCell (QPoint position, bool first_hit)
     {
       if (field_rects_.at (FieldType::Puzzle).contains (position))
       {
-        auto const slot (fromPosition (field_rects_.at (FieldType::Puzzle), position));
+        auto const cell
+          (fromPosition (field_rects_.at (FieldType::Puzzle), position));
 
-        if (nonogram_.isDatumLocked (slot))
+        if (nonogram_.isDatumLocked (cell))
         {
           return true;
         }
 
-        auto const current_datum (nonogram_.answer (slot));
+        auto const current_datum (nonogram_.answer (cell));
 
         if (!current_hit_)
         {
           current_hit_ =
             { FieldType::Puzzle
-            , slot
+            , cell
             , current_datum == fill_mode_
               ? data::Answer::Datum::Empty
               : fill_mode_
@@ -501,7 +505,7 @@ namespace nonogram
           return true;
         }
 
-        data::Slots const data_slots {slot};
+        data::grid::Cells const data_slots {cell};
         if (first_hit)
         {
           undo_stack_.push
@@ -517,15 +521,15 @@ namespace nonogram
             );
         }
 
-        current_hit_ = {FieldType::Puzzle, slot, to_fill};
+        current_hit_ = {FieldType::Puzzle, cell, to_fill};
 
-        if (current_error_slot_ == slot)
+        if (current_error_slot_ == cell)
         {
-          checkSlot (current_error_slot_.value());
+          checkCell (current_error_slot_.value());
         }
 
-        if ( ( nonogram_.answer (slot) == data::Answer::Datum::Filled
-            || nonogram_.answer (slot) == data::Answer::Datum::Empty
+        if ( ( nonogram_.answer (cell) == data::Answer::Datum::Filled
+            || nonogram_.answer (cell) == data::Answer::Datum::Empty
              )
           && nonogram_.isSolved()
            )
@@ -560,9 +564,9 @@ namespace nonogram
               return false;
             }
 
-            auto const slot (fromPosition (rect, position));
-            data::FullIndex const full_index
-              (fromSlot (field_type, clue_type, slot));
+            auto const cell (fromPosition (rect, position));
+            data::clues::FullIndex const full_index
+              (fromCell (field_type, clue_type, cell));
 
             if ( full_index.minor
               >= nonogram_.clueMinorSize (clue_type, full_index.main)
@@ -590,7 +594,7 @@ namespace nonogram
               return true;
             }
 
-            current_hit_ = {field_type, slot, state};
+            current_hit_ = {field_type, cell, state};
 
             data::Solution::ClueIndices const clue_indices
               {{clue_type, {full_index}}};
@@ -658,7 +662,7 @@ namespace nonogram
         {
           if (std::holds_alternative<data::Answer::Datum> (current_hit_->data))
           {
-            fillSlot (event->pos(), false);
+            fillCell (event->pos(), false);
           }
           else if (std::holds_alternative<data::ClueState> (current_hit_->data))
           {
@@ -706,7 +710,7 @@ namespace nonogram
     {
       if (event->buttons() & Qt::LeftButton)
       {
-        if (fillSlot (event->pos(), true))
+        if (fillCell (event->pos(), true))
         {
           return;
         }
@@ -835,15 +839,18 @@ namespace nonogram
     {
       setDisabled (true);
 
-      for (data::Row row {0}; row < nonogram_.dataRows(); ++row)
+      for (data::grid::Row row {0}; row < nonogram_.dataRows(); ++row)
       {
-        for (data::Column column {0}; column < nonogram_.dataColumns(); ++column)
+        for ( data::grid::Column column {0}
+            ; column < nonogram_.dataColumns()
+            ; ++column
+            )
         {
-          data::Slot const slot {column, row};
+          data::grid::Cell const cell {column, row};
 
-          if (nonogram_.solution (slot))
+          if (nonogram_.solution (cell))
           {
-            nonogram_.fillData (slot, data::Answer::Datum::Filled);
+            nonogram_.fillData (cell, data::Answer::Datum::Filled);
 
             if (animate)
             {
@@ -889,8 +896,8 @@ namespace nonogram
         }
       );
 
-      auto waitUntilSlotsAreFilled
-      ( [&] (data::Slots slots_to_fill, data::Answer::Datum datum)
+      auto waitUntilCellsAreFilled
+      ( [&] (data::grid::Cells slots_to_fill, data::Answer::Datum datum)
         {
           nonogram_.lockData (slots_to_fill, false);
 
@@ -905,9 +912,9 @@ namespace nonogram
                     if ( std::all_of
                            ( slots_to_fill.begin()
                            , slots_to_fill.end()
-                           , [&] (data::Slot slot)
+                           , [&] (data::grid::Cell cell)
                              {
-                               return nonogram_.answer (slot) == datum;
+                               return nonogram_.answer (cell) == datum;
                              }
                            )
                        )
@@ -1044,13 +1051,13 @@ namespace nonogram
           , position
           );
 
-        data::Slots const slots_to_fill
-          { {data::Column {2}, data::Row {0}}
-          , {data::Column {2}, data::Row {1}}
-          , {data::Column {2}, data::Row {3}}
-          , {data::Column {2}, data::Row {4}}
+        data::grid::Cells const slots_to_fill
+          { {data::grid::Column {2}, data::grid::Row {0}}
+          , {data::grid::Column {2}, data::grid::Row {1}}
+          , {data::grid::Column {2}, data::grid::Row {3}}
+          , {data::grid::Column {2}, data::grid::Row {4}}
           };
-        waitUntilSlotsAreFilled (slots_to_fill, data::Answer::Datum::Filled);
+        waitUntilCellsAreFilled (slots_to_fill, data::Answer::Datum::Filled);
         nonogram_.lockData (slots_to_fill, true);
       }
 
@@ -1122,17 +1129,17 @@ namespace nonogram
           , position
           );
 
-        data::Slots const slots_to_fill
-          { {data::Column {0}, data::Row {0}}
-          , {data::Column {1}, data::Row {0}}
-          , {data::Column {3}, data::Row {0}}
-          , {data::Column {4}, data::Row {0}}
-          , {data::Column {0}, data::Row {4}}
-          , {data::Column {1}, data::Row {4}}
-          , {data::Column {3}, data::Row {4}}
-          , {data::Column {4}, data::Row {4}}
+        data::grid::Cells const slots_to_fill
+          { {data::grid::Column {0}, data::grid::Row {0}}
+          , {data::grid::Column {1}, data::grid::Row {0}}
+          , {data::grid::Column {3}, data::grid::Row {0}}
+          , {data::grid::Column {4}, data::grid::Row {0}}
+          , {data::grid::Column {0}, data::grid::Row {4}}
+          , {data::grid::Column {1}, data::grid::Row {4}}
+          , {data::grid::Column {3}, data::grid::Row {4}}
+          , {data::grid::Column {4}, data::grid::Row {4}}
           };
-        waitUntilSlotsAreFilled (slots_to_fill, data::Answer::Datum::Crossed);
+        waitUntilCellsAreFilled (slots_to_fill, data::Answer::Datum::Crossed);
         nonogram_.lockData (slots_to_fill, true);
       }
 
@@ -1192,15 +1199,15 @@ namespace nonogram
           , position
           );
 
-        data::Slots const slots_to_fill
-          { {data::Column {1}, data::Row {1}}
-          , {data::Column {1}, data::Row {2}}
-          , {data::Column {1}, data::Row {3}}
-          , {data::Column {3}, data::Row {1}}
-          , {data::Column {3}, data::Row {2}}
-          , {data::Column {3}, data::Row {3}}
+        data::grid::Cells const slots_to_fill
+          { {data::grid::Column {1}, data::grid::Row {1}}
+          , {data::grid::Column {1}, data::grid::Row {2}}
+          , {data::grid::Column {1}, data::grid::Row {3}}
+          , {data::grid::Column {3}, data::grid::Row {1}}
+          , {data::grid::Column {3}, data::grid::Row {2}}
+          , {data::grid::Column {3}, data::grid::Row {3}}
           };
-        waitUntilSlotsAreFilled (slots_to_fill, data::Answer::Datum::Filled);
+        waitUntilCellsAreFilled (slots_to_fill, data::Answer::Datum::Filled);
       }
 
       {

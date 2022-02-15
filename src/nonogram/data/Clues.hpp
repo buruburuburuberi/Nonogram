@@ -1,7 +1,7 @@
 #pragma once
 
-#include <nonogram/data/Array2D.hpp>
-#include <nonogram/data/VectorOfVectors.hpp>
+#include <nonogram/data/clues/Data.hpp>
+#include <nonogram/data/grid/Data.hpp>
 
 #include <QtCore/QSize>
 
@@ -17,7 +17,7 @@ namespace nonogram
     {
     public:
       using Value = std::size_t;
-      using Data = VectorOfVectors<Value>;
+      using Data = clues::Data<Value>;
 
       enum class Type
       { Column
@@ -29,21 +29,21 @@ namespace nonogram
       , Type::Row
       };
 
-      static FullIndex toFullIndex (Type, Slot);
+      static clues::FullIndex toFullIndex (Type, grid::Cell);
 
-      Clues (Array2D<bool> const&, Type);
+      Clues (grid::Data<bool> const&, Type);
 
-      MinorIndex maxNumberOfClues() const;
-      MainIndex mainSize() const;
-      MinorIndex minorSize (MainIndex) const;
+      clues::MinorIndex maxNumberOfClues() const;
+      clues::MainIndex mainSize() const;
+      clues::MinorIndex minorSize (clues::MainIndex) const;
 
-      Value clue (FullIndex) const;
+      Value clue (clues::FullIndex) const;
 
     private:
-      Data computeClues (Array2D<bool> const&, Type);
+      Data computeClues (grid::Data<bool> const&, Type);
 
       Type type_;
-      MinorIndex max_minor_size_;
+      clues::MinorIndex max_minor_size_;
       Data data_;
     };
   }

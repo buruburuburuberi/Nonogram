@@ -10,7 +10,7 @@ namespace nonogram
     : data_ (solution.clueMainSize (type))
     , locks_ (solution.clueMainSize (type))
     {
-      for ( MainIndex main_index {0}
+      for ( clues::MainIndex main_index {0}
           ; main_index < solution.clueMainSize (type)
           ; ++main_index
           )
@@ -31,12 +31,12 @@ namespace nonogram
     , locks_ (std::move (locks))
     {}
 
-    bool ClueStates::isCrossed (FullIndex full_index) const
+    bool ClueStates::isCrossed (clues::FullIndex full_index) const
     {
       return data_.at (full_index);
     }
 
-    void ClueStates::cross (FullIndex full_index, bool state)
+    void ClueStates::cross (clues::FullIndex full_index, bool state)
     {
       if (locks_.at (full_index))
       {
@@ -46,25 +46,26 @@ namespace nonogram
       data_.set (full_index, state);
     }
 
-    FullIndices ClueStates::toLock() const
+    clues::FullIndices ClueStates::toLock() const
     {
       return data_.indices_if
-          ( [&] (FullIndex index, bool state)
+          ( [&] (clues::FullIndex index, bool state)
             { return state && !locks_.at (index); }
           );
     }
 
-    FullIndices ClueStates::locked() const
+    clues::FullIndices ClueStates::locked() const
     {
-      return locks_.indices_if ([] (FullIndex, bool state) { return state; });
+      return locks_.indices_if
+          ([] (clues::FullIndex, bool state) { return state; });
     }
 
-    bool ClueStates::isLocked (FullIndex full_index) const
+    bool ClueStates::isLocked (clues::FullIndex full_index) const
     {
       return locks_.at (full_index);
     }
 
-    void ClueStates::lock (FullIndices indices, ClueState state)
+    void ClueStates::lock (clues::FullIndices indices, ClueState state)
     {
       for (auto const& index : indices)
       {
@@ -84,12 +85,12 @@ namespace nonogram
 
     bool ClueStates::canUnlock() const
     {
-      for ( MainIndex main_index {0}
+      for ( clues::MainIndex main_index {0}
           ; main_index < locks_.mainSize()
           ; ++main_index
           )
       {
-        for ( MinorIndex minor_index {0}
+        for ( clues::MinorIndex minor_index {0}
             ; minor_index < locks_.minorSize (main_index)
             ; ++minor_index
             )

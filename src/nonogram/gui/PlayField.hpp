@@ -63,25 +63,28 @@ namespace nonogram
 
     private:
       void reset();
-      data::Slot fromPosition (QRect, QPoint) const;
-      data::FullIndex fromSlot(FieldType, data::Clues::Type, data::Slot) const;
-      void checkSlot (data::Slot);
-      bool fillSlot (QPoint, bool first_hit);
+      data::grid::Cell fromPosition (QRect, QPoint) const;
+      data::clues::FullIndex fromCell ( FieldType
+                                      , data::Clues::Type
+                                      , data::grid::Cell
+                                      ) const;
+      void checkCell (data::grid::Cell);
+      bool fillCell (QPoint, bool first_hit);
       bool crossClue (QPoint, bool first_hit);
       void finishPuzzle();
 
-      QPoint clueCenter (QRect clues_rect, data::Slot) const;
+      QPoint clueCenter (QRect clues_rect, data::grid::Cell) const;
       void drawClue ( QPainter& painter
                     , FieldType type
                     , data::Clues::Type clue_type
-                    , data::Slot
-                    , data::FullIndex
+                    , data::grid::Cell
+                    , data::clues::FullIndex
                     , bool mark_as_error
                     );
 
-      QPoint slotCenter (data::Slot) const;
-      void drawSlot ( QPainter& painter
-                    , data::Slot
+      QPoint slotCenter (data::grid::Cell) const;
+      void drawCell ( QPainter& painter
+                    , data::grid::Cell
                     , data::Answer::Datum
                     );
 
@@ -106,13 +109,13 @@ namespace nonogram
       struct Hit
       {
         FieldType type;
-        data::Slot current_slot;
+        data::grid::Cell current_slot;
         std::variant<data::ClueState, data::Answer::Datum> data;
       };
 
-      std::optional<data::Slot> current_slot_;
+      std::optional<data::grid::Cell> current_slot_;
       std::optional<Hit> current_hit_;
-      std::optional<data::Slot> current_error_slot_;
+      std::optional<data::grid::Cell> current_error_slot_;
       std::vector<QRect> highlights_;
       bool solved_;
     };

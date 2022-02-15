@@ -1,6 +1,7 @@
 #pragma once
 
-#include <nonogram/data/Array2D.hpp>
+#include <nonogram/data/clues/Data.hpp>
+#include <nonogram/data/grid/Data.hpp>
 #include <nonogram/data/Clues.hpp>
 
 #include <QtCore/QSize>
@@ -17,20 +18,20 @@ namespace nonogram
     {
     public:
       using State = bool;
-      using Data = Array2D<bool>;
+      using Data = grid::Data<bool>;
 
-      using ClueIndices = std::map<Clues::Type, FullIndices>;
+      using ClueIndices = std::map<Clues::Type, clues::FullIndices>;
 
       Solution (Data);
 
-      Row dataRows() const;
-      Column dataColumns() const;
-      State at (Slot) const;
+      grid::Row dataRows() const;
+      grid::Column dataColumns() const;
+      State at (grid::Cell) const;
 
-      MinorIndex maxNumberOfClues (Clues::Type) const;
-      MainIndex clueMainSize (Clues::Type) const;
-      MinorIndex clueMinorSize (Clues::Type, MainIndex) const;
-      Clues::Value clue (Clues::Type, FullIndex) const;
+      clues::MinorIndex maxNumberOfClues (Clues::Type) const;
+      clues::MainIndex clueMainSize (Clues::Type) const;
+      clues::MinorIndex clueMinorSize (Clues::Type, clues::MainIndex) const;
+      Clues::Value clue (Clues::Type, clues::FullIndex) const;
 
     private:
       Data data_;

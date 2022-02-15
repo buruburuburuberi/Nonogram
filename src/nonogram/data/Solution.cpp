@@ -20,37 +20,41 @@ namespace nonogram
       }
     }
 
-    Row Solution::dataRows() const
+    grid::Row Solution::dataRows() const
     {
       return data_.rows();
     }
 
-    Column Solution::dataColumns() const
+    grid::Column Solution::dataColumns() const
     {
       return data_.columns();
     }
 
-    Solution::State Solution::at (Slot slot) const
+    Solution::State Solution::at (grid::Cell cell) const
     {
-      return data_.at (slot);
+      return data_.at (cell);
     }
 
-    MinorIndex Solution::maxNumberOfClues (Clues::Type type) const
+    clues::MinorIndex Solution::maxNumberOfClues (Clues::Type type) const
     {
       return clues_.at (type).maxNumberOfClues();
     }
 
-    MainIndex Solution::clueMainSize (Clues::Type type) const
+    clues::MainIndex Solution::clueMainSize (Clues::Type type) const
     {
       return clues_.at (type).mainSize();
     }
 
-    MinorIndex Solution::clueMinorSize (Clues::Type type, MainIndex main_index) const
+    clues::MinorIndex Solution::clueMinorSize ( Clues::Type type
+                                              , clues::MainIndex main_index
+                                              ) const
     {
       return clues_.at (type).minorSize (main_index);
     }
 
-    Clues::Value Solution::clue (Clues::Type type, FullIndex full_index) const
+    Clues::Value Solution::clue ( Clues::Type type
+                                , clues::FullIndex full_index
+                                ) const
     {
       return clues_.at (type).clue (full_index);
     }

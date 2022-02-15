@@ -1,6 +1,7 @@
 #include <nonogram/file/Puzzles.hpp>
 
-#include <nonogram/data/Array2D.hpp>
+#include <nonogram/data/clues/Data.hpp>
+#include <nonogram/data/grid/Data.hpp>
 
 #include <QtCore/QCoreApplication>
 #include <QtCore/QDataStream>
@@ -97,7 +98,7 @@ namespace nonogram
     {
       return
         { {data::Nonogram::internalPack(), data::Nonogram::Puzzle {"Title"}}
-        , data::Array2D<bool>
+        , data::grid::Data<bool>
           { { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
             , { 0, 1, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0 }
             , { 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0 }
@@ -121,7 +122,7 @@ namespace nonogram
       return { { data::Nonogram::internalPack()
                , data::Nonogram::Puzzle {"Tutorial"}
                }
-             , data::Array2D<bool>
+             , data::grid::Data<bool>
                  { { { 0, 0, 1, 0, 0 }
                    , { 0, 1, 1, 1, 0 }
                    , { 1, 1, 0, 1, 1 }
@@ -305,12 +306,12 @@ namespace nonogram
 
       in.skipWhiteSpace();
 
-      data::Array2D<bool> data
-        ( data::Column {dimensions.at (0).toUInt()}
-        , data::Row {dimensions.at (1).toUInt()}
+      data::grid::Data<bool> data
+        ( data::grid::Column {dimensions.at (0).toUInt()}
+        , data::grid::Row {dimensions.at (1).toUInt()}
         );
 
-      data::Row row {0};
+      data::grid::Row row {0};
       while (!in.atEnd())
       {
         QString const line (in.readLine());
@@ -321,7 +322,7 @@ namespace nonogram
 
         QStringList const datum_list (line.split (" ", QString::SkipEmptyParts));
 
-        data::Column column {0};
+        data::grid::Column column {0};
         for (auto const& datum : datum_list)
         {
           data.set (column, row, datum == "#");

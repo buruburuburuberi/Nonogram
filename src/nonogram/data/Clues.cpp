@@ -7,27 +7,29 @@ namespace nonogram
 {
   namespace data
   {
-    FullIndex Clues::toFullIndex (Type type, Slot slot)
+    clues::FullIndex Clues::toFullIndex (Type type, grid::Cell cell)
     {
       return
-        { MainIndex {type == Type::Column ?  slot.column.value : slot.row.value}
-        , MinorIndex {type == Type::Column ? slot.row.value : slot.column.value}
+        { clues::MainIndex
+            {type == Type::Column ?  cell.column.value : cell.row.value}
+        , clues::MinorIndex
+            {type == Type::Column ? cell.row.value : cell.column.value}
         };
     }
 
-    Clues::Clues (Array2D<bool> const& data, Type type)
+    Clues::Clues (grid::Data<bool> const& data, Type type)
     : type_ (type)
     , max_minor_size_ {0}
     , data_ (computeClues (data, type))
     {}
 
-    Clues::Data Clues::computeClues ( Array2D<bool> const& data
+    Clues::Data Clues::computeClues ( grid::Data<bool> const& data
                                     , Type type
                                     )
     {
-      Column const columns
+      grid::Column const columns
         (type == Type::Column ? data.rows().value : data.columns().value);
-      Row const rows
+      grid::Row const rows
         (type == Type::Column ? data.columns().value : data.rows().value);
 
       std::vector<std::vector<Value>> clues;
@@ -35,19 +37,19 @@ namespace nonogram
       clues.resize (rows.value);
 
       auto is_filled
-        ( [&] (Column column, Row row)
+        ( [&] (grid::Column column, grid::Row row)
           {
             return type == Type::Column
-                ? data.at ({Column {row.value}, Row {column.value}})
+                ? data.at ({grid::Column {row.value}, grid::Row {column.value}})
                 : data.at ({column, row})
                 ;
           }
         );
 
-      for (Row row {0}; row < rows; ++row)
+      for (grid::Row row {0}; row < rows; ++row)
       {
         unsigned int filled_counter (0);
-        for (Column column {0}; column < columns; ++column)
+        for (grid::Column column {0}; column < columns; ++column)
         {
           bool const current_square_filled (is_filled (column, row));
 
@@ -56,16 +58,16 @@ namespace nonogram
             filled_counter++;
           }
 
-          if ( column > Column (0)
+          if ( column > grid::Column (0)
             && !current_square_filled
-            && is_filled (Column {column - Column (1)}, row)
+            && is_filled (grid::Column {column - grid::Column (1)}, row)
              )
           {
             clues.at (row.value).push_back (filled_counter);
             filled_counter = 0;
           }
 
-          if ( column == columns - Column (1)
+          if ( column == columns - grid::Column (1)
             && filled_counter > 0
              )
           {
@@ -75,7 +77,7 @@ namespace nonogram
 
         max_minor_size_.value =
             std::max ( max_minor_size_.value
-                     , static_cast<MinorIndex::underlying_type>
+                     , static_cast<clues::MinorIndex::underlying_type>
                         (clues.at (row.value).size())
                      );
       }
@@ -83,22 +85,22 @@ namespace nonogram
       return Data (clues);
     }
 
-    MinorIndex Clues::maxNumberOfClues() const
+    clues::MinorIndex Clues::maxNumberOfClues() const
     {
       return max_minor_size_;
     }
 
-    MainIndex Clues::mainSize() const
+    clues::MainIndex Clues::mainSize() const
     {
       return data_.mainSize();
     }
 
-    MinorIndex Clues::minorSize (MainIndex main_index) const
+    clues::MinorIndex Clues::minorSize (clues::MainIndex main_index) const
     {
       return data_.minorSize (main_index);
     }
 
-    Clues::Value Clues::clue (FullIndex full_index) const
+    Clues::Value Clues::clue (clues::FullIndex full_index) const
     {
       return data_.at (full_index);
     }

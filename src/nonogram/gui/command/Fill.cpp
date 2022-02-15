@@ -8,12 +8,12 @@ namespace nonogram
     {
       Fill::Fill ( int id
                  , data::Nonogram& nonogram
-                 , data::Slots data_slots
+                 , data::grid::Cells cells
                  , data::Answer::Datum before
                  , data::Answer::Datum after
                  )
       : Base (id, nonogram)
-      , data_slots_ (std::move (data_slots))
+      , cells_ (std::move (cells))
       , before_ (before)
       , after_ (after)
       {
@@ -21,28 +21,28 @@ namespace nonogram
       }
 
       Fill* Fill::start ( data::Nonogram& nonogram
-                        , data::Slots data_slots
+                        , data::grid::Cells cells
                         , data::Answer::Datum before
                         , data::Answer::Datum after
                         )
       {
         return new Fill ( ++command_id
                         , nonogram
-                        , std::move (data_slots)
+                        , std::move (cells)
                         , before
                         , after
                         );
       }
 
       Fill* Fill::append ( data::Nonogram& nonogram
-                         , data::Slots data_slots
+                         , data::grid::Cells cells
                          , data::Answer::Datum before
                          , data::Answer::Datum after
                          )
       {
         return new Fill ( command_id
                         , nonogram
-                        , std::move (data_slots)
+                        , std::move (cells)
                         , before
                         , after
                         );
@@ -50,17 +50,17 @@ namespace nonogram
 
       void Fill::undo()
       {
-        for (auto const& slot : data_slots_)
+        for (auto const& cell : cells_)
         {
-          nonogram_.fillData (slot, before_);
+          nonogram_.fillData (cell, before_);
         }
       }
 
       void Fill::redo()
       {
-        for (auto const& slot : data_slots_)
+        for (auto const& cell : cells_)
         {
-          nonogram_.fillData (slot, after_);
+          nonogram_.fillData (cell, after_);
         }
       }
 
@@ -77,9 +77,7 @@ namespace nonogram
           return false;
         }
 
-        data_slots_.insert ( other_fill->data_slots_.begin()
-                           , other_fill->data_slots_.end()
-                           );
+        cells_.insert (other_fill->cells_.begin(), other_fill->cells_.end());
 
         return true;
       }

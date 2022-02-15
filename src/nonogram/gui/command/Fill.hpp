@@ -1,8 +1,8 @@
 #pragma once
 
 #include <nonogram/gui/command/Base.hpp>
-#include <nonogram/data/Array2D.hpp>
 #include <nonogram/data/Answer.hpp>
+#include <nonogram/data/grid/Data.hpp>
 
 #include <QtWidgets/QUndoCommand>
 
@@ -18,13 +18,13 @@ namespace nonogram
       {
       public:
         static Fill* start ( data::Nonogram&
-                           , data::Slots
+                           , data::grid::Cells
                            , data::Answer::Datum before
                            , data::Answer::Datum after
                            );
 
         static Fill* append ( data::Nonogram&
-                            , data::Slots
+                            , data::grid::Cells
                             , data::Answer::Datum before
                             , data::Answer::Datum after
                             );
@@ -37,12 +37,12 @@ namespace nonogram
       private:
         Fill ( int id
              , data::Nonogram&
-             , data::Slots
+             , data::grid::Cells
              , data::Answer::Datum before
              , data::Answer::Datum after
              );
 
-        data::Slots data_slots_;
+        data::grid::Cells cells_;
         data::Answer::Datum before_;
         data::Answer::Datum after_;
       };

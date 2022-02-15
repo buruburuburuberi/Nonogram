@@ -29,44 +29,44 @@ namespace nonogram
     , clue_states_ (std::move (clue_states))
     {}
 
-    Answer::Datum Answer::at (Slot slot) const
+    Answer::Datum Answer::at (grid::Cell cell) const
     {
-      return data_.at (slot);
+      return data_.at (cell);
     }
 
-    void Answer::fillData (Slot slot, Datum datum)
+    void Answer::fillData (grid::Cell cell, Datum datum)
     {
-      if (data_locks_.at (slot))
+      if (data_locks_.at (cell))
       {
         throw std::logic_error ("Tried to change locked datum.");
       }
 
-      data_.set (slot, datum);
+      data_.set (cell, datum);
     }
 
-    Slots Answer::dataToLock() const
+    grid::Cells Answer::dataToLock() const
     {
-      return data_.slots_if
-          ( [&] (Slot slot, Datum datum)
-            { return datum != Datum::Empty && !data_locks_.at (slot); }
+      return data_.cells_if
+          ( [&] (grid::Cell cell, Datum datum)
+            { return datum != Datum::Empty && !data_locks_.at (cell); }
           );
     }
 
-    Slots Answer::lockedData() const
+    grid::Cells Answer::lockedData() const
     {
-      return data_locks_.slots_if ([] (Slot, bool state) { return state; });
+      return data_locks_.cells_if ([] (grid::Cell, bool state) { return state; });
     }
 
-    bool Answer::isDatumLocked (Slot slot) const
+    bool Answer::isDatumLocked (grid::Cell cell) const
     {
-      return data_locks_.at (slot);
+      return data_locks_.at (cell);
     }
 
-    void Answer::lockData (Slots to_lock, bool state)
+    void Answer::lockData (grid::Cells to_lock, bool state)
     {
-      for (auto const& slot : to_lock)
+      for (auto const& cell : to_lock)
       {
-        data_locks_.set (slot, state);
+        data_locks_.set (cell, state);
       }
     }
 
@@ -75,12 +75,12 @@ namespace nonogram
       data_locks_.fill (state);
     }
 
-    bool Answer::isCrossed (Clues::Type type, FullIndex full_index) const
+    bool Answer::isCrossed (Clues::Type type, clues::FullIndex full_index) const
     {
       return clue_states_.at (type).isCrossed (full_index);
     }
 
-    void Answer::cross (Clues::Type type, FullIndex full_index, bool state)
+    void Answer::cross (Clues::Type type, clues::FullIndex full_index, bool state)
     {
       clue_states_.at (type).cross (full_index, state);
     }
@@ -109,7 +109,7 @@ namespace nonogram
       return indices;
     }
 
-    bool Answer::isClueLocked (Clues::Type type, FullIndex full_index) const
+    bool Answer::isClueLocked (Clues::Type type, clues::FullIndex full_index) const
     {
       return clue_states_.at (type).isLocked (full_index);
     }
@@ -133,8 +133,8 @@ namespace nonogram
     bool Answer::canLock() const
     {
       return data_.any_of
-             ( [&] (Slot slot, Datum datum)
-               { return datum != Datum::Empty && !data_locks_.at (slot); }
+             ( [&] (grid::Cell cell, Datum datum)
+               { return datum != Datum::Empty && !data_locks_.at (cell); }
              )
           || std::any_of
                ( clue_states_.begin()
@@ -146,7 +146,8 @@ namespace nonogram
 
     bool Answer::canUnlock() const
     {
-      return data_locks_.any_of ([&] (Slot, bool state) { return state; })
+      return data_locks_.any_of
+               ([&] (grid::Cell, bool state) { return state; })
           || std::any_of
                ( clue_states_.begin()
                , clue_states_.end()
