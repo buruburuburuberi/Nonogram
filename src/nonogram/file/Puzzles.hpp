@@ -19,14 +19,8 @@ namespace nonogram
 
       struct Info
       {
-        Info (QFileInfo _puzzle)
-        : puzzle (_puzzle)
-        {}
-
-        Info (QFileInfo _puzzle, QFileInfo _answer)
-        : puzzle (_puzzle)
-        , answer (_answer)
-        {}
+        Info (QFileInfo _puzzle);
+        Info (QFileInfo _puzzle, QFileInfo _answer);
 
         QFileInfo puzzle;
         std::optional<QFileInfo> answer;

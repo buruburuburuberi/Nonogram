@@ -20,6 +20,15 @@ namespace nonogram
       return data::Nonogram::Pack ("Internal");
     }
 
+    Puzzles::Info::Info (QFileInfo _puzzle)
+    : puzzle (_puzzle)
+    {}
+
+    Puzzles::Info::Info (QFileInfo _puzzle, QFileInfo _answer)
+    : puzzle (_puzzle)
+    , answer (_answer)
+    {}
+
     Puzzles::Puzzles()
     : root_path_ (QCoreApplication::applicationDirPath())
     , answers_path_ (root_path_ + "/../answers")
