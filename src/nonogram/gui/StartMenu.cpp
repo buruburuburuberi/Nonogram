@@ -30,10 +30,10 @@ namespace nonogram
       line1->setFrameShape(QFrame::HLine);
 
       util::unique_qt_ptr<QFrame> line2;
-      line1->setFrameShape(QFrame::HLine);
+      line2->setFrameShape(QFrame::HLine);
 
       util::unique_qt_ptr<QFrame> line3;
-      line2->setFrameShape(QFrame::HLine);
+      line3->setFrameShape(QFrame::HLine);
 
       util::unique_qt_ptr<QVBoxLayout> main_layout;
       main_layout->addWidget (continue_button_.release());
