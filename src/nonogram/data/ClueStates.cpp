@@ -10,29 +10,28 @@ namespace nonogram
   namespace data
   {
     ClueStates::ClueStates (Solution const& solution, Clues::Type type)
-    : data_ (solution.clueMainSize (type))
-    , locks_ (solution.clueMainSize (type))
+    : data_ (fromSolution (solution, type))
+    , locks_ (data_)
+    {}
+
+    ClueStates::Data ClueStates::fromSolution ( Solution const& solution
+                                              , Clues::Type type
+                                              ) const
     {
+      auto const main_size (solution.clueMainSize (type));
+      Data::Container data (main_size.value);
+
       for ( clues::MainIndex main_index {0}
-          ; main_index < solution.clueMainSize (type)
+          ; main_index < main_size
           ; ++main_index
           )
       {
-        data_.resize ( main_index
-                     , solution.clueMinorSize (type, main_index)
-                     , false
-                     );
-        locks_.resize ( main_index
-                      , solution.clueMinorSize (type, main_index)
-                      , false
-                      );
+        data.at (main_index.value).resize
+          (solution.clueMinorSize (type, main_index).value, false);
       }
-    }
 
-    ClueStates::ClueStates (Data data, Data locks)
-    : data_ (std::move (data))
-    , locks_ (std::move (locks))
-    {}
+      return {data};
+    }
 
     bool ClueStates::isCrossed (clues::FullIndex full_index) const
     {
@@ -88,20 +87,11 @@ namespace nonogram
 
     bool ClueStates::canUnlock() const
     {
-      for ( clues::MainIndex main_index {0}
-          ; main_index < locks_.mainSize()
-          ; ++main_index
-          )
+      for (auto const& lock : locks_)
       {
-        for ( clues::MinorIndex minor_index {0}
-            ; minor_index < locks_.minorSize (main_index)
-            ; ++minor_index
-            )
+        if (lock.second)
         {
-          if (locks_.at (main_index, minor_index))
-          {
-            return true;
-          }
+          return true;
         }
       }
 

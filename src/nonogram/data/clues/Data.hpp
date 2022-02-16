@@ -25,17 +25,25 @@ namespace nonogram
         class Data
       {
       public:
-        Data (MainIndex size)
-        {
-          data_.resize (size.value);
-        }
+        using Container = std::vector<std::vector<T>>;
 
-        Data (std::vector<std::vector<T>> data)
+        Data (Container data)
         : data_ (data)
+        , count_ ( std::accumulate
+                     ( data_.begin()
+                     , data_.end()
+                     , 0
+                     , [] (int acc, std::vector<T> const& row)
+                       {
+                         return acc + row.size();
+                       }
+                     )
+                 )
         {}
 
         Data (Data const& data)
         : data_ (data.data_)
+        , count_ (data.count_)
         {}
 
         MainIndex mainSize() const
@@ -46,11 +54,6 @@ namespace nonogram
         MinorIndex minorSize (MainIndex main_index) const
         {
           return MinorIndex (data_.at (main_index.value).size());
-        }
-
-        void resize (MainIndex main_index, MinorIndex minor_size, T value)
-        {
-          data_.at (main_index.value).resize (minor_size.value, value);
         }
 
         bool has (MainIndex main_index, MinorIndex minor_index) const
@@ -79,18 +82,11 @@ namespace nonogram
         {
           FullIndices indices;
 
-          for (MainIndex main_index {0}; main_index < mainSize(); ++main_index)
+          for (auto const& data : *this)
           {
-            for ( MinorIndex minor_index {0}
-                ; minor_index < minorSize (main_index)
-                ; ++minor_index
-                )
+            if (check (data.first, data.second))
             {
-              FullIndex const full_index {main_index, minor_index};
-              if (check (full_index, at (full_index)))
-              {
-                indices.insert (full_index);
-              }
+              indices.insert (data.first);
             }
           }
 
@@ -117,13 +113,71 @@ namespace nonogram
           set (full_index.main, full_index.minor, value);
         }
 
+        struct Iterator
+        {
+          constexpr bool operator!= (Iterator const& other) const
+          {
+            return index_ != other.index_;
+          }
+
+          constexpr Iterator& operator++()
+          {
+            ++index_;
+            return *this;
+          }
+
+          constexpr std::pair<FullIndex, T> operator*()
+          {
+            auto const full_index (fromIndex (index_));
+            return std::pair<FullIndex, T>
+                { full_index
+                , data_.at (full_index.main.value).at (full_index.minor.value)
+                };
+          }
+
+        private:
+          Iterator (Container const& data, std::size_t index)
+          : data_ (data)
+          , index_ (index)
+          {}
+
+          FullIndex fromIndex (std::size_t index) const
+          {
+            for (std::size_t row (0), counter (0); row < data_.size(); ++row)
+            {
+              if (index < (counter + data_.at (row).size()))
+              {
+                return { MainIndex (row), MinorIndex (index - counter) };
+              }
+
+              counter += data_.at (row).size();
+            }
+
+            throw std::invalid_argument ("Invalid access to index " + index);
+          }
+
+          Container const& data_;
+          size_t index_;
+
+          friend Data<T>;
+        };
+
+        constexpr Iterator begin() const
+        {
+          return Iterator (data_, 0);
+        }
+
+        constexpr Iterator end() const
+        {
+          return Iterator (data_, count_);
+        }
+
         // serialization
         Data (QDataStream& ds)
+        : data_ (MainIndex (ds).value)
+        , count_ (0)
         {
-          MainIndex const main_size (ds);
-          data_.resize (main_size.value);
-
-          for (MainIndex main {0}; main < main_size; ++main)
+          for (MainIndex main {0}; main < MainIndex (data_.size()); ++main)
           {
             MinorIndex const minor_size (ds);
             data_.at (main.value).resize (minor_size.value);
@@ -133,6 +187,8 @@ namespace nonogram
               T value;
               ds >> value;
               data_[main.value][minor.value] = value;
+
+              ++count_;
             }
           }
         }
@@ -173,11 +229,12 @@ namespace nonogram
           if (minor_index >= minorSize (main_index))
           {
             throw std::invalid_argument
-              ("Invalid access to column " + minor_index.toString());
+              ("Invalid access to minor_index " + minor_index.toString());
           }
         }
 
-        std::vector<std::vector<T>> data_;
+        Container data_;
+        std::size_t count_;
       };
     }
   }

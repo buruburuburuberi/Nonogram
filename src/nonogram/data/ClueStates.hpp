@@ -20,7 +20,6 @@ namespace nonogram
       using Data = clues::Data<ClueState>;
 
       ClueStates (Solution const&, Clues::Type);
-      ClueStates (Data data, Data locks);
 
       bool isCrossed (clues::FullIndex) const;
       void cross (clues::FullIndex, ClueState);
@@ -40,6 +39,8 @@ namespace nonogram
       friend QDataStream& operator<< (QDataStream&, ClueStates const&);
 
     private:
+      Data fromSolution (Solution const&, Clues::Type) const;
+
       Data data_;
       Data locks_;
     };
