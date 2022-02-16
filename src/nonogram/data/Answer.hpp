@@ -33,6 +33,7 @@ namespace nonogram
       Answer (Solution const&);
       Answer (Data, DataLocks, CluesStates);
 
+      Data const& data() const;
       Datum at (grid::Cell) const;
       void fillData (grid::Cell, Datum);
       grid::Cells dataToLock() const;

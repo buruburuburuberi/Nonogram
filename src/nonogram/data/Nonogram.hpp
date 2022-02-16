@@ -56,6 +56,7 @@ namespace nonogram
       Nonogram (ID, Solution, Answer);
 
       ID id() const;
+      Answer::Data const& data() const;
       grid::Row dataRows() const;
       grid::Column dataColumns() const;
       Solution::State solution (grid::Cell) const;

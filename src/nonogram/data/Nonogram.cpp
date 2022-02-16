@@ -67,6 +67,11 @@ namespace nonogram
       return id_;
     }
 
+    Answer::Data const& Nonogram::data() const
+    {
+      return answer_.data();
+    }
+
     grid::Row Nonogram::dataRows() const
     {
       return solution_.dataRows();
@@ -207,15 +212,11 @@ namespace nonogram
 
     std::optional<grid::Cell> Nonogram::findFirstMistake() const
     {
-      for (grid::Row row {0}; row < dataRows(); ++row)
+      for (auto const& cell : answer_.data())
       {
-        for (grid::Column column {0}; column < dataColumns(); ++column)
+        if (isMistake (cell.first))
         {
-          grid::Cell const cell {column, row};
-          if (isMistake (cell))
-          {
-            return cell;
-          }
+          return cell.first;
         }
       }
 
@@ -224,16 +225,11 @@ namespace nonogram
 
     bool Nonogram::isSolved() const
     {
-      for (grid::Row row {0}; row < dataRows(); ++row)
+      for (auto const& cell : answer_.data())
       {
-        for (grid::Column column {0}; column < dataColumns(); ++column)
+        if (solution_.at (cell.first) != (cell.second == data::Answer::Datum::Filled))
         {
-          grid::Cell const cell {column, row};
-          auto const datum (answer_.at (cell));
-          if (solution_.at (cell) != (datum == data::Answer::Datum::Filled))
-          {
-            return false;
-          }
+          return false;
         }
       }
 

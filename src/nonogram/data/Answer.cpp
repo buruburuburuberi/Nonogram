@@ -29,6 +29,11 @@ namespace nonogram
     , clue_states_ (std::move (clue_states))
     {}
 
+    Answer::Data const& Answer::data() const
+    {
+      return data_;
+    }
+
     Answer::Datum Answer::at (grid::Cell cell) const
     {
       return data_.at (cell);

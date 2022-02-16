@@ -459,16 +459,9 @@ namespace nonogram
 
     void PlayField::drawPuzzle (QPainter& painter)
     {
-      for ( data::grid::Column column {0}
-          ; column < nonogram_.dataColumns()
-          ; ++column
-          )
+      for (auto const& cell : nonogram_.data())
       {
-        for (data::grid::Row row {0}; row < nonogram_.dataRows(); ++row)
-        {
-          data::grid::Cell const cell {column, row};
-          drawCell (painter, cell, nonogram_.answer (cell));
-        }
+        drawCell (painter, cell.first, cell.second);
       }
     }
 
@@ -841,25 +834,16 @@ namespace nonogram
     {
       setDisabled (true);
 
-      for (data::grid::Row row {0}; row < nonogram_.dataRows(); ++row)
+      for (auto const& cell : nonogram_.data())
       {
-        for ( data::grid::Column column {0}
-            ; column < nonogram_.dataColumns()
-            ; ++column
-            )
+        if (nonogram_.solution (cell.first))
         {
-          data::grid::Cell const cell {column, row};
+          nonogram_.fillData (cell.first, data::Answer::Datum::Filled);
 
-          if (nonogram_.solution (cell))
+          if (animate)
           {
-            nonogram_.fillData (cell, data::Answer::Datum::Filled);
-
-            if (animate)
-            {
-              update();
-              QCoreApplication::processEvents
-                (QEventLoop::ExcludeUserInputEvents);
-            }
+            update();
+            QCoreApplication::processEvents (QEventLoop::ExcludeUserInputEvents);
           }
         }
       }

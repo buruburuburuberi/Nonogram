@@ -25,7 +25,9 @@ namespace nonogram
         class Data
       {
       public:
-        Data (Column columns, Row rows, std::vector<T> data)
+        using Container = std::vector<T>;
+
+        Data (Column columns, Row rows, Container data)
         : rows_ (rows)
         , columns_ (columns)
         , data_ (std::move (data))
@@ -34,7 +36,7 @@ namespace nonogram
         Data (Column columns, Row rows, T value = T())
         : Data ( columns
                , rows
-               , std::vector<T> (columns.value * rows.value, value)
+               , Container (columns.value * rows.value, value)
                )
         {}
 
@@ -50,21 +52,21 @@ namespace nonogram
           return columns_;
         }
 
-        using const_reference = typename std::vector<T>::const_reference;
+        using ConstReference = typename Container::const_reference;
 
-        const_reference at (Column column, Row row) const
+        ConstReference at (Column column, Row row) const
         {
           checkInvalidAccess (column, row);
 
           return data_.at (row.value * columns_.value + column.value);
         }
 
-        const_reference at (Cell cell) const
+        ConstReference at (Cell cell) const
         {
           return at (cell.column, cell.row);
         }
 
-        using reference = typename std::vector<T>::reference;
+        using reference = typename Container::reference;
 
         reference at (Column column, Row row)
         {
@@ -80,15 +82,11 @@ namespace nonogram
 
         bool any_of (std::function<bool (Cell, T)> check) const
         {
-          for (Row row {0}; row < rows(); ++row)
+          for (auto const& cell : *this)
           {
-            for (Column column {0}; column < columns(); ++column)
+            if (check (cell.first, cell.second))
             {
-              Cell const cell {column, row};
-              if (check (cell, at (cell)))
-              {
-                return true;
-              }
+              return true;
             }
           }
 
@@ -99,15 +97,11 @@ namespace nonogram
         {
           Cells data;
 
-          for (Row row {0}; row < rows(); ++row)
+          for (auto const& cell : *this)
           {
-            for (Column column {0}; column < columns(); ++column)
+            if (check (cell.first, cell.second))
             {
-              Cell const cell {column, row};
-              if (check (cell, at (cell)))
-              {
-                data.insert (cell);
-              }
+              data.insert (cell.first);
             }
           }
 
@@ -131,20 +125,72 @@ namespace nonogram
           set (cell.column, cell.row, value);
         }
 
+        using ConstIterator = typename Container::const_iterator;
+
+        struct Iterator
+        {
+          constexpr bool operator!= (ConstIterator const& other) const
+          {
+            return value_ != other;
+          }
+
+          constexpr Iterator& operator++()
+          {
+            ++index_;
+            ++value_;
+            return *this;
+          }
+
+          constexpr std::pair<Cell, ConstReference> operator*()
+          {
+            return std::pair<Cell, ConstReference>
+              {fromIndex (index_), *value_};
+          }
+
+        private:
+          Iterator (Row rows, Column columns, ConstIterator value)
+          : rows_ (rows)
+          , columns_ (columns)
+          , index_ (0)
+          , value_ (value)
+          {}
+
+          Cell fromIndex (std::size_t index) const
+          {
+            return { Column {index % columns_.value}
+                   , Row {index / columns_.value}
+                   };
+          }
+
+          Row rows_;
+          Column columns_;
+          size_t index_;
+          ConstIterator value_;
+
+          friend Data<T>;
+        };
+
+        constexpr Iterator begin() const
+        {
+          return Iterator (rows_, columns_, data_.begin());
+        }
+
+        constexpr ConstIterator end() const
+        {
+          return data_.end();
+        }
+
         // serialization
         Data (QDataStream& ds)
         : rows_ (ds)
         , columns_ (ds)
         , data_ (rows_.value * columns_.value)
         {
-          for (Row row {0}; row < rows_; ++row)
+          for (auto const& cell : *this)
           {
-            for (Column column {0}; column < columns_; ++column)
-            {
-              T value;
-              ds >> value;
-              set (column, row, value);
-            }
+            T value;
+            ds >> value;
+            set (cell.first, value);
           }
         }
         friend QDataStream& operator<< (QDataStream& ds, Data const& array)
@@ -154,12 +200,9 @@ namespace nonogram
           ds << rows.value;
           ds << columns.value;
 
-          for (Row row {0}; row < rows; ++row)
+          for (auto const& cell : array)
           {
-            for (Column column {0}; column < columns; ++column)
-            {
-              ds << array.at (column, row);
-            }
+            ds << cell.second;
           }
 
           return ds;
@@ -190,7 +233,7 @@ namespace nonogram
 
         Row rows_;
         Column columns_;
-        std::vector<T> data_;
+        Container data_;
       };
     }
   }
