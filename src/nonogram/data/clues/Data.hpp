@@ -22,7 +22,7 @@ namespace nonogram
     namespace clues
     {
       template<typename T>
-      class Data
+        class Data
       {
       public:
         Data (MainIndex size)
@@ -120,16 +120,12 @@ namespace nonogram
         // serialization
         Data (QDataStream& ds)
         {
-          MainIndex::underlying_type main_size_value;
-          ds >> main_size_value;
-          MainIndex main_size {main_size_value};
+          MainIndex const main_size (ds);
           data_.resize (main_size.value);
 
           for (MainIndex main {0}; main < main_size; ++main)
           {
-            MinorIndex::underlying_type minor_size_value;
-            ds >> minor_size_value;
-            MinorIndex minor_size {minor_size_value};
+            MinorIndex const minor_size (ds);
             data_.at (main.value).resize (minor_size.value);
 
             for (MinorIndex minor {0}; minor < minor_size; ++minor)

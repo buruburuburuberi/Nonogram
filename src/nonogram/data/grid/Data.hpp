@@ -22,47 +22,58 @@ namespace nonogram
     namespace grid
     {
       template<typename T>
-      class Data
+        class Data
       {
       public:
-        Data (Column columns, Row rows, T value = T())
-        {
-          data_.resize (rows.value);
-          for (auto& row : data_)
-          {
-            row.resize (columns.value, value);
-          }
-        }
+        Data (Column columns, Row rows, std::vector<T> data)
+        : rows_ (rows)
+        , columns_ (columns)
+        , data_ (std::move (data))
+        {}
 
-        Data (std::vector<std::vector<T>> data)
-        : data_ (data)
+        Data (Column columns, Row rows, T value = T())
+        : Data ( columns
+               , rows
+               , std::vector<T> (columns.value * rows.value, value)
+               )
         {}
 
         Data (Data const&) = default;
 
         Row rows() const
         {
-          return Row {data_.size()};
+          return rows_;
         }
 
         Column columns() const
         {
-          if (data_.empty())
-          {
-            return Column {0};
-          }
-
-          return Column {data_.front().size()};
+          return columns_;
         }
 
-        T at (Column column, Row row) const
+        using const_reference = typename std::vector<T>::const_reference;
+
+        const_reference at (Column column, Row row) const
         {
           checkInvalidAccess (column, row);
 
-          return data_[row.value][column.value];
+          return data_.at (row.value * columns_.value + column.value);
         }
 
-        T at (Cell cell) const
+        const_reference at (Cell cell) const
+        {
+          return at (cell.column, cell.row);
+        }
+
+        using reference = typename std::vector<T>::reference;
+
+        reference at (Column column, Row row)
+        {
+          checkInvalidAccess (column, row);
+
+          return data_.at (row.value * columns_.value + column.value);
+        }
+
+        reference at (Cell cell)
         {
           return at (cell.column, cell.row);
         }
@@ -103,40 +114,16 @@ namespace nonogram
           return data;
         }
 
-        std::vector<T> column (Column column) const
-        {
-          checkInvalidAccess (column);
-
-          std::vector<T> data;
-
-          for (auto const& row : data_)
-          {
-            data.push_back (row.at (column.value));
-          }
-
-          return data;
-        }
-
-        std::vector<T> row (Row row) const
-        {
-          checkInvalidAccess (row);
-
-          return data_.at (row.value);
-        }
-
         void fill (T value)
         {
-          for (auto& row : data_)
-          {
-            std::fill (row.begin(), row.end(), value);
-          }
+          std::fill (data_.begin(), data_.end(), value);
         }
 
         void set (Column column, Row row, T value)
         {
           checkInvalidAccess (column, row);
 
-          data_[row.value][column.value] = value;
+          at (column, row) = value;
         }
 
         void set (Cell cell, T value)
@@ -146,25 +133,17 @@ namespace nonogram
 
         // serialization
         Data (QDataStream& ds)
+        : rows_ (ds)
+        , columns_ (ds)
+        , data_ (rows_.value * columns_.value)
         {
-          Row::underlying_type rows_value;
-          ds >> rows_value;
-          Row rows {rows_value};
-          data_.resize (rows.value);
-
-          Column::underlying_type columns_value;
-          ds >> columns_value;
-          Column columns {columns_value};
-
-          for (Row row {0}; row < rows; ++row)
+          for (Row row {0}; row < rows_; ++row)
           {
-            data_.at (row.value).resize (columns.value);
-
-            for (Column column {0}; column < columns; ++column)
+            for (Column column {0}; column < columns_; ++column)
             {
               T value;
               ds >> value;
-              data_[row.value][column.value] = value;
+              set (column, row, value);
             }
           }
         }
@@ -179,7 +158,7 @@ namespace nonogram
           {
             for (Column column {0}; column < columns; ++column)
             {
-              ds << array.data_.at (row.value).at (column.value);
+              ds << array.at (column, row);
             }
           }
 
@@ -189,7 +168,7 @@ namespace nonogram
       private:
         void checkInvalidAccess (Column column) const
         {
-          if (column >= columns())
+          if (column >= columns_)
           {
             throw std::invalid_argument
               ("Invalid access to column " + column.toString());
@@ -197,7 +176,7 @@ namespace nonogram
         }
         void checkInvalidAccess (Row row) const
         {
-          if (row >= rows())
+          if (row >= rows_)
           {
             throw std::invalid_argument
               ("Invalid access to row " + row.toString());
@@ -209,7 +188,9 @@ namespace nonogram
           checkInvalidAccess (row);
         }
 
-        std::vector<std::vector<T>> data_;
+        Row rows_;
+        Column columns_;
+        std::vector<T> data_;
       };
     }
   }

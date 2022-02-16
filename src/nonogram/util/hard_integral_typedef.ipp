@@ -1,3 +1,5 @@
+#include <QtCore/QDataStream>
+
 #include <string>
 #include <type_traits>
 
@@ -13,7 +15,14 @@ namespace nonogram
     public:                                                             \
       underlying_type value {0};                                        \
                                                                         \
-      explicit constexpr name_ (decltype (value) v) : value (v) {}      \
+      explicit constexpr name_ (decltype (value) v)                     \
+      : value (v)                                                       \
+      {}                                                                \
+                                                                        \
+      name_ (QDataStream& ds)                                           \
+      {                                                                 \
+        ds >> value;                                                    \
+      }                                                                 \
                                                                         \
       name_ (name_ const&) = default;                                   \
       name_ (name_&&) = default;                                        \
