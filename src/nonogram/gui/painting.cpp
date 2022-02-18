@@ -2,7 +2,9 @@
 
 #include <nonogram/util/ScopedQPainterState.hpp>
 
-#include <QtGui/QColor>
+#include <QtCore/QRectF>
+#include <QtGui/QBrush>
+#include <QtGui/QPen>
 #include <QtGui/QPixmap>
 
 namespace nonogram
@@ -32,11 +34,12 @@ namespace nonogram
               return background_rect;
             }
 
+            std::size_t const side (background_rect.width() - 6);
             QRect rect
               ( QPoint (0, 0)
               , solved
                 ? background_rect.size()
-                : QSize (background_rect.width() - 6, background_rect.height() - 6)
+                : QSize (side, side)
               );
             rect.moveCenter (background_rect.center());
 

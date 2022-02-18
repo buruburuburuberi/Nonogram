@@ -7,9 +7,13 @@
 #include <nonogram/gui/StartMenu.hpp>
 #include <nonogram/util/unique_qt_ptr.hpp>
 
+#include <QtCore/QSize>
+#include <QtGui/QCloseEvent>
+#include <QtGui/QColor>
 #include <QtWidgets/QButtonGroup>
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QScrollArea>
+#include <QtWidgets/QToolBar>
 #include <QtWidgets/QToolButton>
 #include <QtWidgets/QUndoStack>
 

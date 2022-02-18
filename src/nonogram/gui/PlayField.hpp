@@ -1,18 +1,24 @@
 #pragma once
 
+#include <nonogram/data/Answer.hpp>
+#include <nonogram/data/Clues.hpp>
+#include <nonogram/data/Nonogram.hpp>
 #include <nonogram/data/clues/FullIndex.hpp>
 #include <nonogram/data/grid/Cell.hpp>
-#include <nonogram/data/Nonogram.hpp>
 
+#include <QtCore/QPoint>
+#include <QtCore/QPointF>
+#include <QtCore/QRect>
+#include <QtCore/QSize>
+#include <QtGui/QColor>
 #include <QtGui/QMouseEvent>
-#include <QtGui/QOpenGLFunctions>
-#include <QtGui/QPaintEvent>
-#include <QtGui/QResizeEvent>
+#include <QtGui/QPainter>
 #include <QtWidgets/QOpenGLWidget>
 #include <QtWidgets/QUndoStack>
 
-#include <optional>
+#include <cstddef>
 #include <map>
+#include <optional>
 #include <variant>
 
 namespace nonogram
@@ -48,7 +54,11 @@ namespace nonogram
       void redo();
       void undo();
 
-      void showSolution (bool animate);
+      enum class Animate
+      { Yes
+      , No
+      };
+      void showSolution (Animate);
       void showTutorial();
 
     signals:
@@ -71,27 +81,23 @@ namespace nonogram
                                       , data::grid::Cell
                                       ) const;
       void checkCell (data::grid::Cell);
-      bool fillCell (QPoint, bool first_hit);
-      bool crossClue (QPoint, bool first_hit);
+      bool fillCell (QPoint);
+      bool crossClue (QPoint);
       void finishPuzzle();
 
       QPoint clueCenter (QRect clues_rect, data::grid::Cell) const;
-      void drawClue ( QPainter& painter
-                    , FieldType type
-                    , data::Clues::Type clue_type
+      void drawClue ( QPainter&
+                    , FieldType
+                    , data::Clues::Type
                     , data::grid::Cell
                     , data::clues::FullIndex
-                    , bool mark_as_error
                     );
 
       QPoint slotCenter (data::grid::Cell) const;
-      void drawCell ( QPainter& painter
-                    , data::grid::Cell
-                    , data::Answer::Datum
-                    );
+      void drawCell (QPainter&, data::grid::Cell, data::Answer::Datum);
 
-      void drawClues (QPainter& painter, FieldType);
-      void drawPuzzle (QPainter& painter);
+      void drawClues (QPainter&, FieldType);
+      void drawPuzzle (QPainter&);
 
       void updateRects (QSize window_size);
 
@@ -102,8 +108,8 @@ namespace nonogram
       QUndoStack& undo_stack_;
       data::Nonogram& nonogram_;
       data::Answer::Datum fill_mode_;
-      std::size_t font_size_;
-      std::size_t slot_size_;
+      std::size_t const font_size_;
+      std::size_t const slot_size_;
       std::map<FieldType, QRect> field_rects_;
       QRect play_field_rect_;
 

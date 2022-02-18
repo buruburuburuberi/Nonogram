@@ -1,5 +1,6 @@
 #pragma once
 
+#include <nonogram/data/Nonogram.hpp>
 #include <nonogram/file/Puzzles.hpp>
 #include <nonogram/gui/LevelSelection.hpp>
 #include <nonogram/util/unique_qt_ptr.hpp>

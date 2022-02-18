@@ -1,10 +1,12 @@
 #pragma once
 
+#include <nonogram/data/Nonogram.hpp>
 #include <nonogram/file/Puzzles.hpp>
 #include <nonogram/util/unique_qt_ptr.hpp>
 
 #include <QtCore/QString>
 #include <QtGui/QIcon>
+#include <QtWidgets/QAction>
 #include <QtWidgets/QBoxLayout>
 #include <QtWidgets/QCommandLinkButton>
 #include <QtWidgets/QMenu>
@@ -21,11 +23,6 @@ namespace nonogram
       Q_OBJECT
 
       public:
-        enum class Direction
-        { Horizontal
-        , Vertical
-        };
-
         LevelSelection (file::Puzzles const&, QBoxLayout::Direction);
 
         void markAsSolved (data::Nonogram::ID);

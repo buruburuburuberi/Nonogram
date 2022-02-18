@@ -1,10 +1,8 @@
 #pragma once
 
 #include <nonogram/gui/command/Base.hpp>
-#include <nonogram/gui/command/Cross.hpp>
-#include <nonogram/gui/command/Fill.hpp>
-#include <nonogram/data/Answer.hpp>
-#include <nonogram/data/clues/FullIndices.hpp>
+#include <nonogram/data/Nonogram.hpp>
+#include <nonogram/data/Solution.hpp>
 #include <nonogram/data/grid/Cells.hpp>
 
 #include <map>

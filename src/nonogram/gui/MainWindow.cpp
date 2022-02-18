@@ -2,12 +2,13 @@
 
 #include <nonogram/gui/painting.hpp>
 
+#include <QtCore/QPointF>
 #include <QtCore/QTimer>
+#include <QtGui/QKeySequence>
+#include <QtWidgets/QBoxLayout>
 #include <QtWidgets/QMessageBox>
 #include <QtWidgets/QScrollBar>
-#include <QtWidgets/QStatusBar>
-#include <QtWidgets/QToolBar>
-#include <QtWidgets/QToolButton>
+#include <QtWidgets/QSizePolicy>
 #include <QtWidgets/QWidget>
 
 #include <utility>
@@ -287,7 +288,7 @@ namespace nonogram
                      )
                   {
                     play_field_->resetAnswer();
-                    play_field_->showSolution (false);
+                    play_field_->showSolution (PlayField::Animate::No);
                     reset (true);
                   }
                 }
@@ -429,7 +430,7 @@ namespace nonogram
         ( 0
         , [&]
           {
-            play_field_->showSolution (true);
+            play_field_->showSolution (PlayField::Animate::Yes);
             start_menu_.exec();
           }
         );

@@ -2,23 +2,22 @@
 
 #include <nonogram/data/grid/Column.hpp>
 #include <nonogram/data/grid/Row.hpp>
-#include <nonogram/file/Puzzles.hpp>
+#include <nonogram/gui/painting.hpp>
 #include <nonogram/gui/command/Cross.hpp>
 #include <nonogram/gui/command/Fill.hpp>
 #include <nonogram/gui/command/Lock.hpp>
-#include <nonogram/gui/painting.hpp>
 #include <nonogram/util/optional_if.hpp>
 #include <nonogram/util/unique_qt_ptr.hpp>
 
 #include <QtCore/QCoreApplication>
 #include <QtCore/QTimer>
-#include <QtGui/QPainter>
 #include <QtWidgets/QDialog>
 #include <QtWidgets/QDialogButtonBox>
 #include <QtWidgets/QLabel>
-#include <QtWidgets/QPushButton>
 #include <QtWidgets/QToolTip>
 #include <QtWidgets/QVBoxLayout>
+
+#include <array>
 
 namespace nonogram
 {
@@ -229,7 +228,6 @@ namespace nonogram
                              , data::Clues::Type clue_type
                              , data::grid::Cell cell
                              , data::clues::FullIndex full_index
-                             , bool mark_as_error
                              )
     {
       auto const clue_center (clueCenter (field_rects_.at (field_type), cell));
@@ -237,6 +235,17 @@ namespace nonogram
       auto const background_size (slot_size_ - 2);
       QRect background_rect (0, 0, background_size, background_size);
       background_rect.moveCenter (clue_center);
+
+      bool const mark_as_error
+        ( current_error_slot_
+       && ( ( (clue_type == data::Clues::Type::Row)
+           && cell.row == current_error_slot_.value().row
+            )
+         || ( (clue_type == data::Clues::Type::Column)
+           && cell.column == current_error_slot_.value().column
+            )
+          )
+        );
 
       painter.fillRect ( background_rect
                        , mark_as_error ? mistake_color_ : bg_color_
@@ -316,23 +325,11 @@ namespace nonogram
       {
         for (data::grid::Column column {0}; column < columns; ++column)
         {
-          auto const mark_as_error
-            ( current_error_slot_
-           && ( ( (clue_type == data::Clues::Type::Row)
-               && row == current_error_slot_.value().row
-                )
-             || ( (clue_type == data::Clues::Type::Column)
-               && column == current_error_slot_.value().column
-                )
-              )
-            );
-
           data::grid::Cell const cell {column, row};
           data::clues::FullIndex const full_index
             (fromCell (field_type, clue_type, cell));
 
-          drawClue
-            (painter, field_type, clue_type, cell, full_index, mark_as_error);
+          drawClue (painter, field_type, clue_type, cell, full_index);
         }
       }
     }
@@ -464,7 +461,7 @@ namespace nonogram
       }
     }
 
-    bool PlayField::fillCell (QPoint position, bool first_hit)
+    bool PlayField::fillCell (QPoint position)
     {
       if (field_rects_.at (FieldType::Puzzle).contains (position))
       {
@@ -478,6 +475,7 @@ namespace nonogram
 
         auto const current_datum (nonogram_.datum (cell));
 
+        bool const first_hit (!current_hit_.has_value());
         if (!current_hit_)
         {
           current_hit_ =
@@ -541,7 +539,7 @@ namespace nonogram
       return false;
     }
 
-    bool PlayField::crossClue (QPoint position, bool first_hit)
+    bool PlayField::crossClue (QPoint position)
     {
       auto cross_clue
         ( [&] (FieldType field_type, QRect rect) -> bool
@@ -588,6 +586,7 @@ namespace nonogram
               return true;
             }
 
+            bool const first_hit (!current_hit_.has_value());
             current_hit_ = {field_type, cell, state};
 
             data::Solution::ClueIndices const clue_indices
@@ -653,11 +652,11 @@ namespace nonogram
         {
           if (std::holds_alternative<data::Answer::Datum> (current_hit_->data))
           {
-            fillCell (event->pos(), false);
+            fillCell (event->pos());
           }
           else if (std::holds_alternative<data::ClueState> (current_hit_->data))
           {
-            crossClue (event->pos(), false);
+            crossClue (event->pos());
           }
         }
       }
@@ -696,11 +695,11 @@ namespace nonogram
     {
       if (event->buttons() & Qt::LeftButton)
       {
-        if (fillCell (event->pos(), true))
+        if (fillCell (event->pos()))
         {
           return;
         }
-        else if (crossClue (event->pos(), true))
+        else if (crossClue (event->pos()))
         {
           return;
         }
@@ -821,7 +820,7 @@ namespace nonogram
       update();
     }
 
-    void PlayField::showSolution (bool animate)
+    void PlayField::showSolution (Animate animate)
     {
       setDisabled (true);
 
@@ -831,7 +830,7 @@ namespace nonogram
         {
           nonogram_.fillData (cell, data::Answer::Datum::Filled);
 
-          if (animate)
+          if (animate == Animate::Yes)
           {
             update();
             QCoreApplication::processEvents (QEventLoop::ExcludeUserInputEvents);

@@ -1,14 +1,11 @@
 #pragma once
 
 #include <nonogram/gui/command/Base.hpp>
-#include <nonogram/data/Answer.hpp>
+#include <nonogram/data/ClueStates.hpp>
+#include <nonogram/data/Nonogram.hpp>
 #include <nonogram/data/Solution.hpp>
-#include <nonogram/data/clues/FullIndices.hpp>
 
 #include <QtWidgets/QUndoCommand>
-
-#include <map>
-#include <vector>
 
 namespace nonogram
 {

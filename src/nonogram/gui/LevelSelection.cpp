@@ -1,9 +1,5 @@
 #include <nonogram/gui/LevelSelection.hpp>
 
-#include <QtCore/QList>
-#include <QtWidgets/QAction>
-#include <QtWidgets/QBoxLayout>
-#include <QtWidgets/QGroupBox>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QStyle>
@@ -59,9 +55,7 @@ namespace nonogram
         for (auto const& puzzle : puzzles_.puzzlesOfPack (pack))
         {
           data::Nonogram::ID const id {pack, puzzle};
-
-          auto const solved (puzzles_.hasBeenSolved (id));
-          add_nonogram (menu.get(), id, solved);
+          add_nonogram (menu.get(), id, puzzles_.hasBeenSolved (id));
         }
 
         util::unique_qt_ptr<QCommandLinkButton> button (pack.name);

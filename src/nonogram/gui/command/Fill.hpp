@@ -2,11 +2,10 @@
 
 #include <nonogram/gui/command/Base.hpp>
 #include <nonogram/data/Answer.hpp>
+#include <nonogram/data/Nonogram.hpp>
 #include <nonogram/data/grid/Cells.hpp>
 
 #include <QtWidgets/QUndoCommand>
-
-#include <vector>
 
 namespace nonogram
 {

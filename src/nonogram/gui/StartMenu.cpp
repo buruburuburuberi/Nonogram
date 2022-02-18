@@ -1,10 +1,8 @@
 #include <nonogram/gui/StartMenu.hpp>
 
 #include <QtGui/QGuiApplication>
-#include <QtWidgets/QGridLayout>
-#include <QtWidgets/QLabel>
-
-#include <iostream>
+#include <QtWidgets/QFrame>
+#include <QtWidgets/QVBoxLayout>
 
 namespace nonogram
 {
@@ -27,13 +25,13 @@ namespace nonogram
       tutorial_button_->setDescription ("Learn the basic rules of the game.");
 
       util::unique_qt_ptr<QFrame> line1;
-      line1->setFrameShape(QFrame::HLine);
+      line1->setFrameShape (QFrame::HLine);
 
       util::unique_qt_ptr<QFrame> line2;
-      line2->setFrameShape(QFrame::HLine);
+      line2->setFrameShape (QFrame::HLine);
 
       util::unique_qt_ptr<QFrame> line3;
-      line3->setFrameShape(QFrame::HLine);
+      line3->setFrameShape (QFrame::HLine);
 
       util::unique_qt_ptr<QVBoxLayout> main_layout;
       main_layout->addWidget (continue_button_.release());

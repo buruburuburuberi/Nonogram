@@ -1,7 +1,5 @@
 #include <nonogram/gui/command/Base.hpp>
 
-#include <QtWidgets/QUndoCommand>
-
 namespace nonogram
 {
   namespace gui
