@@ -1,5 +1,6 @@
 #include <nonogram/gui/painting.hpp>
 
+#include <nonogram/util/CenteredRect.hpp>
 #include <nonogram/util/ScopedQPainterState.hpp>
 
 #include <QtCore/QRectF>
@@ -26,28 +27,16 @@ namespace nonogram
     {
       util::ScopedQPainterState const state (painter);
 
-      auto fill_rect
-        ( [&]
-          {
-            if (solved)
-            {
-              return background_rect;
-            }
-
-            std::size_t const side (background_rect.width() - 6);
-            QRect rect
-              ( QPoint (0, 0)
-              , solved
-                ? background_rect.size()
-                : QSize (side, side)
-              );
-            rect.moveCenter (background_rect.center());
-
-            return rect;
-          }
+      auto const rect
+        ( solved
+        ? background_rect
+        : util::CenteredRect
+            ( background_rect.center()
+            , QSize (background_rect.width() - 6, background_rect.height() - 6)
+            )
         );
 
-      painter.fillRect (fill_rect(), color);
+      painter.fillRect (rect, color);
     }
 
     void drawCross ( QPainter& painter
@@ -62,11 +51,13 @@ namespace nonogram
       pen.setColor (color);
       painter.setPen (pen);
 
-      QRect cross_rect
-        ( QPoint (0, 0)
-        , QSize (background_rect.width() - 8, background_rect.height() - 8)
+      std::size_t const side (background_rect.width() - 8);
+      QRect const cross_rect
+        ( util::CenteredRect
+            ( background_rect.center()
+            , QSize (side, side)
+            )
         );
-      cross_rect.moveCenter (background_rect.center());
 
       painter.drawLine (cross_rect.topLeft(), cross_rect.bottomRight());
       painter.drawLine (cross_rect.bottomLeft(), cross_rect.topRight());
@@ -81,15 +72,9 @@ namespace nonogram
 
       painter.setBrush (color);
 
-      QRect fill_mark_rect
-        ( QPoint (0, 0)
-        , QSize ( background_rect.width() / 3
-                , background_rect.height() / 3
-                )
-        );
-      fill_mark_rect.moveCenter (background_rect.center());
-
-      painter.drawEllipse (fill_mark_rect);
+      std::size_t const side (background_rect.width() / 3);
+      painter.drawEllipse
+        (util::CenteredRect (background_rect.center(), QSize (side, side)));
     }
 
     void drawCrossMark ( QPainter& painter
@@ -104,13 +89,9 @@ namespace nonogram
       pen.setColor (color);
       painter.setPen (pen);
 
-      QRect cross_mark_rect
-        ( QPoint (0, 0)
-        , QSize ( background_rect.width() - 8
-                , background_rect.height() - 8
-                )
-        );
-      cross_mark_rect.moveCenter (background_rect.center());
+      auto const side (background_rect.width() - 8);
+      QRect const cross_mark_rect
+        (util::CenteredRect (background_rect.center(), QSize (side, side)));
 
       painter.drawLine ( cross_mark_rect.bottomLeft()
                        , cross_mark_rect.topRight()

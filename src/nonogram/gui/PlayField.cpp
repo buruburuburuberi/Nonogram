@@ -6,6 +6,7 @@
 #include <nonogram/gui/command/Cross.hpp>
 #include <nonogram/gui/command/Fill.hpp>
 #include <nonogram/gui/command/Lock.hpp>
+#include <nonogram/util/CenteredRect.hpp>
 #include <nonogram/util/optional_if.hpp>
 #include <nonogram/util/unique_qt_ptr.hpp>
 
@@ -230,11 +231,11 @@ namespace nonogram
                              , data::clues::FullIndex full_index
                              )
     {
-      auto const clue_center (clueCenter (field_rects_.at (field_type), cell));
+      QPoint const clue_center (clueCenter (field_rects_.at (field_type), cell));
 
       auto const background_size (slot_size_ - 2);
-      QRect background_rect (0, 0, background_size, background_size);
-      background_rect.moveCenter (clue_center);
+      util::CenteredRect const background_rect
+        (clue_center, QSize (background_size, background_size));
 
       bool const mark_as_error
         ( current_error_slot_
@@ -276,24 +277,19 @@ namespace nonogram
         QFont font;
         font.setPixelSize (font_size_);
         painter.setFont (font);
-        QRect text_rect (0, 0, text_size, text_size);
-        text_rect.moveCenter (clue_center);
-        painter.drawText ( text_rect, Qt::AlignCenter
-                         , QString::number (clue)
-                         );
+        painter.drawText
+          ( util::CenteredRect (clue_center, QSize (text_size, text_size))
+          , Qt::AlignCenter
+          , QString::number (clue)
+          );
 
         if (!solved_ && nonogram_.isCrossed (clue_type, full_index))
         {
-          auto pen (painter.pen());
-          pen.setWidth (2);
-          painter.setPen (pen);
-
-          auto const cross_size (slot_size - 10);
-          QRect cross_rect (0, 0, cross_size, cross_size);
-          cross_rect.moveCenter (clue_center);
-
-          painter.drawLine (cross_rect.topLeft(), cross_rect.bottomRight());
-          painter.drawLine (cross_rect.bottomLeft(), cross_rect.topRight());
+          drawCross
+            ( painter
+            , util::CenteredRect (clue_center, QSize (slot_size, slot_size))
+            , color
+            );
         }
       }
     }
@@ -380,11 +376,9 @@ namespace nonogram
     {
       auto const slot_center (slotCenter (cell));
 
-      QRect background_rect (0, 0, slot_size_, slot_size_);
-      background_rect.moveCenter (slot_center);
       drawBackground
         ( painter
-        , background_rect
+        , util::CenteredRect (slot_center, QSize (slot_size_, slot_size_))
         , current_error_slot_ && current_error_slot_.value() == cell
           ? mistake_color_
           : bg_color_
@@ -417,8 +411,8 @@ namespace nonogram
         : slot_size_
         );
 
-      QRect icon_rect (0, 0, slot_size, slot_size);
-      icon_rect.moveCenter (slot_center);
+      util::CenteredRect const icon_rect
+        (slot_center, QSize (slot_size, slot_size));
 
       switch (datum)
       {
@@ -789,15 +783,19 @@ namespace nonogram
         painter.setPen (pen);
 
         auto const slot_center (slotCenter (current_slot_.value()));
-        QRect horizontal_rect (0, 0, play_field_rect_.width(), slot_size_);
-        horizontal_rect.moveCenter
-          (QPoint (play_field_rect_.center().x(), slot_center.y()));
-        painter.drawRect (horizontal_rect);
+        painter.drawRect
+          ( util::CenteredRect
+              ( QPoint (play_field_rect_.center().x(), slot_center.y())
+              , QSize (play_field_rect_.width(), slot_size_)
+              )
+          );
 
-        QRect vertical_rect (0, 0, slot_size_, play_field_rect_.height());
-        vertical_rect.moveCenter
-          (QPoint (slot_center.x(), play_field_rect_.center().y()));
-        painter.drawRect (vertical_rect);
+        painter.drawRect
+          ( util::CenteredRect
+              ( QPoint (slot_center.x(), play_field_rect_.center().y())
+              , QSize (slot_size_, play_field_rect_.height())
+              )
+          );
       }
 
       painter.setPen (Qt::white);
