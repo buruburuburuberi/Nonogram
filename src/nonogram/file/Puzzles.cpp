@@ -1,5 +1,6 @@
 #include <nonogram/file/Puzzles.hpp>
 
+#include <nonogram/data/Solution.hpp>
 #include <nonogram/data/clues/Data.hpp>
 #include <nonogram/data/grid/Data.hpp>
 
@@ -20,20 +21,15 @@ namespace nonogram
     : puzzle (_puzzle)
     {}
 
-    Puzzles::Info::Info (QFileInfo _puzzle, QFileInfo _answer)
-    : puzzle (_puzzle)
-    , answer (_answer)
-    {}
-
     Puzzles::Puzzles()
     : current_puzzle_key_ ("current")
-    , root_path_ (QCoreApplication::applicationDirPath())
-    , answers_path_ (root_path_ + "/../answers")
-    , puzzles_path_ (root_path_ + "/../puzzles")
+    , root_dir_ (QCoreApplication::applicationDirPath())
+    , answers_dir_ (root_dir_.path() + "/../answers")
+    , puzzles_dir_ (root_dir_.path() + "/../puzzles")
     , puzzles_()
     {
       QDirIterator puzzles_directory_it
-        (puzzles_path_ , QDir::AllDirs | QDir::NoDotAndDotDot);
+        (puzzles_dir_.path(), QDir::AllDirs | QDir::NoDotAndDotDot);
       while (puzzles_directory_it.hasNext())
       {
         QDir const directory (puzzles_directory_it.next());
@@ -45,10 +41,11 @@ namespace nonogram
           QFileInfo const file (file_it.next());
           if (file.suffix() == "nonogram")
           {
-            data::Nonogram::Puzzle const puzzle {file.baseName()};
             puzzles_.emplace
               ( std::piecewise_construct
-              , std::forward_as_tuple (data::Nonogram::ID {pack, puzzle})
+              , std::forward_as_tuple ( pack
+                                      , data::Nonogram::Puzzle {file.baseName()}
+                                      )
               , std::forward_as_tuple (file)
               );
           }
@@ -56,7 +53,7 @@ namespace nonogram
       }
 
       QDirIterator answers_directory_it
-        (answers_path_, QDir::AllDirs | QDir::NoDotAndDotDot);
+        (answers_dir_.path(), QDir::AllDirs | QDir::NoDotAndDotDot);
       while (answers_directory_it.hasNext())
       {
         QDir const directory (answers_directory_it.next());
@@ -65,7 +62,7 @@ namespace nonogram
         if ( std::none_of
               ( puzzles_.begin()
               , puzzles_.end()
-              , [pack] (auto pair) { return pair.first.pack == pack; }
+              , [pack] (auto puzzle) { return puzzle.first.pack == pack; }
               )
            )
         {
@@ -81,7 +78,10 @@ namespace nonogram
 
           if (!puzzles_.count (id))
           {
-            continue;
+            throw std::runtime_error
+              ( QString ("Puzzle %1 not found.")
+                  .arg (id.toString()).toStdString()
+              );
           }
 
           puzzles_.at (id).answer = file;
@@ -116,6 +116,7 @@ namespace nonogram
             , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
             }
           }
+        , {}
         };
     }
 
@@ -134,6 +135,7 @@ namespace nonogram
                    , 0, 0, 1, 0, 0
                    }
                  }
+             , {}
              };
     }
 
@@ -141,9 +143,9 @@ namespace nonogram
     {
       data::Nonogram::Packs packs;
 
-      for (auto const& puzzle : puzzles_)
+      for (auto const& [id, info] : puzzles_)
       {
-        packs.insert (puzzle.first.pack);
+        packs.insert (id.pack);
       }
 
       return packs;
@@ -153,11 +155,11 @@ namespace nonogram
     {
       data::Nonogram::Puzzles puzzles;
 
-      for (auto const& puzzle : puzzles_)
+      for (auto const& [id, info] : puzzles_)
       {
-        if (puzzle.first.pack == pack)
+        if (id.pack == pack)
         {
-          puzzles.insert (puzzle.first.puzzle);
+          puzzles.insert (id.puzzle);
         }
       }
 
@@ -169,35 +171,6 @@ namespace nonogram
       return puzzles_.at (id).answer.has_value();
     }
 
-    namespace
-    {
-      data::Answer::Datum toDatum (QString character)
-      {
-        return character == "O"
-               ? data::Answer::Datum::Filled
-               : character == "X"
-                 ? data::Answer::Datum::Crossed
-                 : character == "o"
-                   ? data::Answer::Datum::FillMark
-                   : character == "x"
-                     ? data::Answer::Datum::CrossMark
-                     : data::Answer::Datum::Empty;
-      }
-
-      QString toString (data::Answer::Datum datum)
-      {
-        return datum == data::Answer::Datum::Filled
-               ? "O"
-               : datum == data::Answer::Datum::Crossed
-                 ? "X"
-                 : datum == data::Answer::Datum::FillMark
-                   ? "o"
-                   : datum == data::Answer::Datum::CrossMark
-                     ? "x"
-                     : "-";
-      }
-    }
-
     data::Answer Puzzles::answer (data::Nonogram::ID id) const
     {
       auto const file_info (puzzles_.at (id).answer.value());
@@ -207,7 +180,7 @@ namespace nonogram
           ( nullptr
           , "File not found!"
           , QString ("Answer file %1 from pack %2 not found!")
-            .arg (id.puzzle.name).arg (id.pack.name)
+              .arg (id.puzzle.name).arg (id.pack.name)
           );
       }
 
@@ -230,7 +203,7 @@ namespace nonogram
       auto const pack_name (id.pack.name);
       auto const puzzle_name (id.puzzle.name);
 
-      QDir directory (answers_path_);
+      QDir directory (answers_dir_);
       if (!directory.exists (pack_name))
       {
         directory.mkdir (pack_name);
@@ -271,7 +244,7 @@ namespace nonogram
       return std::all_of
           ( puzzles.begin()
           , puzzles.end()
-          , [this, pack] (auto puzzle) { return hasBeenSolved ({pack, puzzle}); }
+          , [&] (auto puzzle) { return hasBeenSolved ({pack, puzzle}); }
           );
     }
 
@@ -282,7 +255,7 @@ namespace nonogram
       return settings.contains (key) && settings.value (key).toBool();
     }
 
-    void Puzzles::setSolved (data::Nonogram::ID id)
+    void Puzzles::markAsSolved (data::Nonogram::ID id)
     {
       QSettings settings;
       settings.setValue (solvedKey (id), true);
@@ -296,7 +269,8 @@ namespace nonogram
         QMessageBox::critical
           ( nullptr
           , "File not found!"
-          , QString ("Puzzle file %1% not found!").arg (id.puzzle.name)
+          , QString ("Puzzle file %1 from pack %2 not found!")
+              .arg (id.puzzle.name).arg (id.pack.name)
           );
       }
 
@@ -331,24 +305,17 @@ namespace nonogram
         {
           data.set (column, row, datum == "#");
 
-          column++;
+          ++column;
         }
-        row++;
+        ++row;
       }
 
       file.close();
 
-      if (hasAnswer (id))
-      {
-        return { id
-               , std::move (data::Solution (data))
-               , answer (id)
-               };
-      }
-      else
-      {
-        return {id, std::move (data::Solution (data))};
-      }
+      return { id
+             , data::Solution (data)
+             , hasAnswer (id) ? std::optional (answer (id)) : std::nullopt
+             };
     }
   }
 }

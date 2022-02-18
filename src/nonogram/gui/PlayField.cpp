@@ -459,9 +459,9 @@ namespace nonogram
 
     void PlayField::drawPuzzle (QPainter& painter)
     {
-      for (auto const& cell : nonogram_.data())
+      for (auto const& [cell, value] : nonogram_.data())
       {
-        drawCell (painter, cell.first, cell.second);
+        drawCell (painter, cell, value);
       }
     }
 
@@ -477,7 +477,7 @@ namespace nonogram
           return true;
         }
 
-        auto const current_datum (nonogram_.answer (cell));
+        auto const current_datum (nonogram_.datum (cell));
 
         if (!current_hit_)
         {
@@ -523,8 +523,8 @@ namespace nonogram
           checkCell (current_error_slot_.value());
         }
 
-        if ( ( nonogram_.answer (cell) == data::Answer::Datum::Filled
-            || nonogram_.answer (cell) == data::Answer::Datum::Empty
+        if ( ( nonogram_.datum (cell) == data::Answer::Datum::Filled
+            || nonogram_.datum (cell) == data::Answer::Datum::Empty
              )
           && nonogram_.isSolved()
            )
@@ -621,14 +621,11 @@ namespace nonogram
       }
       else
       {
-        for (auto const& rect : field_rects_)
+        for (auto const& [type, rect] : field_rects_)
         {
-          if (rect.first != FieldType::Puzzle)
+          if ((type != FieldType::Puzzle) && cross_clue (type, rect))
           {
-            if (cross_clue (rect.first, rect.second))
-            {
-              return true;
-            }
+            return true;
           }
         }
       }
@@ -738,9 +735,9 @@ namespace nonogram
       QPainter painter (this);
       painter.fillRect (rect(), Qt::darkGray);
 
-      for (auto const& rect : field_rects_)
+      for (auto const& [type, rect] : field_rects_)
       {
-        painter.fillRect (rect.second, fg_color_);
+        painter.fillRect (rect, fg_color_);
       }
 
       for (auto const& type : all_field_types)
@@ -760,9 +757,9 @@ namespace nonogram
       pen.setColor (fg_color_);
       painter.setPen (pen);
 
-      for (auto const& rect : field_rects_)
+      for (auto const& [type, rect] : field_rects_)
       {
-        painter.drawRect (rect.second);
+        painter.drawRect (rect);
       }
 
       auto const offset (5 * slot_size_);
@@ -834,11 +831,11 @@ namespace nonogram
     {
       setDisabled (true);
 
-      for (auto const& cell : nonogram_.data())
+      for (auto const& [cell, value] : nonogram_.data())
       {
-        if (nonogram_.solution (cell.first))
+        if (nonogram_.solution (cell))
         {
-          nonogram_.fillData (cell.first, data::Answer::Datum::Filled);
+          nonogram_.fillData (cell, data::Answer::Datum::Filled);
 
           if (animate)
           {
@@ -900,7 +897,7 @@ namespace nonogram
                            , slots_to_fill.end()
                            , [&] (data::grid::Cell cell)
                              {
-                               return nonogram_.answer (cell) == datum;
+                               return nonogram_.datum (cell) == datum;
                              }
                            )
                        )

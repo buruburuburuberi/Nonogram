@@ -1,7 +1,6 @@
 #include <nonogram/data/Clues.hpp>
 
 #include <algorithm>
-#include <stdexcept>
 
 namespace nonogram
 {
@@ -9,85 +8,76 @@ namespace nonogram
   {
     clues::FullIndex Clues::toFullIndex (Type type, grid::Cell cell)
     {
-      return
-        { clues::MainIndex
-            {type == Type::Column ?  cell.column.value : cell.row.value}
-        , clues::MinorIndex
-            {type == Type::Column ? cell.row.value : cell.column.value}
-        };
+      return { clues::MainIndex
+                 {type == Type::Column ?  cell.column.value : cell.row.value}
+             , clues::MinorIndex
+                 {type == Type::Column ? cell.row.value : cell.column.value}
+             };
     }
 
     Clues::Clues (grid::Data<bool> const& data, Type type)
     : type_ (type)
-    , max_minor_size_ {0}
+    , max_minor_count_ (0)
     , data_ (computeClues (data, type))
     {}
 
-    Clues::Data Clues::computeClues ( grid::Data<bool> const& data
-                                    , Type type
-                                    )
+    Clues::Data Clues::computeClues (grid::Data<bool> const& data, Type type)
     {
-      grid::Column const columns
-        (type == Type::Column ? data.rows().value : data.columns().value);
-      grid::Row const rows
-        (type == Type::Column ? data.columns().value : data.rows().value);
+      auto const clues_size {toFullIndex (type, {data.columns(), data.rows()})};
 
-      std::vector<std::vector<Value>> clues;
-
-      clues.resize (rows.value);
+      std::vector<std::vector<Value>> clues (clues_size.main.value);
 
       auto is_filled
-        ( [&] (grid::Column column, grid::Row row)
+        ( [&] (clues::MainIndex main, clues::MinorIndex minor)
           {
             return type == Type::Column
-                ? data.at ({grid::Column {row.value}, grid::Row {column.value}})
-                : data.at ({column, row})
-                ;
+              ? data.at (grid::Column {main.value}, grid::Row {minor.value})
+              : data.at (grid::Column {minor.value}, grid::Row {main.value})
+              ;
           }
         );
 
-      for (grid::Row row {0}; row < rows; ++row)
+      for (clues::MainIndex main {0}; main < clues_size.main; ++main)
       {
-        unsigned int filled_counter (0);
-        for (grid::Column column {0}; column < columns; ++column)
+        std::size_t filled_counter (0);
+        for (clues::MinorIndex minor {0}; minor < clues_size.minor; ++minor)
         {
-          bool const current_square_filled (is_filled (column, row));
+          auto const current_square_filled (is_filled (main, minor));
 
           if (current_square_filled)
           {
-            filled_counter++;
+            ++filled_counter;
           }
 
-          if ( column > grid::Column (0)
+          if ( minor.value > 0
             && !current_square_filled
-            && is_filled (grid::Column {column - grid::Column (1)}, row)
+            && is_filled (main, minor - clues::MinorIndex (1))
              )
           {
-            clues.at (row.value).push_back (filled_counter);
+            clues.at (main.value).push_back (filled_counter);
             filled_counter = 0;
           }
 
-          if ( column == columns - grid::Column (1)
-            && filled_counter > 0
+          if ( (minor == clues_size.minor - clues::MinorIndex (1))
+            && (filled_counter > 0)
              )
           {
-            clues.at (row.value).push_back (filled_counter);
+            clues.at (main.value).push_back (filled_counter);
           }
         }
 
-        max_minor_size_.value =
-            std::max ( max_minor_size_.value
-                     , static_cast<clues::MinorIndex::underlying_type>
-                        (clues.at (row.value).size())
+        max_minor_count_ =
+            std::max ( max_minor_count_
+                     , clues::MinorIndex (clues.at (main.value).size())
                      );
       }
 
-      return Data (clues);
+      return clues;
     }
 
     clues::MinorIndex Clues::maxNumberOfClues() const
     {
-      return max_minor_size_;
+      return max_minor_count_;
     }
 
     clues::MainIndex Clues::mainSize() const

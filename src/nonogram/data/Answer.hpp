@@ -19,11 +19,11 @@ namespace nonogram
     {
     public:
       enum class Datum
-      { Empty = 0
-      , Filled = 1
-      , Crossed = 2
-      , FillMark = 3
-      , CrossMark = 4
+      { Empty
+      , Filled
+      , Crossed
+      , FillMark
+      , CrossMark
       };
 
       using Data = grid::Data<Datum>;
@@ -31,10 +31,9 @@ namespace nonogram
       using CluesStates = std::map<Clues::Type, ClueStates>;
 
       Answer (Solution const&);
-      Answer (Data, DataLocks, CluesStates);
 
       Data const& data() const;
-      Datum at (grid::Cell) const;
+      Datum datum (grid::Cell) const;
       void fillData (grid::Cell, Datum);
       grid::Cells dataToLock() const;
       grid::Cells lockedData() const;

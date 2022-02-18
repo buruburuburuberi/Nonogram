@@ -1,7 +1,9 @@
 #pragma once
 
+#include <nonogram/data/Answer.hpp>
 #include <nonogram/data/Nonogram.hpp>
 
+#include <QtCore/QDir>
 #include <QtCore/QFileInfo>
 #include <QtCore/QString>
 
@@ -27,7 +29,7 @@ namespace nonogram
       std::optional<data::Nonogram::ID> currentPuzzle() const;
       bool hasBeenSolved (data::Nonogram::Pack) const;
       bool hasBeenSolved (data::Nonogram::ID) const;
-      void setSolved (data::Nonogram::ID);
+      void markAsSolved (data::Nonogram::ID);
       data::Nonogram puzzle (data::Nonogram::ID) const;
 
       data::Nonogram titleNonogram() const;
@@ -37,14 +39,13 @@ namespace nonogram
       QString solvedKey (data::Nonogram::ID) const;
 
       QString const current_puzzle_key_;
-      QString const root_path_;
-      QString const answers_path_;
-      QString const puzzles_path_;
+      QDir const root_dir_;
+      QDir const answers_dir_;
+      QDir const puzzles_dir_;
 
       struct Info
       {
         Info (QFileInfo _puzzle);
-        Info (QFileInfo _puzzle, QFileInfo _answer);
 
         QFileInfo puzzle;
         std::optional<QFileInfo> answer;

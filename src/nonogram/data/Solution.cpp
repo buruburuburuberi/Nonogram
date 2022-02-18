@@ -1,7 +1,6 @@
 #include <nonogram/data/Solution.hpp>
 
-#include <iostream>
-#include <string>
+#include <tuple>
 
 namespace nonogram
 {
@@ -30,7 +29,7 @@ namespace nonogram
       return data_.columns();
     }
 
-    Solution::State Solution::at (grid::Cell cell) const
+    Solution::State Solution::filled (grid::Cell cell) const
     {
       return data_.at (cell);
     }

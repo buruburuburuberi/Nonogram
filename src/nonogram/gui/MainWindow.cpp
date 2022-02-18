@@ -222,8 +222,8 @@ namespace nonogram
 
                   if (!current_nonogram_.id().internal())
                   {
-                    puzzles_.setSolved (current_nonogram_.id());
-                    level_selection_->setSolved (current_nonogram_.id());
+                    puzzles_.markAsSolved (current_nonogram_.id());
+                    level_selection_->markAsSolved (current_nonogram_.id());
                   }
 
                   QMessageBox::information ( this

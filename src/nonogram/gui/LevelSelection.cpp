@@ -91,7 +91,7 @@ namespace nonogram
       setLayout (main_layout.release());
     }
 
-    void LevelSelection::setSolved (data::Nonogram::ID id)
+    void LevelSelection::markAsSolved (data::Nonogram::ID id)
     {
       puzzle_actions_.at (id)->setIcon (solved_icon_);
 

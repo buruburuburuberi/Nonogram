@@ -23,18 +23,12 @@ namespace nonogram
       }
     }
 
-    Answer::Answer (Data data, DataLocks data_locks, CluesStates clue_states)
-    : data_ (std::move (data))
-    , data_locks_ (std::move (data_locks))
-    , clue_states_ (std::move (clue_states))
-    {}
-
     Answer::Data const& Answer::data() const
     {
       return data_;
     }
 
-    Answer::Datum Answer::at (grid::Cell cell) const
+    Answer::Datum Answer::datum (grid::Cell cell) const
     {
       return data_.at (cell);
     }
@@ -129,9 +123,9 @@ namespace nonogram
 
     void Answer::fillClueLocks (bool state)
     {
-      for (auto& clue_state : clue_states_)
+      for (auto& [type, states] : clue_states_)
       {
-        clue_state.second.fillLocks (state);
+        states.fillLocks (state);
       }
     }
 
@@ -171,15 +165,15 @@ namespace nonogram
       data_.fill (Answer::Datum::Empty);
       data_locks_.fill (false);
 
-      for (auto& clue_state : clue_states_)
+      for (auto& [type, states] : clue_states_)
       {
-        clue_state.second.reset();
+        states.reset();
       }
     }
 
     QDataStream& operator>> (QDataStream& ds, Answer::Datum& datum)
     {
-      unsigned int value;
+      int value;
       ds >> value;
       datum = static_cast<Answer::Datum> (value);
 
@@ -210,9 +204,9 @@ namespace nonogram
       ds << answer.data_;
       ds << answer.data_locks_;
 
-      for (auto const& clue_state : answer.clue_states_)
+      for (auto const& [type, states] : answer.clue_states_)
       {
-        ds << clue_state.second;
+        ds << states;
       }
 
       return ds;

@@ -10,10 +10,9 @@
 #include <algorithm>
 #include <cstddef>
 #include <functional>
-#include <set>
 #include <stdexcept>
-#include <tuple>
 #include <vector>
+#include <utility>
 
 namespace nonogram
 {
@@ -41,11 +40,6 @@ namespace nonogram
                  )
         {}
 
-        Data (Data const& data)
-        : data_ (data.data_)
-        , count_ (data.count_)
-        {}
-
         MainIndex mainSize() const
         {
           return MainIndex (data_.size());
@@ -56,21 +50,11 @@ namespace nonogram
           return MinorIndex (data_.at (main_index.value).size());
         }
 
-        bool has (MainIndex main_index, MinorIndex minor_index) const
-        {
-          return main_index < mainSize() && minor_index < minorSize (main_index);
-        }
-
-        bool has (FullIndex full_index) const
-        {
-          return has (full_index.main, full_index.minor);
-        }
-
         T at (MainIndex main_index, MinorIndex minor_index) const
         {
           checkInvalidAccess (main_index, minor_index);
 
-          return data_[main_index.value][minor_index.value];
+          return data_.at (main_index.value).at (minor_index.value);
         }
 
         T at (FullIndex full_index) const
@@ -78,15 +62,28 @@ namespace nonogram
           return at (full_index.main, full_index.minor);
         }
 
+        bool any_of (std::function<bool (FullIndex, T)> check) const
+        {
+          for (auto const& [full_index, value] : *this)
+          {
+            if (check (full_index, value))
+            {
+              return true;
+            }
+          }
+
+          return false;
+        }
+
         FullIndices indices_if (std::function<bool (FullIndex, T)> check) const
         {
           FullIndices indices;
 
-          for (auto const& data : *this)
+          for (auto const& [full_index, value] : *this)
           {
-            if (check (data.first, data.second))
+            if (check (full_index, value))
             {
-              indices.insert (data.first);
+              indices.insert (full_index);
             }
           }
 
@@ -105,7 +102,7 @@ namespace nonogram
         {
           checkInvalidAccess (main_index, minor_index);
 
-          data_[main_index.value][minor_index.value] = value;
+          data_.at (main_index.value).at (minor_index.value) = value;
         }
 
         void set (FullIndex full_index, T value)
@@ -129,10 +126,9 @@ namespace nonogram
           constexpr std::pair<FullIndex, T> operator*()
           {
             auto const full_index (fromIndex (index_));
-            return std::pair<FullIndex, T>
-                { full_index
-                , data_.at (full_index.main.value).at (full_index.minor.value)
-                };
+            return { full_index
+                   , data_.at (full_index.main.value).at (full_index.minor.value)
+                   };
           }
 
         private:
@@ -143,14 +139,15 @@ namespace nonogram
 
           FullIndex fromIndex (std::size_t index) const
           {
-            for (std::size_t row (0), counter (0); row < data_.size(); ++row)
+            std::size_t counter (0);
+            for (MainIndex main (0); main < MainIndex (data_.size()); ++main)
             {
-              if (index < (counter + data_.at (row).size()))
+              if (index < (counter + data_.at (main.value).size()))
               {
-                return { MainIndex (row), MinorIndex (index - counter) };
+                return {main, MinorIndex (index - counter)};
               }
 
-              counter += data_.at (row).size();
+              counter += data_.at (main.value).size();
             }
 
             throw std::invalid_argument ("Invalid access to index " + index);
@@ -186,15 +183,13 @@ namespace nonogram
             {
               T value;
               ds >> value;
-              data_[main.value][minor.value] = value;
+              data_.at (main.value).at (minor.value) = value;
 
               ++count_;
             }
           }
         }
-        friend QDataStream& operator<< ( QDataStream& ds
-                                       , Data const& data
-                                       )
+        friend QDataStream& operator<< (QDataStream& ds, Data const& data)
         {
           auto const main_size (data.mainSize());
           ds << main_size.value;

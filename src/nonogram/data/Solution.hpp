@@ -9,10 +9,6 @@
 #include <nonogram/data/clues/MainIndex.hpp>
 #include <nonogram/data/clues/MinorIndex.hpp>
 
-#include <QtCore/QSize>
-
-#include <array>
-#include <cstddef>
 #include <map>
 
 namespace nonogram
@@ -31,7 +27,7 @@ namespace nonogram
 
       grid::Row dataRows() const;
       grid::Column dataColumns() const;
-      State at (grid::Cell) const;
+      State filled (grid::Cell) const;
 
       clues::MinorIndex maxNumberOfClues (Clues::Type) const;
       clues::MainIndex clueMainSize (Clues::Type) const;

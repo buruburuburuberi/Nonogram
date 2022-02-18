@@ -1,13 +1,6 @@
 #include <nonogram/data/Nonogram.hpp>
 
-#include <nonogram/file/Puzzles.hpp>
-
-#include <QtCore/QStringList>
-
-#include <cstddef>
-#include <string>
 #include <tuple>
-#include <vector>
 
 namespace nonogram
 {
@@ -51,15 +44,14 @@ namespace nonogram
 
     Nonogram::Nonogram ( data::Nonogram::ID id
                        , Solution solution
-                       , Answer answer
+                       , std::optional<Answer> maybe_answer
                        )
     : id_ (std::move (id))
     , solution_ (std::move (solution))
-    , answer_ (std::move (answer))
-    {}
-
-    Nonogram::Nonogram (data::Nonogram::ID id, Solution solution)
-    : Nonogram (std::move (id), solution, Answer (solution))
+    , answer_ ( maybe_answer
+              ? std::move (maybe_answer.value())
+              : Answer (solution_)
+              )
     {}
 
     Nonogram::ID Nonogram::id() const
@@ -84,12 +76,12 @@ namespace nonogram
 
     Solution::State Nonogram::solution (grid::Cell cell) const
     {
-      return solution_.at (cell);
+      return solution_.filled (cell);
     }
 
-    Answer::Datum Nonogram::answer (grid::Cell cell) const
+    Answer::Datum Nonogram::datum (grid::Cell cell) const
     {
-      return answer_.at (cell);
+      return answer_.datum (cell);
     }
 
     void Nonogram::fillData (grid::Cell cell, Answer::Datum datum)
@@ -146,7 +138,9 @@ namespace nonogram
       return solution_.clue (type, full_index);
     }
 
-    ClueState Nonogram::isCrossed (Clues::Type type, clues::FullIndex full_index) const
+    ClueState Nonogram::isCrossed ( Clues::Type type
+                                  , clues::FullIndex full_index
+                                  ) const
     {
       return answer_.isCrossed (type, full_index);
     }
@@ -203,20 +197,20 @@ namespace nonogram
 
     bool Nonogram::isMistake (grid::Cell cell) const
     {
-      auto const datum (answer_.at (cell));
+      auto const datum (answer_.datum (cell));
       return ( (datum == Answer::Datum::Filled)
             || (datum == Answer::Datum::Crossed)
              )
-          && solution_.at (cell) != (datum == data::Answer::Datum::Filled);
+          && solution_.filled (cell) != (datum == data::Answer::Datum::Filled);
     }
 
     std::optional<grid::Cell> Nonogram::findFirstMistake() const
     {
-      for (auto const& cell : answer_.data())
+      for (auto const& [cell, value] : answer_.data())
       {
-        if (isMistake (cell.first))
+        if (isMistake (cell))
         {
-          return cell.first;
+          return cell;
         }
       }
 
@@ -225,15 +219,10 @@ namespace nonogram
 
     bool Nonogram::isSolved() const
     {
-      for (auto const& cell : answer_.data())
-      {
-        if (solution_.at (cell.first) != (cell.second == data::Answer::Datum::Filled))
-        {
-          return false;
-        }
-      }
-
-      return true;
+      return !answer_.data().any_of
+        ( [&] (grid::Cell cell, Answer::Datum datum)
+          { return solution_.filled (cell) != (datum == Answer::Datum::Filled); }
+        );
     }
 
     void Nonogram::resetAnswer()

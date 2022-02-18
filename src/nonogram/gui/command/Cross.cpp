@@ -50,22 +50,22 @@ namespace nonogram
 
       void Cross::undo()
       {
-        for (auto const& indices_of_type : clue_indices_)
+        for (auto const& [type, full_indices] : clue_indices_)
         {
-          for (auto const& index : indices_of_type.second)
+          for (auto const& index : full_indices)
           {
-            nonogram_.cross (indices_of_type.first, index, before_);
+            nonogram_.cross (type, index, before_);
           }
         }
       }
 
       void Cross::redo()
       {
-        for (auto const& indices_of_type : clue_indices_)
+        for (auto const& [type, full_indices] : clue_indices_)
         {
-          for (auto const& index : indices_of_type.second)
+          for (auto const& index : full_indices)
           {
-            nonogram_.cross (indices_of_type.first, index, after_);
+            nonogram_.cross (type, index, after_);
           }
         }
       }
@@ -83,10 +83,9 @@ namespace nonogram
           return false;
         }
 
-        for (auto const& indices_of_type : other_cross->clue_indices_)
+        for (auto const& [type, indices] : other_cross->clue_indices_)
         {
-          clue_indices_.at (indices_of_type.first).insert
-            (indices_of_type.second.begin(), indices_of_type.second.end());
+          clue_indices_.at (type).insert (indices.begin(), indices.end());
         }
 
         return true;

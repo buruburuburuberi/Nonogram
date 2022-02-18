@@ -3,8 +3,6 @@
 #include <nonogram/data/clues/MainIndex.hpp>
 #include <nonogram/data/clues/MinorIndex.hpp>
 
-#include <string>
-
 namespace nonogram
 {
   namespace data
@@ -21,16 +19,13 @@ namespace nonogram
       auto const main_size (solution.clueMainSize (type));
       Data::Container data (main_size.value);
 
-      for ( clues::MainIndex main_index {0}
-          ; main_index < main_size
-          ; ++main_index
-          )
+      for (clues::MainIndex main {0}; main < main_size; ++main)
       {
-        data.at (main_index.value).resize
-          (solution.clueMinorSize (type, main_index).value, false);
+        data.at (main.value).resize
+          (solution.clueMinorSize (type, main).value, false);
       }
 
-      return {data};
+      return data;
     }
 
     bool ClueStates::isCrossed (clues::FullIndex full_index) const
@@ -87,15 +82,7 @@ namespace nonogram
 
     bool ClueStates::canUnlock() const
     {
-      for (auto const& lock : locks_)
-      {
-        if (lock.second)
-        {
-          return true;
-        }
-      }
-
-      return false;
+      return locks_.any_of ([&] (clues::FullIndex, bool state) { return state; });
     }
 
     void ClueStates::reset()

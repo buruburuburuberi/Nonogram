@@ -28,7 +28,7 @@ namespace nonogram
 
         LevelSelection (file::Puzzles const&, QBoxLayout::Direction);
 
-        void setSolved (data::Nonogram::ID);
+        void markAsSolved (data::Nonogram::ID);
 
       signals:
         void levelSelected (data::Nonogram::ID);

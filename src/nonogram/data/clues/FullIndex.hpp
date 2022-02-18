@@ -3,16 +3,6 @@
 #include <nonogram/data/clues/MainIndex.hpp>
 #include <nonogram/data/clues/MinorIndex.hpp>
 
-#include <QtCore/QDataStream>
-
-#include <algorithm>
-#include <cstddef>
-#include <functional>
-#include <set>
-#include <stdexcept>
-#include <tuple>
-#include <vector>
-
 namespace nonogram
 {
   namespace data

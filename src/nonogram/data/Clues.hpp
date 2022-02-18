@@ -4,11 +4,8 @@
 #include <nonogram/data/grid/Cell.hpp>
 #include <nonogram/data/grid/Data.hpp>
 
-#include <QtCore/QSize>
-
 #include <array>
 #include <cstddef>
-#include <map>
 
 namespace nonogram
 {
@@ -44,7 +41,7 @@ namespace nonogram
       Data computeClues (grid::Data<bool> const&, Type);
 
       Type type_;
-      clues::MinorIndex max_minor_size_;
+      clues::MinorIndex max_minor_count_;
       Data data_;
     };
   }

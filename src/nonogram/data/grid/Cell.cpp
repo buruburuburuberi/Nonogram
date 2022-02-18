@@ -10,7 +10,7 @@ namespace nonogram
     {
       bool Cell::operator== (Cell const& rhs) const
       {
-        return std::tie (column, row) == std::tie (rhs.column, rhs.row);
+        return std::tie (row, column) == std::tie (rhs.row, rhs.column);
       }
 
       bool Cell::operator< (Cell const& rhs) const

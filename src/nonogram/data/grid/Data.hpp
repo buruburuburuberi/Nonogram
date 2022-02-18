@@ -10,9 +10,8 @@
 #include <algorithm>
 #include <cstddef>
 #include <functional>
-#include <set>
 #include <stdexcept>
-#include <tuple>
+#include <utility>
 #include <vector>
 
 namespace nonogram
@@ -39,8 +38,6 @@ namespace nonogram
                , Container (columns.value * rows.value, value)
                )
         {}
-
-        Data (Data const&) = default;
 
         Row rows() const
         {
@@ -82,9 +79,9 @@ namespace nonogram
 
         bool any_of (std::function<bool (Cell, T)> check) const
         {
-          for (auto const& cell : *this)
+          for (auto const& [cell, value] : *this)
           {
-            if (check (cell.first, cell.second))
+            if (check (cell, value))
             {
               return true;
             }
@@ -97,11 +94,11 @@ namespace nonogram
         {
           Cells data;
 
-          for (auto const& cell : *this)
+          for (auto const& [cell, value] : *this)
           {
-            if (check (cell.first, cell.second))
+            if (check (cell, value))
             {
-              data.insert (cell.first);
+              data.insert (cell);
             }
           }
 
@@ -143,8 +140,7 @@ namespace nonogram
 
           constexpr std::pair<Cell, ConstReference> operator*()
           {
-            return std::pair<Cell, ConstReference>
-              {fromIndex (index_), *value_};
+            return {fromIndex (index_), *value_};
           }
 
         private:
@@ -186,23 +182,24 @@ namespace nonogram
         , columns_ (ds)
         , data_ (rows_.value * columns_.value)
         {
-          for (auto const& cell : *this)
+          for (auto const& [cell, _] : *this)
           {
             T value;
             ds >> value;
-            set (cell.first, value);
+            set (cell, value);
           }
         }
         friend QDataStream& operator<< (QDataStream& ds, Data const& array)
         {
           auto const rows (array.rows());
-          auto const columns (array.columns());
           ds << rows.value;
+
+          auto const columns (array.columns());
           ds << columns.value;
 
-          for (auto const& cell : array)
+          for (auto const& [cell, value] : array)
           {
-            ds << cell.second;
+            ds << value;
           }
 
           return ds;

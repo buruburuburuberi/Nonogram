@@ -14,12 +14,8 @@
 
 #include <QtCore/QString>
 
-#include <algorithm>
-#include <cstddef>
 #include <optional>
 #include <set>
-#include <stdexcept>
-#include <string>
 
 namespace nonogram
 {
@@ -52,15 +48,14 @@ namespace nonogram
         bool operator< (ID const&) const;
       };
 
-      Nonogram (ID, Solution);
-      Nonogram (ID, Solution, Answer);
+      Nonogram (ID, Solution, std::optional<Answer>);
 
       ID id() const;
       Answer::Data const& data() const;
       grid::Row dataRows() const;
       grid::Column dataColumns() const;
       Solution::State solution (grid::Cell) const;
-      Answer::Datum answer (grid::Cell) const;
+      Answer::Datum datum (grid::Cell) const;
       void fillData (grid::Cell, Answer::Datum);
       grid::Cells dataToLock() const;
       grid::Cells lockedData() const;

@@ -23,6 +23,7 @@ namespace nonogram
 
       bool isCrossed (clues::FullIndex) const;
       void cross (clues::FullIndex, ClueState);
+
       clues::FullIndices toLock() const;
       clues::FullIndices locked() const;
       bool isLocked (clues::FullIndex) const;
