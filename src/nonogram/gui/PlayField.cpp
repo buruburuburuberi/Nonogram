@@ -7,6 +7,7 @@
 #include <nonogram/gui/command/Fill.hpp>
 #include <nonogram/gui/command/Lock.hpp>
 #include <nonogram/gui/painting.hpp>
+#include <nonogram/util/optional_if.hpp>
 #include <nonogram/util/unique_qt_ptr.hpp>
 
 #include <QtCore/QCoreApplication>
@@ -158,9 +159,7 @@ namespace nonogram
 
     void PlayField::checkCell (data::grid::Cell cell)
     {
-      current_error_slot_ = nonogram_.isMistake (cell)
-                          ? std::optional (cell)
-                          : std::nullopt;
+      current_error_slot_ = util::optional_if (nonogram_.isMistake (cell), cell);
       update();
     }
 
@@ -676,15 +675,10 @@ namespace nonogram
 
       if (event->buttons() != Qt::RightButton)
       {
-        current_slot_ =
-            field_rects_.at (FieldType::Puzzle).contains (event->pos())
-            ? std::optional
-                ( fromPosition ( field_rects_.at (FieldType::Puzzle)
-                               , event->pos()
-                               )
-                )
-            : std::nullopt
-            ;
+        current_slot_ = util::optional_if
+            ( field_rects_.at (FieldType::Puzzle).contains (event->pos())
+            , fromPosition (field_rects_.at (FieldType::Puzzle), event->pos())
+            );
 
         auto const text
           ( current_slot_

@@ -3,6 +3,7 @@
 #include <nonogram/data/Solution.hpp>
 #include <nonogram/data/clues/Data.hpp>
 #include <nonogram/data/grid/Data.hpp>
+#include <nonogram/util/optional_if.hpp>
 
 #include <QtCore/QCoreApplication>
 #include <QtCore/QDataStream>
@@ -228,12 +229,10 @@ namespace nonogram
     std::optional<data::Nonogram::ID> Puzzles::currentPuzzle() const
     {
       QSettings settings;
-      return settings.contains (current_puzzle_key_)
-           ? std::optional
-               ( data::Nonogram::ID
-                   (settings.value (current_puzzle_key_).toString())
-               )
-           : std::nullopt;
+      return util::optional_if
+          ( settings.contains (current_puzzle_key_)
+          , data::Nonogram::ID (settings.value (current_puzzle_key_).toString())
+          );
 
     }
 
@@ -314,7 +313,7 @@ namespace nonogram
 
       return { id
              , data::Solution (data)
-             , hasAnswer (id) ? std::optional (answer (id)) : std::nullopt
+             , util::optional_if (hasAnswer (id), answer (id))
              };
     }
   }
