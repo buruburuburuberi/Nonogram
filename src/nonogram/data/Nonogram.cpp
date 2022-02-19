@@ -191,9 +191,7 @@ namespace nonogram::data
   bool Nonogram::isMistake (grid::Cell cell) const
   {
     auto const datum (answer_.datum (cell));
-    return ( (datum == Answer::Datum::Filled)
-          || (datum == Answer::Datum::Crossed)
-           )
+    return ((datum == Answer::Datum::Filled) || (datum == Answer::Datum::Crossed))
         && solution_.filled (cell) != (datum == data::Answer::Datum::Filled);
   }
 

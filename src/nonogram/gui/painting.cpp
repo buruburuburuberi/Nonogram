@@ -37,10 +37,7 @@ namespace nonogram::gui
     painter.fillRect (rect, color);
   }
 
-  void drawCross ( QPainter& painter
-                 , QRect background_rect
-                 , QColor color
-                 )
+  void drawCross (QPainter& painter, QRect background_rect, QColor color)
   {
     util::ScopedQPainterState const state (painter);
 
@@ -51,20 +48,13 @@ namespace nonogram::gui
 
     std::size_t const side (background_rect.width() - 8);
     QRect const cross_rect
-      ( util::CenteredRect
-          ( background_rect.center()
-          , QSize (side, side)
-          )
-      );
+      (util::CenteredRect (background_rect.center(), QSize (side, side)));
 
     painter.drawLine (cross_rect.topLeft(), cross_rect.bottomRight());
     painter.drawLine (cross_rect.bottomLeft(), cross_rect.topRight());
   }
 
-  void drawFillMark ( QPainter& painter
-                    , QRect background_rect
-                    , QColor color
-                    )
+  void drawFillMark (QPainter& painter, QRect background_rect, QColor color)
   {
     util::ScopedQPainterState const state (painter);
 
@@ -75,10 +65,7 @@ namespace nonogram::gui
       (util::CenteredRect (background_rect.center(), QSize (side, side)));
   }
 
-  void drawCrossMark ( QPainter& painter
-                     , QRect background_rect
-                     , QColor color
-                     )
+  void drawCrossMark (QPainter& painter, QRect background_rect, QColor color)
   {
     util::ScopedQPainterState const state (painter);
 
@@ -91,9 +78,7 @@ namespace nonogram::gui
     QRect const cross_mark_rect
       (util::CenteredRect (background_rect.center(), QSize (side, side)));
 
-    painter.drawLine ( cross_mark_rect.bottomLeft()
-                     , cross_mark_rect.topRight()
-                     );
+    painter.drawLine (cross_mark_rect.bottomLeft(), cross_mark_rect.topRight());
   }
 
   QIcon createIcon ( data::Answer::Datum datum

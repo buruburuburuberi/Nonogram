@@ -143,8 +143,7 @@ namespace nonogram::data
 
   bool Answer::canUnlock() const
   {
-    return data_locks_.any_of
-             ([&] (grid::Cell, bool state) { return state; })
+    return data_locks_.any_of ([&] (grid::Cell, bool state) { return state; })
         || std::any_of
              ( clue_states_.begin()
              , clue_states_.end()

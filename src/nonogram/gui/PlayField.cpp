@@ -473,9 +473,7 @@ namespace nonogram::gui
         current_hit_ =
           { FieldType::Puzzle
           , cell
-          , current_datum == fill_mode_
-            ? data::Answer::Datum::Empty
-            : fill_mode_
+          , current_datum == fill_mode_ ? data::Answer::Datum::Empty : fill_mode_
           };
       }
 
@@ -493,16 +491,12 @@ namespace nonogram::gui
       if (first_hit)
       {
         undo_stack_.push
-          ( command::Fill::start
-              (nonogram_, data_slots, current_datum, to_fill)
-          );
+          (command::Fill::start (nonogram_, data_slots, current_datum, to_fill));
       }
       else
       {
         undo_stack_.push
-          ( command::Fill::append
-              (nonogram_, data_slots, current_datum, to_fill)
-          );
+          (command::Fill::append (nonogram_, data_slots, current_datum, to_fill));
       }
 
       current_hit_ = {FieldType::Puzzle, cell, to_fill};
@@ -581,21 +575,16 @@ namespace nonogram::gui
           bool const first_hit (!current_hit_.has_value());
           current_hit_ = {field_type, cell, state};
 
-          data::Solution::ClueIndices const clue_indices
-            {{clue_type, {full_index}}};
+          data::Solution::ClueIndices const indices {{clue_type, {full_index}}};
           if (first_hit)
           {
             undo_stack_.push
-              ( command::Cross::start
-                  (nonogram_, clue_indices, current_state, state)
-              );
+              (command::Cross::start (nonogram_, indices, current_state, state));
           }
           else
           {
             undo_stack_.push
-              ( command::Cross::append
-                  (nonogram_, clue_indices, current_state, state)
-              );
+              (command::Cross::append (nonogram_, indices, current_state, state));
           }
 
           update();
@@ -859,10 +848,8 @@ namespace nonogram::gui
         main_layout->addWidget (message_label.release());
         main_layout->addWidget (button_box.release());
         message_box.setLayout (main_layout.release());
-        connect ( button_box.get()
-                , &QDialogButtonBox::accepted
-                , &message_box
-                , &QDialog::accept
+        connect ( button_box.get(), &QDialogButtonBox::accepted
+                , &message_box, &QDialog::accept
                 );
         return message_box.exec();
       }

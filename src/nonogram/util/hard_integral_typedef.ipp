@@ -5,7 +5,7 @@
 
 namespace nonogram::util
 {
-#define HARD_INTEGRAL_TYPEDEF_IMPL(name_, base_)                        \
+#define HARD_INTEGRAL_TYPEDEF_IMPL(name_, base_)                      \
   struct name_                                                        \
   {                                                                   \
     using underlying_type = base_;                                    \

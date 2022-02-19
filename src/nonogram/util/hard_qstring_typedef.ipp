@@ -2,13 +2,15 @@
 
 namespace nonogram::util
 {
-#define HARD_QSTRING_TYPEDEF_IMPL(name_)                                \
+#define HARD_QSTRING_TYPEDEF_IMPL(name_)                              \
   struct name_                                                        \
   {                                                                   \
   public:                                                             \
     QString name;                                                     \
                                                                       \
-    explicit name_ (QString v) : name (v) {}                          \
+    explicit name_ (QString v)                                        \
+    : name (v)                                                        \
+    {}                                                                \
                                                                       \
     name_ (name_ const&) = default;                                   \
     name_ (name_&&) = default;                                        \

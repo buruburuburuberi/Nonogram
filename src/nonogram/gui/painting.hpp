@@ -11,23 +11,10 @@
 namespace nonogram::gui
 {
   void drawBackground (QPainter&, QRect, QColor);
-  void drawFill ( QPainter&
-                , QRect background
-                , QColor
-                , bool solved
-                );
-  void drawCross ( QPainter&
-                 , QRect background
-                 , QColor
-                 );
-  void drawFillMark ( QPainter&
-                    , QRect background
-                    , QColor
-                    );
-  void drawCrossMark ( QPainter&
-                     , QRect background
-                     , QColor
-                     );
+  void drawFill (QPainter&, QRect background, QColor, bool solved);
+  void drawCross (QPainter&, QRect background, QColor);
+  void drawFillMark (QPainter&, QRect background, QColor);
+  void drawCrossMark (QPainter&, QRect background, QColor);
 
   QIcon createIcon (data::Answer::Datum, QSize, QColor bg, QColor fg);
   QIcon createCheckIcon (QSize, QColor bg, QColor fg);

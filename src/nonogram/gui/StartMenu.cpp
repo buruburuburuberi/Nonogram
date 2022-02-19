@@ -72,13 +72,8 @@ namespace nonogram::gui
               }
             );
 
-    connect ( quit_button_.get()
-            , &QCommandLinkButton::clicked
-            , this
-            , [&]
-              {
-                QGuiApplication::quit();
-              }
+    connect ( quit_button_.get(), &QCommandLinkButton::clicked
+            , this, [&] { QGuiApplication::quit(); }
             );
   }
 }
