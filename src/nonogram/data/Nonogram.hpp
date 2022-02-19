@@ -27,7 +27,7 @@ namespace nonogram
       HARD_QSTRING_TYPEDEF (Pack);
       HARD_QSTRING_TYPEDEF (Puzzle);
 
-      static Pack internalPack();
+      static inline Pack internalPack {"internal"};
 
       using Packs = std::set<Pack>;
       using Puzzles = std::set<Puzzle>;

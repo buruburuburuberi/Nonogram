@@ -10,8 +10,6 @@ namespace nonogram
   {
     namespace command
     {
-      static int command_id = 0;
-
       class Base : public QUndoCommand
       {
       public:
@@ -22,6 +20,7 @@ namespace nonogram
       protected:
         int const id_;
         data::Nonogram& nonogram_;
+        static inline int command_id {0};
       };
     }
   }

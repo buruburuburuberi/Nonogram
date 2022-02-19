@@ -24,7 +24,7 @@ namespace nonogram
 {
   namespace gui
   {
-    static std::array<PlayField::FieldType, 5> constexpr all_field_types
+    std::array<PlayField::FieldType, 5> constexpr all_field_types
     { PlayField::FieldType::LeftClues
     , PlayField::FieldType::RightClues
     , PlayField::FieldType::TopClues

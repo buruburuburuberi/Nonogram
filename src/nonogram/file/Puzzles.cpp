@@ -98,7 +98,7 @@ namespace nonogram
     data::Nonogram Puzzles::titleNonogram() const
     {
       return
-        { {data::Nonogram::internalPack(), data::Nonogram::Puzzle {"Title"}}
+        { {data::Nonogram::internalPack, data::Nonogram::Puzzle {"Title"}}
         , data::grid::Data<bool>
           { data::grid::Column (25)
           , data::grid::Row (13)
@@ -123,7 +123,7 @@ namespace nonogram
 
     data::Nonogram Puzzles::tutorialNonogram() const
     {
-      return { { data::Nonogram::internalPack()
+      return { { data::Nonogram::internalPack
                , data::Nonogram::Puzzle {"Tutorial"}
                }
              , data::grid::Data<bool>
