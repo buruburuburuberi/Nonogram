@@ -45,7 +45,9 @@ namespace nonogram::data
   {
     return data_.cells_if
         ( [&] (grid::Cell cell, Datum datum)
-          { return datum != Datum::Empty && !data_locks_.at (cell); }
+          { return (datum == Datum::Filled || datum == Datum::Crossed)
+                && !data_locks_.at (cell);
+          }
         );
   }
 
@@ -131,7 +133,10 @@ namespace nonogram::data
   {
     return data_.any_of
            ( [&] (grid::Cell cell, Datum datum)
-             { return datum != Datum::Empty && !data_locks_.at (cell); }
+             {
+               return (datum == Datum::Filled || datum == Datum::Crossed)
+                   && !data_locks_.at (cell);
+             }
            )
         || std::any_of
              ( clue_states_.begin()
