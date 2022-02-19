@@ -72,6 +72,7 @@ namespace nonogram::gui
     void resizeGL (int width, int height) override;
 
   private:
+    void repaintNow();
     void reset();
     data::grid::Cell fromPosition (QRect, QPoint) const;
     data::clues::FullIndex fromCell ( FieldType

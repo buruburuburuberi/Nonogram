@@ -129,6 +129,12 @@ namespace nonogram::gui
     fill_mode_ = mode;
   }
 
+  void PlayField::repaintNow()
+  {
+    update();
+    QCoreApplication::processEvents (QEventLoop::AllEvents);
+  }
+
   void PlayField::reset()
   {
     undo_stack_.clear();
@@ -817,8 +823,7 @@ namespace nonogram::gui
 
         if (animate == Animate::Yes)
         {
-          update();
-          QCoreApplication::processEvents (QEventLoop::ExcludeUserInputEvents);
+          repaintNow();
         }
       }
     }
@@ -917,8 +922,7 @@ namespace nonogram::gui
 
       highlights_ = {field_rects_.at (FieldType::Puzzle)};
 
-      update();
-      QCoreApplication::processEvents (QEventLoop::AllEvents);
+      repaintNow();
     }
 
     {
@@ -932,8 +936,7 @@ namespace nonogram::gui
                     , field_rects_.at (FieldType::RightClues)
                     };
 
-      update();
-      QCoreApplication::processEvents (QEventLoop::AllEvents);
+      repaintNow();
     }
 
     {
@@ -950,8 +953,7 @@ namespace nonogram::gui
       highlights_ = { field_rects_.at (FieldType::TopClues)
                     , field_rects_.at (FieldType::BottomClues)
                     };
-      update();
-      QCoreApplication::processEvents (QEventLoop::AllEvents);
+      repaintNow();
     }
 
     {
@@ -972,8 +974,7 @@ namespace nonogram::gui
                       , bottom_rect.height()
                      }
                     };
-      update();
-      QCoreApplication::processEvents (QEventLoop::AllEvents);
+      repaintNow();
     }
 
     {
@@ -996,8 +997,7 @@ namespace nonogram::gui
                       , 2 * slot_size
                       }
                     };
-      update();
-      QCoreApplication::processEvents (QEventLoop::AllEvents);
+      repaintNow();
     }
 
     {
@@ -1042,8 +1042,7 @@ namespace nonogram::gui
                       , slot_size
                       }
                     };
-      update();
-      QCoreApplication::processEvents (QEventLoop::AllEvents);
+      repaintNow();
 
       showMessageBox
         ( "Please take a look at the top and bottom rows of the horizontal "
@@ -1076,8 +1075,7 @@ namespace nonogram::gui
                       , slot_size
                       }
                     };
-      update();
-      QCoreApplication::processEvents (QEventLoop::AllEvents);
+      repaintNow();
 
       showMessageBox
         ( "Since the only required square is already filled, we can conclude "
@@ -1124,8 +1122,7 @@ namespace nonogram::gui
                       , slot_size
                       }
                     };
-      update();
-      QCoreApplication::processEvents (QEventLoop::AllEvents);
+      repaintNow();
 
       showMessageBox
         ( "Crossing out squares that are empty in the picture is not required "
@@ -1150,8 +1147,7 @@ namespace nonogram::gui
                       , 3 * slot_size
                       }
                     };
-      update();
-      QCoreApplication::processEvents (QEventLoop::AllEvents);
+      repaintNow();
 
       showMessageBox
         ( "Please switch to the Fill tool and fill in the highlighted squares."
@@ -1171,8 +1167,7 @@ namespace nonogram::gui
 
     {
       highlights_.clear();
-      update();
-      QCoreApplication::processEvents (QEventLoop::AllEvents);
+      repaintNow();
 
       showMessageBox
         ( "You should now know enough to complete the puzzle!<br><br>"
