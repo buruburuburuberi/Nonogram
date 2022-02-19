@@ -39,8 +39,9 @@ namespace nonogram
         QDirIterator file_it (directory.path(), QDir::Files);
         while (file_it.hasNext())
         {
-          QFileInfo const file (file_it.next());
-          if (file.suffix() == "nonogram")
+          if ( QFileInfo const file (file_it.next());
+               file.suffix() == "nonogram"
+             )
           {
             puzzles_.emplace
               ( std::piecewise_construct

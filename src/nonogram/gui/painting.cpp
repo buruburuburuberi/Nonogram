@@ -81,6 +81,46 @@ namespace nonogram::gui
     painter.drawLine (cross_mark_rect.bottomLeft(), cross_mark_rect.topRight());
   }
 
+  void drawDatum ( QPainter& painter
+                 , QRect background
+                 , data::Answer::Datum datum
+                 , QColor color
+                 , bool solved
+                 )
+  {
+    switch (datum)
+    {
+      case data::Answer::Datum::Empty:
+      {
+        break;
+      }
+      case data::Answer::Datum::Filled:
+      {
+        drawFill (painter, background, color, solved);
+        break;
+      }
+      case data::Answer::Datum::Crossed:
+      {
+        drawCross (painter, background, color);
+        break;
+      }
+      case data::Answer::Datum::FillMark:
+      {
+        drawFillMark (painter, background, color);
+        break;
+      }
+      case data::Answer::Datum::CrossMark:
+      {
+        drawCrossMark (painter, background, color);
+        break;
+      }
+      default:
+      {
+        throw std::invalid_argument ("Unknown datum type.");
+      }
+    }
+  }
+
   QIcon createIcon ( data::Answer::Datum datum
                    , QSize size
                    , QColor bg_color
@@ -93,37 +133,7 @@ namespace nonogram::gui
 
     drawBackground (painter, pixmap.rect(), bg_color);
 
-    switch (datum)
-    {
-      case data::Answer::Datum::Empty:
-      {
-        break;
-      }
-      case data::Answer::Datum::Filled:
-      {
-        drawFill (painter, pixmap.rect(), fg_color, false);
-        break;
-      }
-      case data::Answer::Datum::Crossed:
-      {
-        drawCross (painter, pixmap.rect(), fg_color);
-        break;
-      }
-      case data::Answer::Datum::FillMark:
-      {
-        drawFillMark (painter, pixmap.rect(), fg_color);
-        break;
-      }
-      case data::Answer::Datum::CrossMark:
-      {
-        drawCrossMark (painter, pixmap.rect(), fg_color);
-        break;
-      }
-      default:
-      {
-        throw std::invalid_argument ("Unknown datum type.");
-      }
-    }
+    drawDatum (painter, pixmap.rect(), datum, fg_color, false);
 
     return pixmap;
   }

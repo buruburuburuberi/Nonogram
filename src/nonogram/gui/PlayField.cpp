@@ -346,14 +346,13 @@ namespace nonogram::gui
                                              , data::grid::Cell cell
                                              ) const
   {
-    auto const max_number_of_clues (nonogram_.maxNumberOfClues (clue_type));
     data::clues::FullIndex full_index
       (data::Clues::toFullIndex (clue_type, cell));
 
     if (field_type == FieldType::LeftClues || field_type == FieldType::TopClues)
     {
       auto const offset
-        ( max_number_of_clues
+        ( nonogram_.maxNumberOfClues (clue_type)
           - nonogram_.clueMinorSize (clue_type, full_index.main)
         );
       full_index.minor = full_index.minor - offset;
@@ -418,37 +417,7 @@ namespace nonogram::gui
     util::CenteredRect const icon_rect
       (slot_center, QSize (slot_size, slot_size));
 
-    switch (datum)
-    {
-      case data::Answer::Datum::Empty:
-      {
-        break;
-      }
-      case data::Answer::Datum::Filled:
-      {
-        drawFill (painter, icon_rect, color, solved_);
-        break;
-      }
-      case data::Answer::Datum::Crossed:
-      {
-        drawCross (painter, icon_rect, color);
-        break;
-      }
-      case data::Answer::Datum::FillMark:
-      {
-        drawFillMark (painter, icon_rect, color);
-        break;
-      }
-      case data::Answer::Datum::CrossMark:
-      {
-        drawCrossMark (painter, icon_rect, color);
-        break;
-      }
-      default:
-      {
-        throw std::invalid_argument ("Unknown datum type.");
-      }
-    }
+    drawDatum (painter, icon_rect, datum, color, solved_);
   }
 
   void PlayField::drawPuzzle (QPainter& painter)
@@ -552,14 +521,11 @@ namespace nonogram::gui
           data::clues::FullIndex const full_index
             (fromCell (field_type, clue_type, cell));
 
-          if ( full_index.minor
-            >= nonogram_.clueMinorSize (clue_type, full_index.main)
+          if ( ( full_index.minor
+              >= nonogram_.clueMinorSize (clue_type, full_index.main)
+               )
+           || nonogram_.isClueLocked (clue_type, full_index)
              )
-          {
-            return true;
-          }
-
-          if (nonogram_.isClueLocked (clue_type, full_index))
           {
             return true;
           }
@@ -582,16 +548,11 @@ namespace nonogram::gui
           current_hit_ = {field_type, cell, state};
 
           data::Solution::ClueIndices const indices {{clue_type, {full_index}}};
-          if (first_hit)
-          {
-            undo_stack_.push
-              (command::Cross::start (nonogram_, indices, current_state, state));
-          }
-          else
-          {
-            undo_stack_.push
-              (command::Cross::append (nonogram_, indices, current_state, state));
-          }
+          undo_stack_.push
+            ( first_hit
+            ? command::Cross::start (nonogram_, indices, current_state, state)
+            : command::Cross::append (nonogram_, indices, current_state, state)
+            );
 
           update();
 
@@ -604,14 +565,12 @@ namespace nonogram::gui
       auto const type (current_hit_->type);
       return cross_clue (type, field_rects_.at (type));
     }
-    else
+
+    for (auto const& [type, rect] : field_rects_)
     {
-      for (auto const& [type, rect] : field_rects_)
+      if ((type != FieldType::Puzzle) && cross_clue (type, rect))
       {
-        if ((type != FieldType::Puzzle) && cross_clue (type, rect))
-        {
-          return true;
-        }
+        return true;
       }
     }
 
@@ -682,11 +641,7 @@ namespace nonogram::gui
   {
     if (event->buttons() & Qt::LeftButton)
     {
-      if (fillCell (event->pos()))
-      {
-        return;
-      }
-      else if (crossClue (event->pos()))
+      if (fillCell (event->pos()) || crossClue (event->pos()))
       {
         return;
       }
@@ -920,7 +875,7 @@ namespace nonogram::gui
         , position
         );
 
-      highlights_ = {field_rects_.at (FieldType::Puzzle)};
+      highlights_ = {puzzle_rect};
 
       repaintNow();
     }
@@ -932,9 +887,7 @@ namespace nonogram::gui
         , position
         );
 
-      highlights_ = { field_rects_.at (FieldType::LeftClues)
-                    , field_rects_.at (FieldType::RightClues)
-                    };
+      highlights_ = {left_rect, right_rect};
 
       repaintNow();
     }
@@ -950,9 +903,7 @@ namespace nonogram::gui
           "you're solving a very large puzzle."
         , position
         );
-      highlights_ = { field_rects_.at (FieldType::TopClues)
-                    , field_rects_.at (FieldType::BottomClues)
-                    };
+      highlights_ = {top_rect, bottom_rect};
       repaintNow();
     }
 
