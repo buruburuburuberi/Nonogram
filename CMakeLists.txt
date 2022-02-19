@@ -30,11 +30,7 @@ set (CMAKE_CXX_FLAGS "${FLAGS}")
 find_package (Qt5 5.9 REQUIRED
   COMPONENTS Core
              Gui
-             Help
-             LinguistTools
              OpenGL
-             Sql
-             Svg
              Widgets
 )
 
