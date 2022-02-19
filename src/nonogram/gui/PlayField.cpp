@@ -39,7 +39,7 @@ namespace nonogram::gui
   , bg_color_ (bg)
   , fg_color_ (fg)
   , mistake_color_ (Qt::red)
-  , locked_color_ (Qt::gray)
+  , locked_color_ (QColor (75, 75, 75))
   , undo_stack_ (undo_stack)
   , nonogram_ (nonogram)
   , fill_mode_ (data::Answer::Datum::Filled)
@@ -726,23 +726,21 @@ namespace nonogram::gui
 
     if (current_slot_)
     {
-      auto pen (painter.pen());
-      pen.setWidth (4);
-      painter.setPen (pen);
-
       auto const slot_center (slotCenter (current_slot_.value()));
-      painter.drawRect
+      painter.fillRect
         ( util::CenteredRect
             ( QPoint (play_field_rect_.center().x(), slot_center.y())
             , QSize (play_field_rect_.width(), slot_size_)
             )
+        , QColor (128, 128, 128, 64)
         );
 
-      painter.drawRect
+      painter.fillRect
         ( util::CenteredRect
             ( QPoint (slot_center.x(), play_field_rect_.center().y())
             , QSize (slot_size_, play_field_rect_.height())
             )
+        , QColor (128, 128, 128, 64)
         );
     }
 
