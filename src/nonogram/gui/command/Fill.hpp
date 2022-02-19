@@ -7,44 +7,38 @@
 
 #include <QtWidgets/QUndoCommand>
 
-namespace nonogram
+namespace nonogram::gui::command
 {
-  namespace gui
+  class Fill : public Base
   {
-    namespace command
-    {
-      class Fill : public Base
-      {
-      public:
-        static Fill* start ( data::Nonogram&
-                           , data::grid::Cells
-                           , data::Answer::Datum before
-                           , data::Answer::Datum after
-                           );
+  public:
+    static Fill* start ( data::Nonogram&
+                       , data::grid::Cells
+                       , data::Answer::Datum before
+                       , data::Answer::Datum after
+                       );
 
-        static Fill* append ( data::Nonogram&
-                            , data::grid::Cells
-                            , data::Answer::Datum before
-                            , data::Answer::Datum after
-                            );
+    static Fill* append ( data::Nonogram&
+                        , data::grid::Cells
+                        , data::Answer::Datum before
+                        , data::Answer::Datum after
+                        );
 
-        void undo() override;
-        void redo() override;
+    void undo() override;
+    void redo() override;
 
-        bool mergeWith (QUndoCommand const*);
+    bool mergeWith (QUndoCommand const*);
 
-      private:
-        Fill ( int id
-             , data::Nonogram&
-             , data::grid::Cells
-             , data::Answer::Datum before
-             , data::Answer::Datum after
-             );
+  private:
+    Fill ( int id
+         , data::Nonogram&
+         , data::grid::Cells
+         , data::Answer::Datum before
+         , data::Answer::Datum after
+         );
 
-        data::grid::Cells cells_;
-        data::Answer::Datum before_;
-        data::Answer::Datum after_;
-      };
-    }
-  }
+    data::grid::Cells cells_;
+    data::Answer::Datum before_;
+    data::Answer::Datum after_;
+  };
 }

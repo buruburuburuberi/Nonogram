@@ -2,21 +2,15 @@
 
 #include <tuple>
 
-namespace nonogram
+namespace nonogram::data::clues
 {
-  namespace data
+  bool FullIndex::operator== (FullIndex const& rhs) const
   {
-    namespace clues
-    {
-      bool FullIndex::operator== (FullIndex const& rhs) const
-      {
-        return std::tie (main, minor) == std::tie (rhs.main, rhs.minor);
-      }
+    return std::tie (main, minor) == std::tie (rhs.main, rhs.minor);
+  }
 
-      bool FullIndex::operator< (FullIndex const& rhs) const
-      {
-        return std::tie (main, minor) < std::tie (rhs.main, rhs.minor);
-      }
-    }
+  bool FullIndex::operator< (FullIndex const& rhs) const
+  {
+    return std::tie (main, minor) < std::tie (rhs.main, rhs.minor);
   }
 }

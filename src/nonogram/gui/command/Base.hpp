@@ -4,24 +4,18 @@
 
 #include <QtWidgets/QUndoCommand>
 
-namespace nonogram
+namespace nonogram::gui::command
 {
-  namespace gui
+  class Base : public QUndoCommand
   {
-    namespace command
-    {
-      class Base : public QUndoCommand
-      {
-      public:
-        Base (int id, data::Nonogram&);
+  public:
+    Base (int id, data::Nonogram&);
 
-        int id() const override;
+    int id() const override;
 
-      protected:
-        int const id_;
-        data::Nonogram& nonogram_;
-        static inline int command_id {0};
-      };
-    }
-  }
+  protected:
+    int const id_;
+    data::Nonogram& nonogram_;
+    static inline int command_id {0};
+  };
 }

@@ -9,28 +9,22 @@
 #include <optional>
 #include <vector>
 
-namespace nonogram
+namespace nonogram::gui::command
 {
-  namespace gui
+  class Lock : public Base
   {
-    namespace command
-    {
-      class Lock : public Base
-      {
-      public:
-        static Lock* lock (data::Nonogram&);
-        static Lock* unlock (data::Nonogram&);
+  public:
+    static Lock* lock (data::Nonogram&);
+    static Lock* unlock (data::Nonogram&);
 
-        void undo() override;
-        void redo() override;
+    void undo() override;
+    void redo() override;
 
-      private:
-        Lock (data::Nonogram&, bool unlock);
+  private:
+    Lock (data::Nonogram&, bool unlock);
 
-        bool const unlock_;
-        data::grid::Cells data_cells_;
-        data::Solution::ClueIndices clue_indices_;
-      };
-    }
-  }
+    bool const unlock_;
+    data::grid::Cells data_cells_;
+    data::Solution::ClueIndices clue_indices_;
+  };
 }

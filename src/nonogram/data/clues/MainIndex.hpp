@@ -2,13 +2,7 @@
 
 #include <nonogram/util/hard_integral_typedef.hpp>
 
-namespace nonogram
+namespace nonogram::data::clues
 {
-  namespace data
-  {
-    namespace clues
-    {
-      HARD_INTEGRAL_TYPEDEF (MainIndex, unsigned long long int);
-    }
-  }
+  HARD_INTEGRAL_TYPEDEF (MainIndex, unsigned long long int);
 }

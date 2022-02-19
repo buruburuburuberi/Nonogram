@@ -11,32 +11,29 @@
 
 #include <map>
 
-namespace nonogram
+namespace nonogram::data
 {
-  namespace data
+  class Solution
   {
-    class Solution
-    {
-    public:
-      using State = bool;
-      using Data = grid::Data<bool>;
+  public:
+    using State = bool;
+    using Data = grid::Data<bool>;
 
-      using ClueIndices = std::map<Clues::Type, clues::FullIndices>;
+    using ClueIndices = std::map<Clues::Type, clues::FullIndices>;
 
-      Solution (Data);
+    Solution (Data);
 
-      grid::Row dataRows() const;
-      grid::Column dataColumns() const;
-      State filled (grid::Cell) const;
+    grid::Row dataRows() const;
+    grid::Column dataColumns() const;
+    State filled (grid::Cell) const;
 
-      clues::MinorIndex maxNumberOfClues (Clues::Type) const;
-      clues::MainIndex clueMainSize (Clues::Type) const;
-      clues::MinorIndex clueMinorSize (Clues::Type, clues::MainIndex) const;
-      Clues::Value clue (Clues::Type, clues::FullIndex) const;
+    clues::MinorIndex maxNumberOfClues (Clues::Type) const;
+    clues::MainIndex clueMainSize (Clues::Type) const;
+    clues::MinorIndex clueMinorSize (Clues::Type, clues::MainIndex) const;
+    Clues::Value clue (Clues::Type, clues::FullIndex) const;
 
-    private:
-      Data data_;
-      std::map<Clues::Type, Clues> clues_;
-    };
-  }
+  private:
+    Data data_;
+    std::map<Clues::Type, Clues> clues_;
+  };
 }

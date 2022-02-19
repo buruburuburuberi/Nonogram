@@ -2,18 +2,15 @@
 
 #include <QtGui/QPainter>
 
-namespace nonogram
+namespace nonogram::util
 {
-  namespace util
+  class ScopedQPainterState
   {
-    class ScopedQPainterState
-    {
-    public:
-      ScopedQPainterState (QPainter&);
-      ~ScopedQPainterState();
+  public:
+    ScopedQPainterState (QPainter&);
+    ~ScopedQPainterState();
 
-    private:
-      QPainter& painter_;
-    };
-  }
+  private:
+    QPainter& painter_;
+  };
 }

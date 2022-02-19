@@ -2,15 +2,11 @@
 
 #include <optional>
 
-namespace nonogram
+namespace nonogram::util
 {
-  namespace util
+  template<typename T>
+    auto optional_if (bool condition, T value) -> std::optional<T>
   {
-    template<typename T>
-      auto optional_if (bool condition, T value)
-        -> std::optional<T>
-    {
-      return condition ? std::optional (value) : std::nullopt;
-    }
+    return condition ? std::optional (value) : std::nullopt;
   }
 }

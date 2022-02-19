@@ -3,105 +3,102 @@
 #include <nonogram/data/clues/MainIndex.hpp>
 #include <nonogram/data/clues/MinorIndex.hpp>
 
-namespace nonogram
+namespace nonogram::data
 {
-  namespace data
+  ClueStates::ClueStates (Solution const& solution, Clues::Type type)
+  : data_ (fromSolution (solution, type))
+  , locks_ (data_)
+  {}
+
+  ClueStates::Data ClueStates::fromSolution ( Solution const& solution
+                                            , Clues::Type type
+                                            ) const
   {
-    ClueStates::ClueStates (Solution const& solution, Clues::Type type)
-    : data_ (fromSolution (solution, type))
-    , locks_ (data_)
-    {}
+    auto const main_size (solution.clueMainSize (type));
+    Data::Container data (main_size.value);
 
-    ClueStates::Data ClueStates::fromSolution ( Solution const& solution
-                                              , Clues::Type type
-                                              ) const
+    for (clues::MainIndex main {0}; main < main_size; ++main)
     {
-      auto const main_size (solution.clueMainSize (type));
-      Data::Container data (main_size.value);
-
-      for (clues::MainIndex main {0}; main < main_size; ++main)
-      {
-        data.at (main.value).resize
-          (solution.clueMinorSize (type, main).value, false);
-      }
-
-      return data;
+      data.at (main.value).resize
+        (solution.clueMinorSize (type, main).value, false);
     }
 
-    bool ClueStates::isCrossed (clues::FullIndex full_index) const
+    return data;
+  }
+
+  bool ClueStates::isCrossed (clues::FullIndex full_index) const
+  {
+    return data_.at (full_index);
+  }
+
+  void ClueStates::cross (clues::FullIndex full_index, bool state)
+  {
+    if (locks_.at (full_index))
     {
-      return data_.at (full_index);
+      throw std::logic_error ("Tried to change locked clue.");
     }
 
-    void ClueStates::cross (clues::FullIndex full_index, bool state)
+    data_.set (full_index, state);
+  }
+
+  clues::FullIndices ClueStates::toLock() const
+  {
+    return data_.indices_if
+        ( [&] (clues::FullIndex index, bool state)
+          { return state && !locks_.at (index); }
+        );
+  }
+
+  clues::FullIndices ClueStates::locked() const
+  {
+    return locks_.indices_if
+        ([] (clues::FullIndex, bool state) { return state; });
+  }
+
+  bool ClueStates::isLocked (clues::FullIndex full_index) const
+  {
+    return locks_.at (full_index);
+  }
+
+  void ClueStates::lock (clues::FullIndices indices, ClueState state)
+  {
+    for (auto const& index : indices)
     {
-      if (locks_.at (full_index))
-      {
-        throw std::logic_error ("Tried to change locked clue.");
-      }
-
-      data_.set (full_index, state);
+      locks_.set (index, state);
     }
+  }
 
-    clues::FullIndices ClueStates::toLock() const
-    {
-      return data_.indices_if
-          ( [&] (clues::FullIndex index, bool state)
-            { return state && !locks_.at (index); }
-          );
-    }
+  void ClueStates::fillLocks (bool state)
+  {
+    locks_.fill (state);
+  }
 
-    clues::FullIndices ClueStates::locked() const
-    {
-      return locks_.indices_if
-          ([] (clues::FullIndex, bool state) { return state; });
-    }
+  bool ClueStates::canLock() const
+  {
+    return !toLock().empty();
+  }
 
-    bool ClueStates::isLocked (clues::FullIndex full_index) const
-    {
-      return locks_.at (full_index);
-    }
+  bool ClueStates::canUnlock() const
+  {
+    return locks_.any_of ([&] (clues::FullIndex, bool state) { return state; });
+  }
 
-    void ClueStates::lock (clues::FullIndices indices, ClueState state)
-    {
-      for (auto const& index : indices)
-      {
-        locks_.set (index, state);
-      }
-    }
+  void ClueStates::reset()
+  {
+    data_.fill (false);
+    locks_.fill (false);
+  }
 
-    void ClueStates::fillLocks (bool state)
-    {
-      locks_.fill (state);
-    }
+  ClueStates::ClueStates (QDataStream& ds)
+   : data_ (ds)
+   , locks_ (ds)
+   {}
 
-    bool ClueStates::canLock() const
-    {
-      return !toLock().empty();
-    }
+  QDataStream& operator<< (QDataStream& ds, ClueStates const& clue_states)
+  {
+    ds << clue_states.data_;
+    ds << clue_states.locks_;
 
-    bool ClueStates::canUnlock() const
-    {
-      return locks_.any_of ([&] (clues::FullIndex, bool state) { return state; });
-    }
-
-    void ClueStates::reset()
-    {
-      data_.fill (false);
-      locks_.fill (false);
-    }
-
-    ClueStates::ClueStates (QDataStream& ds)
-     : data_ (ds)
-     , locks_ (ds)
-     {}
-
-     QDataStream& operator<< (QDataStream& ds, ClueStates const& clue_states)
-     {
-       ds << clue_states.data_;
-       ds << clue_states.locks_;
-
-       return ds;
-     }
+    return ds;
   }
 }

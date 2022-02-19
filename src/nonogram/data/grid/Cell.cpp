@@ -2,21 +2,15 @@
 
 #include <tuple>
 
-namespace nonogram
+namespace nonogram::data::grid
 {
-  namespace data
+  bool Cell::operator== (Cell const& rhs) const
   {
-    namespace grid
-    {
-      bool Cell::operator== (Cell const& rhs) const
-      {
-        return std::tie (row, column) == std::tie (rhs.row, rhs.column);
-      }
+    return std::tie (row, column) == std::tie (rhs.row, rhs.column);
+  }
 
-      bool Cell::operator< (Cell const& rhs) const
-      {
-        return std::tie (row, column) < std::tie (rhs.row, rhs.column);
-      }
-    }
+  bool Cell::operator< (Cell const& rhs) const
+  {
+    return std::tie (row, column) < std::tie (rhs.row, rhs.column);
   }
 }

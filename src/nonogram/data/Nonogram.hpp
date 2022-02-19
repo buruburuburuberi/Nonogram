@@ -17,79 +17,76 @@
 #include <optional>
 #include <set>
 
-namespace nonogram
+namespace nonogram::data
 {
-  namespace data
+  class Nonogram
   {
-    class Nonogram
+  public:
+    HARD_QSTRING_TYPEDEF (Pack);
+    HARD_QSTRING_TYPEDEF (Puzzle);
+
+    static inline Pack internalPack {"internal"};
+
+    using Packs = std::set<Pack>;
+    using Puzzles = std::set<Puzzle>;
+
+    struct ID
     {
-    public:
-      HARD_QSTRING_TYPEDEF (Pack);
-      HARD_QSTRING_TYPEDEF (Puzzle);
+      ID (Pack, Puzzle);
+      ID (QString);
 
-      static inline Pack internalPack {"internal"};
+      Pack pack;
+      Puzzle puzzle;
 
-      using Packs = std::set<Pack>;
-      using Puzzles = std::set<Puzzle>;
+      bool internal() const;
 
-      struct ID
-      {
-        ID (Pack, Puzzle);
-        ID (QString);
+      QString toString() const;
 
-        Pack pack;
-        Puzzle puzzle;
-
-        bool internal() const;
-
-        QString toString() const;
-
-        bool operator== (ID const&) const;
-        bool operator< (ID const&) const;
-      };
-
-      Nonogram (ID, Solution, std::optional<Answer>);
-
-      ID id() const;
-      Answer::Data const& data() const;
-      grid::Row dataRows() const;
-      grid::Column dataColumns() const;
-      Solution::State solution (grid::Cell) const;
-      Answer::Datum datum (grid::Cell) const;
-      void fillData (grid::Cell, Answer::Datum);
-      grid::Cells dataToLock() const;
-      grid::Cells lockedData() const;
-      bool isDatumLocked (grid::Cell) const;
-      void lockData (grid::Cells, bool);
-      void fillDataLocks (bool);
-
-      clues::MinorIndex maxNumberOfClues (Clues::Type type) const;
-      clues::MainIndex clueMainSize (Clues::Type) const;
-      clues::MinorIndex clueMinorSize (Clues::Type, clues::MainIndex) const;
-      Clues::Value clue (Clues::Type, clues::FullIndex) const;
-      ClueState isCrossed (Clues::Type, clues::FullIndex) const;
-      void cross (Clues::Type, clues::FullIndex, ClueState);
-      Solution::ClueIndices cluesToLock() const;
-      Solution::ClueIndices lockedClues() const;
-      bool isClueLocked (Clues::Type, clues::FullIndex) const;
-      void lockClues (Solution::ClueIndices, bool);
-      void fillClueLocks (bool);
-
-      bool canLock() const;
-      bool canUnlock() const;
-      bool isEmpty() const;
-
-      bool isMistake (grid::Cell) const;
-      std::optional<grid::Cell> findFirstMistake() const;
-      bool isSolved() const;
-      void resetAnswer();
-
-      Answer const& answer() const;
-
-    private:
-      ID id_;
-      Solution solution_;
-      Answer answer_;
+      bool operator== (ID const&) const;
+      bool operator< (ID const&) const;
     };
-  }
+
+    Nonogram (ID, Solution, std::optional<Answer>);
+
+    ID id() const;
+    Answer::Data const& data() const;
+    grid::Row dataRows() const;
+    grid::Column dataColumns() const;
+    Solution::State solution (grid::Cell) const;
+    Answer::Datum datum (grid::Cell) const;
+    void fillData (grid::Cell, Answer::Datum);
+    grid::Cells dataToLock() const;
+    grid::Cells lockedData() const;
+    bool isDatumLocked (grid::Cell) const;
+    void lockData (grid::Cells, bool);
+    void fillDataLocks (bool);
+
+    clues::MinorIndex maxNumberOfClues (Clues::Type type) const;
+    clues::MainIndex clueMainSize (Clues::Type) const;
+    clues::MinorIndex clueMinorSize (Clues::Type, clues::MainIndex) const;
+    Clues::Value clue (Clues::Type, clues::FullIndex) const;
+    ClueState isCrossed (Clues::Type, clues::FullIndex) const;
+    void cross (Clues::Type, clues::FullIndex, ClueState);
+    Solution::ClueIndices cluesToLock() const;
+    Solution::ClueIndices lockedClues() const;
+    bool isClueLocked (Clues::Type, clues::FullIndex) const;
+    void lockClues (Solution::ClueIndices, bool);
+    void fillClueLocks (bool);
+
+    bool canLock() const;
+    bool canUnlock() const;
+    bool isEmpty() const;
+
+    bool isMistake (grid::Cell) const;
+    std::optional<grid::Cell> findFirstMistake() const;
+    bool isSolved() const;
+    void resetAnswer();
+
+    Answer const& answer() const;
+
+  private:
+    ID id_;
+    Solution solution_;
+    Answer answer_;
+  };
 }

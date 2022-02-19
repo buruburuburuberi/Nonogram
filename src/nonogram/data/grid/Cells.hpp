@@ -4,13 +4,7 @@
 
 #include <set>
 
-namespace nonogram
+namespace nonogram::data::grid
 {
-  namespace data
-  {
-    namespace grid
-    {
-      using Cells = std::set<Cell>;
-    }
-  }
+  using Cells = std::set<Cell>;
 }

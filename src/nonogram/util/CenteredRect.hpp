@@ -4,20 +4,17 @@
 #include <QtCore/QRect>
 #include <QtCore/QSize>
 
-namespace nonogram
+namespace nonogram::util
 {
-  namespace util
+  class CenteredRect
   {
-    class CenteredRect
-    {
-    public:
-      CenteredRect (int x, int y, int width, int height);
-      CenteredRect (QPoint const, QSize const);
+  public:
+    CenteredRect (int x, int y, int width, int height);
+    CenteredRect (QPoint const, QSize const);
 
-      operator QRect() const;
+    operator QRect() const;
 
-    private:
-      QRect rect_;
-    };
-  }
+  private:
+    QRect rect_;
+  };
 }

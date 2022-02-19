@@ -11,28 +11,25 @@
 
 #include <optional>
 
-namespace nonogram
+namespace nonogram::gui
 {
-  namespace gui
+  class StartMenu : public QDialog
   {
-    class StartMenu : public QDialog
-    {
-      Q_OBJECT
+    Q_OBJECT
 
-      public:
-        StartMenu (file::Puzzles const&, QWidget* parent);
+    public:
+      StartMenu (file::Puzzles const&, QWidget* parent);
 
-      signals:
-        void nonogramSelected (data::Nonogram::ID);
-        void tutorialSelected();
+    signals:
+      void nonogramSelected (data::Nonogram::ID);
+      void tutorialSelected();
 
-      private:
-        file::Puzzles const& puzzles_;
-        std::optional<data::Nonogram::ID> current_puzzle_;
-        util::unique_qt_ptr<QCommandLinkButton> continue_button_;
-        util::unique_qt_ptr<QCommandLinkButton> tutorial_button_;
-        util::unique_qt_ptr<LevelSelection> level_selection_;
-        util::unique_qt_ptr<QCommandLinkButton> quit_button_;
-    };
-  }
+    private:
+      file::Puzzles const& puzzles_;
+      std::optional<data::Nonogram::ID> current_puzzle_;
+      util::unique_qt_ptr<QCommandLinkButton> continue_button_;
+      util::unique_qt_ptr<QCommandLinkButton> tutorial_button_;
+      util::unique_qt_ptr<LevelSelection> level_selection_;
+      util::unique_qt_ptr<QCommandLinkButton> quit_button_;
+  };
 }

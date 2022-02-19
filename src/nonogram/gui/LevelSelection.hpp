@@ -14,32 +14,29 @@
 
 #include <map>
 
-namespace nonogram
+namespace nonogram::gui
 {
-  namespace gui
+  class LevelSelection : public QWidget
   {
-    class LevelSelection : public QWidget
-    {
-      Q_OBJECT
+    Q_OBJECT
 
-      public:
-        LevelSelection (file::Puzzles const&, QBoxLayout::Direction);
+    public:
+      LevelSelection (file::Puzzles const&, QBoxLayout::Direction);
 
-        void markAsSolved (data::Nonogram::ID);
+      void markAsSolved (data::Nonogram::ID);
 
-      signals:
-        void levelSelected (data::Nonogram::ID);
+    signals:
+      void levelSelected (data::Nonogram::ID);
 
-      private:
-        void setPack (data::Nonogram::Pack);
+    private:
+      void setPack (data::Nonogram::Pack);
 
-        QIcon unsolved_icon_;
-        QIcon solved_icon_;
-        file::Puzzles const& puzzles_;
-        std::map<data::Nonogram::ID, util::unique_qt_ptr<QAction>> puzzle_actions_;
-        std::map<data::Nonogram::Pack, util::unique_qt_ptr<QMenu>> nonogram_menus_;
-        std::map<data::Nonogram::Pack, util::unique_qt_ptr<QCommandLinkButton>>
-          nonogram_selections_;
-    };
-  }
+      QIcon unsolved_icon_;
+      QIcon solved_icon_;
+      file::Puzzles const& puzzles_;
+      std::map<data::Nonogram::ID, util::unique_qt_ptr<QAction>> puzzle_actions_;
+      std::map<data::Nonogram::Pack, util::unique_qt_ptr<QMenu>> nonogram_menus_;
+      std::map<data::Nonogram::Pack, util::unique_qt_ptr<QCommandLinkButton>>
+        nonogram_selections_;
+  };
 }

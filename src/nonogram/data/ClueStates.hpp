@@ -8,42 +8,39 @@
 
 #include <QtCore/QDataStream>
 
-namespace nonogram
+namespace nonogram::data
 {
-  namespace data
+  using ClueState = bool;
+
+  class ClueStates
   {
-    using ClueState = bool;
+  public:
+    using Data = clues::Data<ClueState>;
 
-    class ClueStates
-    {
-    public:
-      using Data = clues::Data<ClueState>;
+    ClueStates (Solution const&, Clues::Type);
 
-      ClueStates (Solution const&, Clues::Type);
+    bool isCrossed (clues::FullIndex) const;
+    void cross (clues::FullIndex, ClueState);
 
-      bool isCrossed (clues::FullIndex) const;
-      void cross (clues::FullIndex, ClueState);
+    clues::FullIndices toLock() const;
+    clues::FullIndices locked() const;
+    bool isLocked (clues::FullIndex) const;
+    void lock (clues::FullIndices, bool);
+    void fillLocks (bool);
 
-      clues::FullIndices toLock() const;
-      clues::FullIndices locked() const;
-      bool isLocked (clues::FullIndex) const;
-      void lock (clues::FullIndices, bool);
-      void fillLocks (bool);
+    bool canLock() const;
+    bool canUnlock() const;
 
-      bool canLock() const;
-      bool canUnlock() const;
+    void reset();
 
-      void reset();
+    // serialization
+    ClueStates (QDataStream&);
+    friend QDataStream& operator<< (QDataStream&, ClueStates const&);
 
-      // serialization
-      ClueStates (QDataStream&);
-      friend QDataStream& operator<< (QDataStream&, ClueStates const&);
+  private:
+    Data fromSolution (Solution const&, Clues::Type) const;
 
-    private:
-      Data fromSolution (Solution const&, Clues::Type) const;
-
-      Data data_;
-      Data locks_;
-    };
-  }
+    Data data_;
+    Data locks_;
+  };
 }

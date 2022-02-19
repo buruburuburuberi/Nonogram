@@ -19,53 +19,50 @@
 
 #include <map>
 
-namespace nonogram
+namespace nonogram::gui
 {
-  namespace gui
+  class MainWindow : public QMainWindow
   {
-    class MainWindow : public QMainWindow
-    {
-      Q_OBJECT
+    Q_OBJECT
 
-      public:
-        MainWindow();
+    public:
+      MainWindow();
 
-      protected:
-        void closeEvent (QCloseEvent*);
+    protected:
+      void closeEvent (QCloseEvent*);
 
-      private slots:
-        void showLevel (data::Nonogram::ID);
-        void showTutorial();
+    private slots:
+      void showLevel (data::Nonogram::ID);
+      void showTutorial();
 
-      private:
-        void writeOutCurrentAnswer();
-        void reset (bool solved);
+    private:
+      void writeOutCurrentAnswer();
+      void reset (bool solved);
 
-        QSize const icon_size_;
-        QColor const bg_color_;
-        QColor const fg_color_;
-        file::Puzzles puzzles_;
-        StartMenu start_menu_;
-        QUndoStack undo_stack_;
-        data::Nonogram current_nonogram_;
-        util::unique_qt_ptr<LevelSelection> level_selection_;
-        QToolBar* level_selection_toolbar_;
-        QToolBar* tools_toolbar_;
-        util::unique_qt_ptr<QButtonGroup> tools_group_;
-        util::unique_qt_ptr<QScrollArea> scroll_area_;
-        util::unique_qt_ptr<PlayField> play_field_;
-        util::unique_qt_ptr<QToolButton> check_button_;
-        util::unique_qt_ptr<QToolButton> lock_button_;
-        util::unique_qt_ptr<QToolButton> unlock_button_;
-        util::unique_qt_ptr<QToolButton> reset_button_;
-        util::unique_qt_ptr<QToolButton> fill_button_;
-        util::unique_qt_ptr<QToolButton> cross_button_;
-        util::unique_qt_ptr<QToolButton> fill_mark_button_;
-        util::unique_qt_ptr<QToolButton> cross_mark_button_;
-        util::unique_qt_ptr<QToolButton> redo_button_;
-        util::unique_qt_ptr<QToolButton> undo_button_;
-        util::unique_qt_ptr<QToolButton> solve_button_;
-        util::unique_qt_ptr<QToolButton> controls_button_;
-    };
-  }
+      QSize const icon_size_;
+      QColor const bg_color_;
+      QColor const fg_color_;
+      file::Puzzles puzzles_;
+      StartMenu start_menu_;
+      QUndoStack undo_stack_;
+      data::Nonogram current_nonogram_;
+      util::unique_qt_ptr<LevelSelection> level_selection_;
+      QToolBar* level_selection_toolbar_;
+      QToolBar* tools_toolbar_;
+      util::unique_qt_ptr<QButtonGroup> tools_group_;
+      util::unique_qt_ptr<QScrollArea> scroll_area_;
+      util::unique_qt_ptr<PlayField> play_field_;
+      util::unique_qt_ptr<QToolButton> check_button_;
+      util::unique_qt_ptr<QToolButton> lock_button_;
+      util::unique_qt_ptr<QToolButton> unlock_button_;
+      util::unique_qt_ptr<QToolButton> reset_button_;
+      util::unique_qt_ptr<QToolButton> fill_button_;
+      util::unique_qt_ptr<QToolButton> cross_button_;
+      util::unique_qt_ptr<QToolButton> fill_mark_button_;
+      util::unique_qt_ptr<QToolButton> cross_mark_button_;
+      util::unique_qt_ptr<QToolButton> redo_button_;
+      util::unique_qt_ptr<QToolButton> undo_button_;
+      util::unique_qt_ptr<QToolButton> solve_button_;
+      util::unique_qt_ptr<QToolButton> controls_button_;
+  };
 }

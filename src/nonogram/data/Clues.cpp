@@ -2,97 +2,94 @@
 
 #include <algorithm>
 
-namespace nonogram
+namespace nonogram::data
 {
-  namespace data
+  clues::FullIndex Clues::toFullIndex (Type type, grid::Cell cell)
   {
-    clues::FullIndex Clues::toFullIndex (Type type, grid::Cell cell)
-    {
-      return { clues::MainIndex
-                 {type == Type::Column ?  cell.column.value : cell.row.value}
-             , clues::MinorIndex
-                 {type == Type::Column ? cell.row.value : cell.column.value}
-             };
-    }
+    return { clues::MainIndex
+               {type == Type::Column ?  cell.column.value : cell.row.value}
+           , clues::MinorIndex
+               {type == Type::Column ? cell.row.value : cell.column.value}
+           };
+  }
 
-    Clues::Clues (grid::Data<bool> const& data, Type type)
-    : type_ (type)
-    , max_minor_count_ (0)
-    , data_ (computeClues (data, type))
-    {}
+  Clues::Clues (grid::Data<bool> const& data, Type type)
+  : type_ (type)
+  , max_minor_count_ (0)
+  , data_ (computeClues (data, type))
+  {}
 
-    Clues::Data Clues::computeClues (grid::Data<bool> const& data, Type type)
-    {
-      auto const clues_size {toFullIndex (type, {data.columns(), data.rows()})};
+  Clues::Data Clues::computeClues (grid::Data<bool> const& data, Type type)
+  {
+    auto const clues_size {toFullIndex (type, {data.columns(), data.rows()})};
 
-      std::vector<std::vector<Value>> clues (clues_size.main.value);
+    std::vector<std::vector<Value>> clues (clues_size.main.value);
 
-      auto is_filled
-        ( [&] (clues::MainIndex main, clues::MinorIndex minor)
-          {
-            return type == Type::Column
-              ? data.at (grid::Column {main.value}, grid::Row {minor.value})
-              : data.at (grid::Column {minor.value}, grid::Row {main.value})
-              ;
-          }
-        );
-
-      for (clues::MainIndex main {0}; main < clues_size.main; ++main)
-      {
-        std::size_t filled_counter (0);
-        for (clues::MinorIndex minor {0}; minor < clues_size.minor; ++minor)
+    auto is_filled
+      ( [&] (clues::MainIndex main, clues::MinorIndex minor)
         {
-          auto const current_square_filled (is_filled (main, minor));
+          return type == Type::Column
+            ? data.at (grid::Column {main.value}, grid::Row {minor.value})
+            : data.at (grid::Column {minor.value}, grid::Row {main.value})
+            ;
+        }
+      );
 
-          if (current_square_filled)
-          {
-            ++filled_counter;
-          }
+    for (clues::MainIndex main {0}; main < clues_size.main; ++main)
+    {
+      std::size_t filled_counter (0);
+      for (clues::MinorIndex minor {0}; minor < clues_size.minor; ++minor)
+      {
+        auto const current_square_filled (is_filled (main, minor));
 
-          if ( minor.value > 0
-            && !current_square_filled
-            && is_filled (main, minor - clues::MinorIndex (1))
-             )
-          {
-            clues.at (main.value).push_back (filled_counter);
-            filled_counter = 0;
-          }
-
-          if ( (minor == clues_size.minor - clues::MinorIndex (1))
-            && (filled_counter > 0)
-             )
-          {
-            clues.at (main.value).push_back (filled_counter);
-          }
+        if (current_square_filled)
+        {
+          ++filled_counter;
         }
 
-        max_minor_count_ =
-            std::max ( max_minor_count_
-                     , clues::MinorIndex (clues.at (main.value).size())
-                     );
+        if ( minor.value > 0
+          && !current_square_filled
+          && is_filled (main, minor - clues::MinorIndex (1))
+           )
+        {
+          clues.at (main.value).push_back (filled_counter);
+          filled_counter = 0;
+        }
+
+        if ( (minor == clues_size.minor - clues::MinorIndex (1))
+          && (filled_counter > 0)
+           )
+        {
+          clues.at (main.value).push_back (filled_counter);
+        }
       }
 
-      return clues;
+      max_minor_count_ =
+          std::max ( max_minor_count_
+                   , clues::MinorIndex (clues.at (main.value).size())
+                   );
     }
 
-    clues::MinorIndex Clues::maxNumberOfClues() const
-    {
-      return max_minor_count_;
-    }
+    return clues;
+  }
 
-    clues::MainIndex Clues::mainSize() const
-    {
-      return data_.mainSize();
-    }
+  clues::MinorIndex Clues::maxNumberOfClues() const
+  {
+    return max_minor_count_;
+  }
 
-    clues::MinorIndex Clues::minorSize (clues::MainIndex main_index) const
-    {
-      return data_.minorSize (main_index);
-    }
+  clues::MainIndex Clues::mainSize() const
+  {
+    return data_.mainSize();
+  }
 
-    Clues::Value Clues::clue (clues::FullIndex full_index) const
-    {
-      return data_.at (full_index);
-    }
+  clues::MinorIndex Clues::minorSize (clues::MainIndex main_index) const
+  {
+    return data_.minorSize (main_index);
+  }
+
+  Clues::Value Clues::clue (clues::FullIndex full_index) const
+  {
+    return data_.at (full_index);
   }
 }

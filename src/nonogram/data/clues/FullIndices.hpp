@@ -4,13 +4,7 @@
 
 #include <set>
 
-namespace nonogram
+namespace nonogram::data::clues
 {
-  namespace data
-  {
-    namespace clues
-    {
-      using FullIndices = std::set<FullIndex>;
-    }
-  }
+  using FullIndices = std::set<FullIndex>;
 }

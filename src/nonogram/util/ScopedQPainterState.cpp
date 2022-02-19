@@ -1,18 +1,15 @@
 #include <nonogram/util/ScopedQPainterState.hpp>
 
-namespace nonogram
+namespace nonogram::util
 {
-  namespace util
+  ScopedQPainterState::ScopedQPainterState (QPainter& painter)
+  : painter_ (painter)
   {
-    ScopedQPainterState::ScopedQPainterState (QPainter& painter)
-    : painter_ (painter)
-    {
-      painter_.save();
-    }
+    painter_.save();
+  }
 
-    ScopedQPainterState::~ScopedQPainterState()
-    {
-      painter_.restore();
-    }
+  ScopedQPainterState::~ScopedQPainterState()
+  {
+    painter_.restore();
   }
 }

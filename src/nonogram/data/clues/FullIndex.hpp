@@ -3,20 +3,14 @@
 #include <nonogram/data/clues/MainIndex.hpp>
 #include <nonogram/data/clues/MinorIndex.hpp>
 
-namespace nonogram
+namespace nonogram::data::clues
 {
-  namespace data
+  struct FullIndex
   {
-    namespace clues
-    {
-      struct FullIndex
-      {
-        MainIndex main;
-        MinorIndex minor;
+    MainIndex main;
+    MinorIndex minor;
 
-        bool operator== (FullIndex const& rhs) const;
-        bool operator< (FullIndex const& rhs) const;
-      };
-    }
-  }
+    bool operator== (FullIndex const& rhs) const;
+    bool operator< (FullIndex const& rhs) const;
+  };
 }

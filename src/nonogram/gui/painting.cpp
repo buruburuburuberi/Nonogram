@@ -8,322 +8,319 @@
 #include <QtGui/QPen>
 #include <QtGui/QPixmap>
 
-namespace nonogram
+namespace nonogram::gui
 {
-  namespace gui
+  void drawBackground (QPainter& painter, QRect rect, QColor color)
   {
-    void drawBackground (QPainter& painter, QRect rect, QColor color)
-    {
-      util::ScopedQPainterState const state (painter);
+    util::ScopedQPainterState const state (painter);
 
-      painter.fillRect (rect.adjusted (1, 1, -1, -1), color);
-    }
+    painter.fillRect (rect.adjusted (1, 1, -1, -1), color);
+  }
 
-    void drawFill ( QPainter& painter
-                  , QRect background_rect
-                  , QColor color
-                  , bool solved
-                  )
-    {
-      util::ScopedQPainterState const state (painter);
+  void drawFill ( QPainter& painter
+                , QRect background_rect
+                , QColor color
+                , bool solved
+                )
+  {
+    util::ScopedQPainterState const state (painter);
 
-      auto const rect
-        ( solved
-        ? background_rect
-        : util::CenteredRect
-            ( background_rect.center()
-            , QSize (background_rect.width() - 6, background_rect.height() - 6)
-            )
-        );
+    auto const rect
+      ( solved
+      ? background_rect
+      : util::CenteredRect
+          ( background_rect.center()
+          , QSize (background_rect.width() - 6, background_rect.height() - 6)
+          )
+      );
 
-      painter.fillRect (rect, color);
-    }
+    painter.fillRect (rect, color);
+  }
 
-    void drawCross ( QPainter& painter
-                   , QRect background_rect
-                   , QColor color
-                   )
-    {
-      util::ScopedQPainterState const state (painter);
+  void drawCross ( QPainter& painter
+                 , QRect background_rect
+                 , QColor color
+                 )
+  {
+    util::ScopedQPainterState const state (painter);
 
-      auto pen (painter.pen());
-      pen.setWidth (2);
-      pen.setColor (color);
-      painter.setPen (pen);
+    auto pen (painter.pen());
+    pen.setWidth (2);
+    pen.setColor (color);
+    painter.setPen (pen);
 
-      std::size_t const side (background_rect.width() - 8);
-      QRect const cross_rect
-        ( util::CenteredRect
-            ( background_rect.center()
-            , QSize (side, side)
-            )
-        );
+    std::size_t const side (background_rect.width() - 8);
+    QRect const cross_rect
+      ( util::CenteredRect
+          ( background_rect.center()
+          , QSize (side, side)
+          )
+      );
 
-      painter.drawLine (cross_rect.topLeft(), cross_rect.bottomRight());
-      painter.drawLine (cross_rect.bottomLeft(), cross_rect.topRight());
-    }
+    painter.drawLine (cross_rect.topLeft(), cross_rect.bottomRight());
+    painter.drawLine (cross_rect.bottomLeft(), cross_rect.topRight());
+  }
 
-    void drawFillMark ( QPainter& painter
-                      , QRect background_rect
-                      , QColor color
-                      )
-    {
-      util::ScopedQPainterState const state (painter);
+  void drawFillMark ( QPainter& painter
+                    , QRect background_rect
+                    , QColor color
+                    )
+  {
+    util::ScopedQPainterState const state (painter);
 
-      painter.setBrush (color);
+    painter.setBrush (color);
 
-      std::size_t const side (background_rect.width() / 3);
-      painter.drawEllipse
-        (util::CenteredRect (background_rect.center(), QSize (side, side)));
-    }
+    std::size_t const side (background_rect.width() / 3);
+    painter.drawEllipse
+      (util::CenteredRect (background_rect.center(), QSize (side, side)));
+  }
 
-    void drawCrossMark ( QPainter& painter
-                       , QRect background_rect
-                       , QColor color
-                       )
-    {
-      util::ScopedQPainterState const state (painter);
-
-      auto pen (painter.pen());
-      pen.setWidth (2);
-      pen.setColor (color);
-      painter.setPen (pen);
-
-      auto const side (background_rect.width() - 8);
-      QRect const cross_mark_rect
-        (util::CenteredRect (background_rect.center(), QSize (side, side)));
-
-      painter.drawLine ( cross_mark_rect.bottomLeft()
-                       , cross_mark_rect.topRight()
-                       );
-    }
-
-    QIcon createIcon ( data::Answer::Datum datum
-                     , QSize size
-                     , QColor bg_color
-                     , QColor fg_color
+  void drawCrossMark ( QPainter& painter
+                     , QRect background_rect
+                     , QColor color
                      )
+  {
+    util::ScopedQPainterState const state (painter);
+
+    auto pen (painter.pen());
+    pen.setWidth (2);
+    pen.setColor (color);
+    painter.setPen (pen);
+
+    auto const side (background_rect.width() - 8);
+    QRect const cross_mark_rect
+      (util::CenteredRect (background_rect.center(), QSize (side, side)));
+
+    painter.drawLine ( cross_mark_rect.bottomLeft()
+                     , cross_mark_rect.topRight()
+                     );
+  }
+
+  QIcon createIcon ( data::Answer::Datum datum
+                   , QSize size
+                   , QColor bg_color
+                   , QColor fg_color
+                   )
+  {
+    QPixmap pixmap (size);
+    QPainter painter (&pixmap);
+    pixmap.fill (Qt::black);
+
+    drawBackground (painter, pixmap.rect(), bg_color);
+
+    switch (datum)
     {
-      QPixmap pixmap (size);
-      QPainter painter (&pixmap);
-      pixmap.fill (Qt::black);
-
-      drawBackground (painter, pixmap.rect(), bg_color);
-
-      switch (datum)
+      case data::Answer::Datum::Empty:
       {
-        case data::Answer::Datum::Empty:
-        {
-          break;
-        }
-        case data::Answer::Datum::Filled:
-        {
-          drawFill (painter, pixmap.rect(), fg_color, false);
-          break;
-        }
-        case data::Answer::Datum::Crossed:
-        {
-          drawCross (painter, pixmap.rect(), fg_color);
-          break;
-        }
-        case data::Answer::Datum::FillMark:
-        {
-          drawFillMark (painter, pixmap.rect(), fg_color);
-          break;
-        }
-        case data::Answer::Datum::CrossMark:
-        {
-          drawCrossMark (painter, pixmap.rect(), fg_color);
-          break;
-        }
-        default:
-        {
-          throw std::invalid_argument ("Unknown datum type.");
-        }
+        break;
       }
-
-      return pixmap;
+      case data::Answer::Datum::Filled:
+      {
+        drawFill (painter, pixmap.rect(), fg_color, false);
+        break;
+      }
+      case data::Answer::Datum::Crossed:
+      {
+        drawCross (painter, pixmap.rect(), fg_color);
+        break;
+      }
+      case data::Answer::Datum::FillMark:
+      {
+        drawFillMark (painter, pixmap.rect(), fg_color);
+        break;
+      }
+      case data::Answer::Datum::CrossMark:
+      {
+        drawCrossMark (painter, pixmap.rect(), fg_color);
+        break;
+      }
+      default:
+      {
+        throw std::invalid_argument ("Unknown datum type.");
+      }
     }
 
-    QIcon createCheckIcon (QSize size, QColor bg_color, QColor fg_color)
-    {
-      QPixmap pixmap (size);
-      QPainter painter (&pixmap);
-      pixmap.fill (Qt::black);
+    return pixmap;
+  }
 
-      drawBackground (painter, pixmap.rect(), bg_color);
+  QIcon createCheckIcon (QSize size, QColor bg_color, QColor fg_color)
+  {
+    QPixmap pixmap (size);
+    QPainter painter (&pixmap);
+    pixmap.fill (Qt::black);
 
-      QFont font;
-      font.setPixelSize (20);
-      font.setBold (true);
-      painter.setFont (font);
+    drawBackground (painter, pixmap.rect(), bg_color);
 
-      painter.drawText (pixmap.rect(), Qt::AlignCenter, "C");
+    QFont font;
+    font.setPixelSize (20);
+    font.setBold (true);
+    painter.setFont (font);
 
-      return pixmap;
-    }
+    painter.drawText (pixmap.rect(), Qt::AlignCenter, "C");
 
-    QIcon createLockIcon (QSize size, QColor bg_color, QColor fg_color)
-    {
-      QPixmap pixmap (size);
-      QPainter painter (&pixmap);
-      pixmap.fill (Qt::black);
+    return pixmap;
+  }
 
-      drawBackground (painter, pixmap.rect(), bg_color);
+  QIcon createLockIcon (QSize size, QColor bg_color, QColor fg_color)
+  {
+    QPixmap pixmap (size);
+    QPainter painter (&pixmap);
+    pixmap.fill (Qt::black);
 
-      auto pen (painter.pen());
-      pen.setWidth (2);
-      painter.setPen (pen);
+    drawBackground (painter, pixmap.rect(), bg_color);
 
-      auto const width (size.width());
-      auto const height (size.height());
+    auto pen (painter.pen());
+    pen.setWidth (2);
+    painter.setPen (pen);
 
-      QRectF const arc_rect
-        (QPoint (width * 0.3, height * 0.2), QPoint (width * 0.7, height * 0.8));
-      int const startAngle = 0;
-      int const spanAngle = 180 * 16;
+    auto const width (size.width());
+    auto const height (size.height());
 
-      painter.drawArc (arc_rect, startAngle, spanAngle);
+    QRectF const arc_rect
+      (QPoint (width * 0.3, height * 0.2), QPoint (width * 0.7, height * 0.8));
+    int const startAngle = 0;
+    int const spanAngle = 180 * 16;
 
-      painter.fillRect
-        ( QRect ( QPoint (width * 0.2, height * 0.45)
-                , QPoint (width * 0.8, height * 0.85)
-                )
-        , fg_color
-        );
+    painter.drawArc (arc_rect, startAngle, spanAngle);
 
-      return pixmap;
-    }
+    painter.fillRect
+      ( QRect ( QPoint (width * 0.2, height * 0.45)
+              , QPoint (width * 0.8, height * 0.85)
+              )
+      , fg_color
+      );
 
-    QIcon createUnlockIcon (QSize size, QColor bg_color, QColor fg_color)
-    {
-      QPixmap pixmap (size);
-      QPainter painter (&pixmap);
-      pixmap.fill (Qt::black);
+    return pixmap;
+  }
 
-      drawBackground (painter, pixmap.rect(), bg_color);
+  QIcon createUnlockIcon (QSize size, QColor bg_color, QColor fg_color)
+  {
+    QPixmap pixmap (size);
+    QPainter painter (&pixmap);
+    pixmap.fill (Qt::black);
 
-      auto pen (painter.pen());
-      pen.setWidth (2);
-      painter.setPen (pen);
+    drawBackground (painter, pixmap.rect(), bg_color);
 
-      auto const width (size.width());
-      auto const height (size.height());
+    auto pen (painter.pen());
+    pen.setWidth (2);
+    painter.setPen (pen);
 
-      QRectF const arc_rect
-        (QPoint (width * 0.3, height * 0.2), QPoint (width * 0.7, height * 0.8));
-      int const startAngle = 180 * 16;
-      int const spanAngle = -120 * 16;
+    auto const width (size.width());
+    auto const height (size.height());
 
-      painter.drawArc (arc_rect, startAngle, spanAngle);
+    QRectF const arc_rect
+      (QPoint (width * 0.3, height * 0.2), QPoint (width * 0.7, height * 0.8));
+    int const startAngle = 180 * 16;
+    int const spanAngle = -120 * 16;
 
-      painter.fillRect
-        ( QRect ( QPoint (width * 0.2, height * 0.45)
-                , QPoint (width * 0.8, height * 0.85)
-                )
-        , fg_color
-        );
+    painter.drawArc (arc_rect, startAngle, spanAngle);
 
-      return pixmap;
-    }
+    painter.fillRect
+      ( QRect ( QPoint (width * 0.2, height * 0.45)
+              , QPoint (width * 0.8, height * 0.85)
+              )
+      , fg_color
+      );
 
-    QIcon createUndoIcon (QSize size, QColor bg_color, QColor fg_color)
-    {
-      QPixmap pixmap (size);
-      QPainter painter (&pixmap);
-      pixmap.fill (Qt::black);
+    return pixmap;
+  }
 
-      drawBackground (painter, pixmap.rect(), bg_color);
+  QIcon createUndoIcon (QSize size, QColor bg_color, QColor fg_color)
+  {
+    QPixmap pixmap (size);
+    QPainter painter (&pixmap);
+    pixmap.fill (Qt::black);
 
-      painter.setBrush (fg_color);
+    drawBackground (painter, pixmap.rect(), bg_color);
 
-      auto const width (size.width());
-      auto const height (size.width());
-      std::array<QPointF, 3> const points
-        { QPointF (width * 0.8, height * 0.2)
-        , QPointF (width * 0.8, height * 0.8)
-        , QPointF (width * 0.2, height / 2)
-        };
+    painter.setBrush (fg_color);
 
-      painter.drawPolygon (points.data(), points.size());
+    auto const width (size.width());
+    auto const height (size.width());
+    std::array<QPointF, 3> const points
+      { QPointF (width * 0.8, height * 0.2)
+      , QPointF (width * 0.8, height * 0.8)
+      , QPointF (width * 0.2, height / 2)
+      };
 
-      return pixmap;
-    }
+    painter.drawPolygon (points.data(), points.size());
 
-    QIcon createRedoIcon (QSize size, QColor bg_color, QColor fg_color)
-    {
-      QPixmap pixmap (size);
-      QPainter painter (&pixmap);
-      pixmap.fill (Qt::black);
+    return pixmap;
+  }
 
-      drawBackground (painter, pixmap.rect(), bg_color);
+  QIcon createRedoIcon (QSize size, QColor bg_color, QColor fg_color)
+  {
+    QPixmap pixmap (size);
+    QPainter painter (&pixmap);
+    pixmap.fill (Qt::black);
 
-      painter.setBrush (fg_color);
+    drawBackground (painter, pixmap.rect(), bg_color);
 
-      auto const width (size.width());
-      auto const height (size.width());
-      std::array<QPointF, 3> const points
-        { QPointF (width * 0.2, height * 0.2)
-        , QPointF (width * 0.8, height / 2)
-        , QPointF (width * 0.2, height * 0.8)
-        };
+    painter.setBrush (fg_color);
 
-      painter.drawPolygon (points.data(), points.size());
+    auto const width (size.width());
+    auto const height (size.width());
+    std::array<QPointF, 3> const points
+      { QPointF (width * 0.2, height * 0.2)
+      , QPointF (width * 0.8, height / 2)
+      , QPointF (width * 0.2, height * 0.8)
+      };
 
-      return pixmap;
-    }
+    painter.drawPolygon (points.data(), points.size());
 
-    QIcon createResetIcon (QSize size, QColor bg_color, QColor fg_color)
-    {
-      QPixmap pixmap (size);
-      QPainter painter (&pixmap);
-      pixmap.fill (Qt::black);
+    return pixmap;
+  }
 
-      drawBackground (painter, pixmap.rect(), bg_color);
+  QIcon createResetIcon (QSize size, QColor bg_color, QColor fg_color)
+  {
+    QPixmap pixmap (size);
+    QPainter painter (&pixmap);
+    pixmap.fill (Qt::black);
 
-      return pixmap;
-    }
+    drawBackground (painter, pixmap.rect(), bg_color);
 
-    QIcon createSolveIcon (QSize size, QColor bg_color, QColor fg_color)
-    {
-      QPixmap pixmap (size);
-      QPainter painter (&pixmap);
-      pixmap.fill (Qt::black);
+    return pixmap;
+  }
 
-      drawBackground (painter, pixmap.rect(), bg_color);
+  QIcon createSolveIcon (QSize size, QColor bg_color, QColor fg_color)
+  {
+    QPixmap pixmap (size);
+    QPainter painter (&pixmap);
+    pixmap.fill (Qt::black);
 
-      painter.setBrush (fg_color);
+    drawBackground (painter, pixmap.rect(), bg_color);
 
-      auto const width (size.width());
-      auto const height (size.width());
-      std::array<QPointF, 4> const points
-        { QPointF (width * 0.2, height * 0.4)
-        , QPointF (width * 0.4, height * 0.8)
-        , QPointF (width * 0.8, height * 0.2)
-        , QPointF (width * 0.4, height * 0.5)
-        };
+    painter.setBrush (fg_color);
 
-      painter.drawPolygon (points.data(), points.size());
+    auto const width (size.width());
+    auto const height (size.width());
+    std::array<QPointF, 4> const points
+      { QPointF (width * 0.2, height * 0.4)
+      , QPointF (width * 0.4, height * 0.8)
+      , QPointF (width * 0.8, height * 0.2)
+      , QPointF (width * 0.4, height * 0.5)
+      };
 
-      return pixmap;
-    }
+    painter.drawPolygon (points.data(), points.size());
 
-    QIcon createControlsIcon (QSize size, QColor bg_color, QColor fg_color)
-    {
-      QPixmap pixmap (size);
-      QPainter painter (&pixmap);
-      pixmap.fill (Qt::black);
+    return pixmap;
+  }
 
-      drawBackground (painter, pixmap.rect(), bg_color);
+  QIcon createControlsIcon (QSize size, QColor bg_color, QColor fg_color)
+  {
+    QPixmap pixmap (size);
+    QPainter painter (&pixmap);
+    pixmap.fill (Qt::black);
 
-      QFont font;
-      font.setPixelSize (20);
-      font.setBold (true);
-      painter.setFont (font);
+    drawBackground (painter, pixmap.rect(), bg_color);
 
-      painter.drawText (pixmap.rect(), Qt::AlignCenter, "?");
+    QFont font;
+    font.setPixelSize (20);
+    font.setBold (true);
+    painter.setFont (font);
 
-      return pixmap;
-    }
+    painter.drawText (pixmap.rect(), Qt::AlignCenter, "?");
+
+    return pixmap;
   }
 }
